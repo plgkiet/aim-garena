@@ -368,7 +368,7 @@ const LATE_GUN_SKINS = [
     image: '/textures/hermes.jpg', fit: 'overlay', base: 'solid', metal: 0.2, rough: 0.45,
     emblems: [
       { crop: [0.08, 0.31, 0.92, 0.62], at: [0.86, 0.3], h: 0.46, w: 0.3, flip: true },   // the collage on the stock
-      { crop: [0.25, 0.55, 0.8, 0.8], at: [0.49, 0.19], h: 0.42, w: 0.28, flip: true },    // the collage over the whole magazine (under the logos)
+      { crop: [0.3, 0.55, 0.75, 0.8], at: [0.497, 0.19], h: 0.42, w: 0.175, flip: true },    // the collage over the whole magazine (under the logos)
       // the wordmark and the duc-carriage from the clean logo (transparent PNG)
       { image: '/textures/hermes_logo.png', crop: [0.015, 0.45, 0.995, 0.77], at: [0.338, 0.47], h: 0.06, flip: true },   // HERMÈS, clear of the receiver
       { image: '/textures/hermes_logo.png', crop: [0.21, 0, 0.77, 0.43], at: [0.57, 0.465], h: 0.095, flip: true },   // the carriage (horse's head and all), mid-receiver
