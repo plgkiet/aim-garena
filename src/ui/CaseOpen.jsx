@@ -96,7 +96,17 @@ export function CaseOpen({ onBack, onInventory }) {
   const soundRef = useRef(sound)
   soundRef.current = sound
 
-  useEffect(() => () => cancelAnimationFrame(frame.current), [])
+  // the drawn item waits here until the reel stops; nothing reaches the
+  // inventory (or its counter) while the reel is still running
+  const pendingRef = useRef(null)
+  const claim = () => {
+    const item = pendingRef.current
+    if (!item) return null
+    pendingRef.current = null
+    return inventory.add(item.id)
+  }
+  // leaving mid-spin must not lose the drop
+  useEffect(() => () => { cancelAnimationFrame(frame.current); claim() }, [])
   // warm the thumbnails of everything that can show on the strip
   useEffect(() => { for (const it of items) if (it.tier !== 'gold') thumbnail(it).catch(() => {}) }, [items])
 
@@ -160,6 +170,8 @@ export function CaseOpen({ onBack, onInventory }) {
       }
       if (t < 1) frame.current = requestAnimationFrame(step)
       else {
+        const drop = claim()
+        setResult({ item: winner, drop })
         setPhase('done')
         setRevealed(true)
         if (soundRef.current) playReveal(winner.tier)
@@ -174,8 +186,8 @@ export function CaseOpen({ onBack, onInventory }) {
     setEquipped(false)
     setPhase('spinning')
     const item = drawItem(items)
-    const drop = inventory.add(item.id)
-    setResult({ item, drop })
+    pendingRef.current = item
+    setResult(null)
     // the winning tile's picture must exist before it slides into view
     thumbnail(item).catch(() => {}).finally(() => run(item))
   }
@@ -196,8 +208,8 @@ export function CaseOpen({ onBack, onInventory }) {
       <div className="spin-shell" aria-hidden="true" />
       <div className="wrap page spin-page">
         <div className="case-top">
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onBack}>← Menu</button>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onInventory}>Kho đồ ({inventory.get().items.length})</button>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onBack} disabled={phase === 'spinning'}>← Menu</button>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onInventory} disabled={phase === 'spinning'}>Kho đồ ({inventory.get().items.length})</button>
         </div>
         <div className="page-head">
           <span className="eyebrow">{CASE.name}</span>
