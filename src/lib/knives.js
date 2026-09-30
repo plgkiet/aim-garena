@@ -72,6 +72,10 @@ export const KNIVES = {
     id: "m9a",
     file: "/models/m9_bayonet.glb",
     pick: ["group001"],
+    // the blade mesh, for repainting it with a finish from a case
+    blade: ["box001"],
+    // guard and pommel cap: they wear the finish with the blade
+    accent: ["cylinder01", "box002"],
     name: "M9 Bayonet",
     skin: "★ | Doppler",
     rarity: "Covert",
@@ -87,6 +91,8 @@ export const KNIVES = {
     id: "m9b",
     file: "/models/m9_bayonet.glb",
     pick: ["group002"],
+    blade: ["box003"],
+    accent: ["cylinder003", "box004"],
     name: "M9 Bayonet",
     skin: "★ | Autotronic",
     rarity: "Covert",
@@ -111,6 +117,9 @@ export const KNIVES = {
     pose: copy(POSE, { p: [0.112, -0.064, -0.305] }),
     hand: copy(HAND),
     offhand: copy(OFFHAND),
+    blade: ["blade_"],
+    // with a finish, the Crimson Web inlays and blade bolts take its colour
+    accent: ["butterfly_knife2_grip_br_red_grip", "screw_blade"],
     // the blade bolts come tinted pink in the file; show them as plain steel
     silver: ["screw_blade"],
     // handles pivot on the two blade bolts, exactly like a real balisong.
@@ -128,9 +137,35 @@ export const KNIVES = {
   },
 };
 
+/* Case knives that come as real models: the finish is painted on the named
+   blade meshes. Huntsman and Bowie are one mesh each, cut at the guard. */
+const glbKnife = (id, file, name, blade, extra = {}) => ({
+  id, file, name, blade, skin: "★", rarity: "Covert",
+  length: 0.3, gripAt: 0.22, roll: Math.PI,
+  pose: copy(POSE), hand: copy(HAND), offhand: copy(OFFHAND), wings: null,
+  ...extra,
+});
+Object.assign(KNIVES, {
+  karambit: glbKnife("karambit", "/models/karambit.glb", "Karambit", ["plane001_lamina"], {
+    accent: ["plane001_material003"],   // the red pivot screw
+    // held reverse like CS: ring out over the thumb, the blade under the fist
+    // curling up. The handle end is the "tip" of the stance, grip on the handle.
+    length: 0.24, gripAt: 0.63, roll: 0,
+    reverse: true,
+    pose: { p: [0, -0.035, -0.29], r: [-0.4, -0.3, 2.0] },
+    // the curved handle sits off the stance axis: slide the fist onto it
+    hand: { p: [-0.045, -0.004, 0], r: [0, 0, 0] },
+  }),
+  huntsman: glbKnife("huntsman", "/models/huntsman.glb", "Huntsman Knife", ["blade_split"], { bladeSplit: 0.045, roll: 0 }),
+  bowie: glbKnife("bowie", "/models/bowie.glb", "Bowie Knife", ["blade_split"], { bladeSplit: 0.045, roll: 0 }),
+  skeleton: glbKnife("skeleton", "/models/skeleton.glb", "Skeleton Knife", ["pcube15_knife_main"]),
+});
+export const GLB_KNIVES = ["karambit", "huntsman", "bowie", "skeleton"];
+
 /* The case knives built in code (skins/knives.js): one entry per knife + finish,
    held in the same stance as the model knives. */
 for (const it of KNIFE_SKINS) {
+  if (it.model) continue;
   KNIVES[it.id] = {
     id: it.id,
     build: it.knife,
@@ -159,6 +194,6 @@ KNIVES.default = {
   wings: null,
 };
 
-export const KNIFE_ORDER = ["default", "m9a", "m9b", "bfly", ...KNIFE_SKINS.map((k) => k.id)];
+export const KNIFE_ORDER = ["default", "m9a", "m9b", "bfly", ...GLB_KNIVES, ...KNIFE_SKINS.filter((k) => !k.model).map((k) => k.id)];
 /** Every other knife comes out of a case. */
 export const DEFAULT_KNIFE = "default";

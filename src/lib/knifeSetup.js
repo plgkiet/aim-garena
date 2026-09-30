@@ -6,6 +6,64 @@ import * as THREE from 'three'
    thinnest axis -> +Z (blade normal). Then we scale to a viewmodel-sized knife
    and move the origin onto the grip, so every trick rotates around the hand. */
 
+/** Freeze skinned meshes (knives ripped from CS viewmodels ship rigged) into
+    plain meshes in their bound pose: their vertices only land in place through
+    the bones, so measuring or repainting them as-is reads garbage. */
+export function bakeSkins(root) {
+  root.updateMatrixWorld(true)
+  const skinned = []
+  root.traverse(o => { if (o.isSkinnedMesh) skinned.push(o) })
+  const v = new THREE.Vector3()
+  for (const sm of skinned) {
+    const g = sm.geometry.clone()
+    const n = g.attributes.position.count
+    const arr = new Float32Array(n * 3)
+    for (let i = 0; i < n; i++) { sm.getVertexPosition(i, v); arr[i * 3] = v.x; arr[i * 3 + 1] = v.y; arr[i * 3 + 2] = v.z }
+    g.setAttribute('position', new THREE.BufferAttribute(arr, 3))
+    g.deleteAttribute('skinIndex'); g.deleteAttribute('skinWeight')
+    g.deleteAttribute('normal'); g.computeVertexNormals()
+    g.computeBoundingBox(); g.computeBoundingSphere()
+    const m = new THREE.Mesh(g, sm.material)
+    m.name = sm.name
+    m.position.copy(sm.position); m.quaternion.copy(sm.quaternion); m.scale.copy(sm.scale)
+    sm.parent.add(m)
+    sm.parent.remove(sm)
+  }
+  return skinned.length
+}
+
+/** Cut a one-piece knife into blade and handle at a height (in the normalised
+    knife frame, blade up): triangles above `y` go to a new mesh named
+    `blade_split`, so a finish can go on the blade alone. The frame is the
+    root's parent's, where normalizeKnife left the knife standing. */
+export function splitBladeAt(root, y) {
+  root.updateMatrixWorld(true)
+  const toRoot = root.parent ? new THREE.Matrix4().copy(root.parent.matrixWorld).invert() : new THREE.Matrix4()
+  const meshes = []
+  root.traverse(o => { if (o.isMesh && !o.name.startsWith('blade_split')) meshes.push(o) })
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3()
+  for (const mesh of meshes) {
+    const g = mesh.geometry, pos = g.attributes.position
+    const idx = g.index ? g.index.array : Array.from({ length: pos.count }, (_, i) => i)
+    const M = new THREE.Matrix4().multiplyMatrices(toRoot, mesh.matrixWorld)
+    const up = [], down = []
+    for (let t = 0; t < idx.length; t += 3) {
+      a.fromBufferAttribute(pos, idx[t]).applyMatrix4(M)
+      b.fromBufferAttribute(pos, idx[t + 1]).applyMatrix4(M)
+      c.fromBufferAttribute(pos, idx[t + 2]).applyMatrix4(M)
+      ;((a.y + b.y + c.y) / 3 > y ? up : down).push(idx[t], idx[t + 1], idx[t + 2])
+    }
+    if (!up.length) continue
+    const bg = g.clone(); bg.setIndex(up)
+    const hg = g.clone(); hg.setIndex(down)
+    mesh.geometry = hg
+    const bm = new THREE.Mesh(bg, mesh.material)
+    bm.name = 'blade_split'
+    bm.position.copy(mesh.position); bm.quaternion.copy(mesh.quaternion); bm.scale.copy(mesh.scale)
+    mesh.parent.add(bm)
+  }
+}
+
 function collectPoints(root, stride = 3) {
   const pts = []
   const v = new THREE.Vector3()
@@ -66,6 +124,7 @@ function principalAxes(pts) {
 export function normalizeKnife(model, cfg) {
   const { length: targetLen, gripAt = 0.2, flip = false, roll = 0, pick = null } = cfg
   if (pick) keepOnly(model, pick)
+  bakeSkins(model)
   const pts = collectPoints(model)
   const { mean, a1, a2, a3 } = principalAxes(pts)
 
@@ -106,6 +165,9 @@ export function normalizeKnife(model, cfg) {
   const box = new THREE.Box3().setFromObject(model)
   const grip = box.min.y + (box.max.y - box.min.y) * gripAt
   model.applyMatrix4(new THREE.Matrix4().makeTranslation(-(box.min.x + box.max.x) / 2, -grip, -(box.min.z + box.max.z) / 2))
+  model.updateMatrixWorld(true)
+  // one-piece knives: cut the blade off at the guard so it can take a finish
+  if (cfg.bladeSplit != null) splitBladeAt(model, cfg.bladeSplit)
   if (roll) model.applyMatrix4(new THREE.Matrix4().makeRotationY(roll))
   model.updateMatrixWorld(true)
 

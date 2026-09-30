@@ -115,7 +115,16 @@ function placeArm(arm, p, r, aim, frame, mode = 'grip', back = null) {
 }
 
 /** A case knife built in code: already in the knife frame, no file to load. */
-function ProcKnife({ cfg, envMap, api }) {
+/* Built only once it is first held: there are dozens of case knives, and
+   making every one (and painting its finish) up front stalls the match load. */
+function ProcKnife(props) {
+  const id = props.cfg.id
+  const [wanted, setWanted] = useState(knife.knifeKey === id)
+  useEffect(() => knife.subscribe(() => { if (knife.knifeKey === id) setWanted(true) }), [id])
+  return wanted ? <ProcKnifeModel {...props} /> : null
+}
+
+function ProcKnifeModel({ cfg, envMap, api }) {
   // the finish can be swapped for another pattern of it before a match
   const [finish, setFinish] = useState(cfg.finish)
   useEffect(() => knife.subscribe(() => setFinish(cfg.finish)), [cfg])
@@ -148,8 +157,9 @@ function Knife({ cfg, envMap, api }) {
   const built = useMemo(() => {
     const model = cloneSkeleton(gltf.scene)
     normalizeKnife(model, cfg)
-    if (finish) paintModelBlade(model, finish)
-    silverParts(model, cfg.silver)
+    // a finish paints the blade and its accents; without one the file's own look stays, bolts in steel
+    if (finish) paintModelBlade(model, finish, cfg.blade, cfg.roll, cfg.accent)
+    else silverParts(model, cfg.silver)
     const wings = rigButterfly(model, cfg.wings)
     dressMaterials(model, envMap, cfg.tint)
     const box = new THREE.Box3().setFromObject(model)

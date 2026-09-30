@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
+import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { buildGun } from '../view/guns'
 import { buildKnifeModel, paintModelBlade, silverParts } from './knives'
 import { KNIVES } from '../lib/knives'
@@ -59,15 +61,16 @@ function shoot(model) {
   return renderer.domElement.toDataURL('image/png')
 }
 
-const loader = new GLTFLoader()
+const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
 function modelKnife(key, finish = null) {
   const cfg = KNIVES[key]
   return loader.loadAsync(cfg.file).then(gltf => {
-    const m = gltf.scene.clone(true)
+    const m = cloneSkeleton(gltf.scene)
     if (cfg.pick) keepOnly(m, cfg.pick)
     normalizeKnife(m, cfg)
-    if (finish) paintModelBlade(m, finish)
-    silverParts(m, cfg.silver)
+    // a finish paints the blade and its accents; without one the file's own look stays, bolts in steel
+    if (finish) paintModelBlade(m, finish, cfg.blade, cfg.roll, cfg.accent)
+    else silverParts(m, cfg.silver)
     return m
   })
 }
@@ -81,8 +84,16 @@ export async function buildItemModel(item) {
   const model = item.model ? await modelKnife(item.knife, item.finish ? item : null) : buildKnifeModel(item.knife, item)
   // knives stand blade-up with the flat on Z: turn the flat to the camera,
   // then lay the blade across the picture, tip up and to the right
-  model.rotation.y = Math.PI / 2
-  const wrap = new THREE.Group(); wrap.add(model); wrap.rotation.x = -1.05
+  // (a model knife carries its alignment in its own matrix: turn a holder
+  // around it instead, taking the in-hand roll back out)
+  const turn = new THREE.Group()
+  // a knife held reversed (Karambit: its ring is the stance's "tip") is turned
+  // end over end, so the picture still shows the blade up
+  if (item.model && KNIVES[item.knife]?.reverse) {
+    const over = new THREE.Group(); over.rotation.z = Math.PI; over.add(model); turn.add(over)
+  } else turn.add(model)
+  turn.rotation.y = Math.PI / 2 - ((item.model && KNIVES[item.knife]?.roll) || 0)
+  const wrap = new THREE.Group(); wrap.add(turn); wrap.rotation.x = -1.05
   return wrap
 }
 

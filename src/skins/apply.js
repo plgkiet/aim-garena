@@ -38,11 +38,13 @@ const _m = new THREE.Matrix4()
  * @param {THREE.Mesh[]} meshes   the parts to paint
  * @param {object} skin
  * @param {'z'|'y'} long         the weapon's length axis (guns run down -Z, knives up +Y)
+ * @param {THREE.Matrix4} [frame] the frame to project in, when it is not the
+ *                                root's own (a model knife's alignment lives in its matrix)
  */
-export function paintMeshes(root, meshes, skin, long = 'z') {
+export function paintMeshes(root, meshes, skin, long = 'z', frame = null) {
   if (!meshes.length) return
   root.updateMatrixWorld(true)
-  _inv.copy(root.matrixWorld).invert()
+  _inv.copy(frame ?? root.matrixWorld).invert()
   const across = long === 'z' ? 'y' : 'x'
 
   // extent of the painted parts along the weapon

@@ -86,7 +86,7 @@ export const GUN_SKINS = [
     image: '/textures/bape.jpg', fit: 'tile', tile: 0.6, tileCrop: [0, 0, 1, 0.3], metal: 0.15, rough: 0.55,
     emblem: { crop: [0.3, 0.355, 0.69, 0.66], at: [0.58, 0.3], h: 0.5 },
   }),
-  skin('awp', 'Supreme', 'covert', 'gem', ['#e0141e'], {
+  skin('awp', 'LV Supreme', 'covert', 'gem', ['#e0141e'], {
     image: '/textures/supreme_lv.jpg', fit: 'tile', tile: 0.35, tileCrop: [0, 0, 1, 0.33], tileFlip: true, metal: 0.15, rough: 0.5,
     emblem: { crop: [0.25, 0.43, 0.77, 0.63], at: [0.6, 0.2], h: 0.13, flip: true, pad: 0.5, padColor: '#fe0000' },
   }),
@@ -262,17 +262,21 @@ const FINISH = {
   gemRuby: { name: 'Ruby', pattern: 'gem', image: '/textures/ruby.jpg', pal: ['#b0142e'], ...GEM_LOOK.ruby },
   gemSapphire: { name: 'Sapphire', pattern: 'gem', image: '/textures/sapphire.jpg', pal: ['#1f4fd6'], ...GEM_LOOK.sapphire },
   gemEmerald: { name: 'Emerald', pattern: 'gem', image: '/textures/emerald.jpg', pal: ['#12a866'], ...GEM_LOOK.emerald },
-  lore: { name: 'Lore', pattern: 'gem', image: '/textures/lore.jpg', fit: 'band', pal: ['#b9b08a'], metal: 0.6, rough: 0.3 },
   rust: { name: 'Rust Coat', pattern: 'gem', image: '/textures/rust.jpg', pal: ['#8a4a22'], metal: 0.45, rough: 0.8, sat: 1.1, contrast: 1.05, gloss: false },
 }
 
 /* `band`: how tall the blade sits on the artwork, so a banner finish (Lore)
    spans the blade exactly once. */
 export const KNIFE_TYPES = {
-  karambit: { name: 'Karambit', band: 0.85 },
+  karambit: { name: 'Karambit', band: 1 },
   flip: { name: 'Flip Knife', band: 0.31 },
   huntsman: { name: 'Huntsman Knife', band: 0.35 },
+  skeleton: { name: 'Skeleton Knife', band: 0.4 },
+  stiletto: { name: 'Stiletto Knife', band: 0.2 },
+  bowie: { name: 'Bowie Knife', band: 0.45 },
 }
+
+const MODEL_TYPES = new Set(['karambit', 'huntsman', 'bowie', 'skeleton'])
 
 const knife = (type, finish) => ({
   id: `knife_${type}_${finish}`,
@@ -282,14 +286,19 @@ const knife = (type, finish) => ({
   seed: seed++,
   band: KNIFE_TYPES[type].band,
   ...FINISH[finish],
+  // these lines are real models now: the finish goes on the model's blade
+  ...(MODEL_TYPES.has(type) && { model: true, finish: true }),
 })
 
 export const KNIFE_SKINS = [
   knife('karambit', 'fade'), knife('karambit', 'sapphire'), knife('karambit', 'marble'), knife('karambit', 'tiger'),
   knife('flip', 'ruby'), knife('flip', 'web'), knife('flip', 'gamma'),
   knife('huntsman', 'slaughter'), knife('huntsman', 'emerald'), knife('huntsman', 'doppler'),
-  // every knife comes in every gem, Case Hardened, Lore and Rust Coat
-  ...['karambit', 'flip', 'huntsman'].flatMap(t => ['gemRuby', 'gemSapphire', 'gemEmerald', 'caseHardened', 'lore', 'rust', 'blackPearl'].map(f => knife(t, f))),
+  // every knife comes in every gem, Case Hardened and Rust Coat
+  ...['karambit', 'flip', 'huntsman'].flatMap(t => ['gemRuby', 'gemSapphire', 'gemEmerald', 'caseHardened', 'rust', 'blackPearl'].map(f => knife(t, f))),
+  // the newer lines, each in the headline finishes
+  ...['skeleton', 'stiletto', 'bowie'].flatMap(t =>
+    ['fade', 'doppler', 'slaughter', 'tiger', 'gemRuby', 'gemSapphire', 'gemEmerald', 'caseHardened', 'blackPearl'].map(f => knife(t, f))),
 ]
 
 /* The original model knives can drop too (their finish is baked into the file). */
@@ -305,6 +314,7 @@ export const MODEL_KNIVES = [
   { id: 'knife_m9b', kind: 'knife', knife: 'm9b', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Autotronic', model: true },
   { id: 'knife_bfly', kind: 'knife', knife: 'bfly', tier: 'gold', weaponName: '★ Butterfly Knife', name: 'Crimson Web', model: true },
   ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
+  ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
 ]
 
 export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES]
