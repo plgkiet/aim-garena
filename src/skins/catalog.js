@@ -335,6 +335,34 @@ const LATE_GUN_SKINS = [
     image: '/textures/plgk_2026.jpg', fit: 'overlay', base: 'solid', metal: 0.3, rough: 0.45,
     emblems: [{ crop: [0, 0, 1, 1], at: [0.58, 0.3], h: 0.58, flip: true }],
   }),
+  // Dior's oblique monogram, tiled over the whole P90
+  skin('p90', 'Dior Oblique', 'covert', 'gem', ['#f2f2f2'], {
+    image: '/textures/dior.jpg', fit: 'tile', tile: 0.8, metal: 0.1, rough: 0.55,
+  }),
+  // Off-White: black, two lengths of the yellow industrial tape crossed in
+  // an X over the middle of the gun (as on the brand's own packaging), the
+  // crossed arrows on the stock and the label text along the handguard
+  skin('m4a4', 'Off-White', 'covert', 'gem', ['#0b0b0c'], {
+    image: '/textures/offwhite_tape.jpg', fit: 'overlay', base: 'solid', metal: 0.3, rough: 0.45,
+    emblems: [
+      { crop: [0, 0, 1, 1], at: [0.56, 0.4], h: 0.1, w: 0.5, rot: 0.42, flip: true },
+      { crop: [0, 0, 1, 1], at: [0.56, 0.4], h: 0.1, w: 0.5, rot: -0.42, flip: true },
+      { image: '/textures/offwhite_logo.jpg', crop: [0, 0, 1, 1], at: [0.87, 0.44], h: 0.17 },
+    ],
+    texts: [
+      { text: 'Off-White™  "M4A4"  c. 2026', at: [0.21, 0.46], h: 0.045, weight: 400, font: 'Arial, Helvetica, sans-serif', color: '#f2f2f2', flip: true },
+    ],
+  }),
+  // the Mona Lisa's face and hands on the receiver, the painting's own hazy
+  // landscape tiled over the rest of the gun so the whole of it is one picture
+  skin('m4a1s', 'Mona Lisa', 'covert', 'gem', ['#2c3122'], {
+    image: '/textures/mona_lisa.jpg', fit: 'tile', tile: 0.53, tileCrop: [0, 0.2, 0.26, 0.56], tileFlip: true, metal: 0.15, rough: 0.55,
+    emblem: { crop: [0.2, 0.1, 0.8, 0.62], at: [0.6, 0.27], h: 0.5, flip: true },
+  }),
+  // Pollock's drip painting, tiled over the P90 without its white margin
+  skin('p90', 'Number 5', 'covert', 'gem', ['#6b4a2c'], {
+    image: '/textures/pollock.jpg', fit: 'tile', tile: 0.8, tileCrop: [0.04, 0.03, 0.96, 0.97], metal: 0.15, rough: 0.6,
+  }),
 ]
 
 export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES, ...LATE_GUN_SKINS]

@@ -637,12 +637,16 @@ function keyDark(g, color) {
   g.putImageData(im, 0, 0)
 }
 
-function paintGem(g, skin, img) {
+function paintGem(g, skin, img, extra = {}) {
   // `overlay`: a pattern painted in code, with pieces of the picture stuck on
-  // top as decals (the street racer's sponsor stickers)
+  // top as decals (the street racer's sponsor stickers). An emblem can name
+  // its own `image` when the pieces come from more than one picture.
   if (skin.fit === 'overlay') {
     ;(P[skin.base] || P.fade)(g, skin)
-    for (const e of skin.emblems ?? []) paintEmblem(g, e, img)
+    for (const e of skin.emblems ?? []) {
+      const src = e.image ? extra[e.image] : img
+      if (src) paintEmblem(g, e, src)
+    }
     for (const t of skin.texts ?? []) paintText(g, t)
     return
   }
@@ -755,8 +759,10 @@ export function paintSkin(skin) {
   const g = c.getContext('2d')
   if (skin.image) {
     g.fillStyle = skin.pal?.[0] || '#555'; g.fillRect(0, 0, TEX_W, TEX_H)
-    ready.set(skin.id, loadImage(skin.image).then(img => {
-      if (img) { paintGem(g, skin, img); wear(g, skin) }
+    const more = [...new Set((skin.emblems ?? []).map(e => e.image).filter(Boolean))]
+    ready.set(skin.id, Promise.all([skin.image, ...more].map(loadImage)).then(([img, ...got]) => {
+      const extra = Object.fromEntries(more.map((src, i) => [src, got[i]]))
+      if (img) { paintGem(g, skin, img, extra); wear(g, skin) }
       return c
     }))
   } else {
