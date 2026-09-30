@@ -374,14 +374,14 @@ export function CaseOpen({ onBack, onInventory }) {
                   : "Hết lượt quay"}
             </button>
             {/* TEST ONLY: open without spending a spin. Comment out when done testing. */}
-            <button
+            {/* <button
               type="button"
               className="btn btn--ghost btn--block"
               disabled={phase === "spinning"}
               onClick={() => open(true)}
             >
               Quay test (không tốn lượt)
-            </button>
+            </button> */}
             {/* END TEST ONLY */}
             <p className="faint" style={{ fontSize: 12, textAlign: "center" }}>
               Mỗi kill trong trận được 1 lượt quay (ở mọi chế độ).
@@ -418,7 +418,9 @@ export function WinnerModal({ item, drop, onClose, label = "Bạn nhận đượ
         <p className="winner-modal__desc">
           {tierBySlug(item.tier).label} · {tierBySlug(item.tier).vi}
         </p>
-        <div className="winner-modal__art">{url && <img src={url} alt="" />}</div>
+        <div className="winner-modal__art">
+          {url && <img src={url} alt="" />}
+        </div>
         <div className="winner-modal__actions">
           <span className="faint">
             Đồ đã nằm trong kho. Trang bị để mang vào trận.
@@ -435,7 +437,11 @@ export function WinnerModal({ item, drop, onClose, label = "Bạn nhận đượ
             >
               {equipped ? "Đã trang bị" : "Trang bị ngay"}
             </button>
-            <button type="button" className="btn btn--primary" onClick={onClose}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={onClose}
+            >
               Tiếp tục
             </button>
           </div>
