@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { itemById, TIERS } from '../skins/catalog' // tierBySlug: only needed if the rarity tag comes back
+import { ITEMS, itemById, TIERS } from '../skins/catalog' // tierBySlug: only needed if the rarity tag comes back
 import { inventory } from '../skins/inventory'
 import { MiniItem, itemLabel } from './CaseOpen'
 
@@ -30,6 +30,9 @@ export function Inventory({ onBack, onCase, onTradeUp }) {
         <div className="case-top">
           <button type="button" className="btn btn--ghost btn--sm" onClick={onBack}>← Menu</button>
           <div className="row gap-8">
+            {/* TEST ONLY: one of every skin and knife in the case. Comment out when done testing. */}
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => ITEMS.forEach(it => inventory.add(it.id))}>Nhận full skin</button>
+            {/* END TEST ONLY */}
             <button type="button" className="btn btn--ghost btn--sm" onClick={onTradeUp}>Trade up</button>
             <button type="button" className="btn btn--primary btn--sm" onClick={onCase}>Mở hòm</button>
           </div>
