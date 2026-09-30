@@ -50,21 +50,21 @@ export function Inventory({ onBack, onCase, onTradeUp, onOpen }) {
           </button>
           <div className="row gap-8">
             {/* TEST ONLY: one of every skin and knife in the case. Comment out when done testing. */}
-            <button
+            {/* <button
               type="button"
               className="btn btn--ghost btn--sm"
               onClick={() => ITEMS.forEach((it) => inventory.add(it.id))}
             >
               Nhận full skin
-            </button>
+            </button> */}
             {/* TEST ONLY: empty the whole inventory (spins are kept). Comment out when done testing. */}
-            <button
+            {/* <button
               type="button"
               className="btn btn--ghost btn--sm"
               onClick={() => setClearing(true)}
             >
               Dọn full skin
-            </button>
+            </button> */}
             {/* END TEST ONLY */}
             <button
               type="button"
