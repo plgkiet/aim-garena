@@ -34,6 +34,12 @@ export const GUN_SKINS = [
   skin('m4a4', 'Solar Flare', 'covert', 'geometric', ['#f4f1ea', '#15171b', '#ff6a1a', '#15171b'], { tag: 'SOL-4' }),
   skin('deagle', 'Blaze', 'covert', 'fade', ['#ffe066', '#ff8a00', '#ff2a00', '#6b0000'], { metal: 0.75, rough: 0.28 }),
   skin('m4a1s', 'Hyper Violet', 'covert', 'splatter', ['#1a0f2e', '#ff2e97', '#39ff14', '#00e5ff', '#fff200']),
+  // Covert gems: photo finishes of the stone (public/textures)
+  skin('ak47', 'Ruby', 'covert', 'gem', ['#5a0a1e'], { image: '/textures/ruby.jpg', metal: 0.55, rough: 0.2 }),
+  skin('awp', 'Sapphire', 'covert', 'gem', ['#0a1a5a'], { image: '/textures/sapphire.jpg', metal: 0.55, rough: 0.2 }),
+  skin('m4a4', 'Emerald', 'covert', 'gem', ['#0f6b45'], { image: '/textures/emerald.jpg', metal: 0.5, rough: 0.2 }),
+  skin('awp', 'Dragon Lore', 'covert', 'gem', ['#b9b08a'], { image: '/textures/lore.jpg', fit: 'band', band: 0.45, metal: 0.25, rough: 0.45 }),
+  skin('deagle', 'Blue Gem', 'covert', 'gem', ['#4fb4e6'], { image: '/textures/bluegem.jpg', metal: 0.6, rough: 0.18, sat: 1.6 }),
   // Classified
   skin('ak47', 'Neon Revolution', 'classified', 'neon', ['#0a0a12', '#ff3ea5', '#18f2ff', '#fffb00']),
   skin('usp', 'Cortex Pink', 'classified', 'circuit', ['#2a0b22', '#ff4fb8', '#ffe3f5']),
@@ -69,12 +75,21 @@ const FINISH = {
   web: { name: 'Crimson Web', pattern: 'web', pal: ['#b3121b', '#0b0000'], metal: 0.35, rough: 0.4 },
   slaughter: { name: 'Slaughter', pattern: 'slaughter', pal: ['#ffd0dc', '#ff5a7a', '#c0122e', '#ffe6ea'], metal: 0.75, rough: 0.25 },
   caseHardened: { name: 'Case Hardened', pattern: 'caseHardened', pal: ['#1a2a6b', '#3f6fd6', '#9ab0c8', '#d9a23a', '#6b4a12'], metal: 0.85, rough: 0.3 },
+  // gems: photographs of the stone (public/textures), painted by paintGem
+  gemRuby: { name: 'Ruby', pattern: 'gem', image: '/textures/ruby.jpg', pal: ['#5a0a1e'], metal: 0.8, rough: 0.14 },
+  gemSapphire: { name: 'Sapphire', pattern: 'gem', image: '/textures/sapphire.jpg', pal: ['#0a1a5a'], metal: 0.8, rough: 0.14 },
+  gemEmerald: { name: 'Emerald', pattern: 'gem', image: '/textures/emerald.jpg', pal: ['#0f6b45'], metal: 0.75, rough: 0.14 },
+  lore: { name: 'Lore', pattern: 'gem', image: '/textures/lore.jpg', fit: 'band', pal: ['#b9b08a'], metal: 0.6, rough: 0.3 },
+  rust: { name: 'Rust Coat', pattern: 'gem', image: '/textures/rust.jpg', pal: ['#8a4a22'], metal: 0.45, rough: 0.8, sat: 1.1, contrast: 1.05, gloss: false },
+  blueGem: { name: 'Blue Gem', pattern: 'gem', image: '/textures/bluegem.jpg', pal: ['#4fb4e6'], metal: 0.85, rough: 0.14, sat: 1.6 },
 }
 
+/* `band`: how tall the blade sits on the artwork, so a banner finish (Lore)
+   spans the blade exactly once. */
 export const KNIFE_TYPES = {
-  karambit: { name: 'Karambit' },
-  flip: { name: 'Flip Knife' },
-  huntsman: { name: 'Huntsman Knife' },
+  karambit: { name: 'Karambit', band: 0.85 },
+  flip: { name: 'Flip Knife', band: 0.31 },
+  huntsman: { name: 'Huntsman Knife', band: 0.35 },
 }
 
 const knife = (type, finish) => ({
@@ -83,6 +98,7 @@ const knife = (type, finish) => ({
   name: FINISH[finish].name,
   weaponName: `★ ${KNIFE_TYPES[type].name}`,
   seed: seed++,
+  band: KNIFE_TYPES[type].band,
   ...FINISH[finish],
 })
 
@@ -90,6 +106,8 @@ export const KNIFE_SKINS = [
   knife('karambit', 'fade'), knife('karambit', 'sapphire'), knife('karambit', 'marble'), knife('karambit', 'tiger'),
   knife('flip', 'ruby'), knife('flip', 'web'), knife('flip', 'gamma'),
   knife('huntsman', 'slaughter'), knife('huntsman', 'caseHardened'), knife('huntsman', 'emerald'), knife('huntsman', 'doppler'),
+  // every knife comes in every gem, in Lore and in Rust Coat
+  ...['karambit', 'flip', 'huntsman'].flatMap(t => ['gemRuby', 'gemSapphire', 'gemEmerald', 'blueGem', 'lore', 'rust'].map(f => knife(t, f))),
 ]
 
 /* The original model knives can drop too (their finish is baked into the file). */

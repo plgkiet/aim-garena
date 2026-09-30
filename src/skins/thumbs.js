@@ -5,6 +5,7 @@ import { buildGun } from '../view/guns'
 import { buildKnifeModel } from './knives'
 import { KNIVES } from '../lib/knives'
 import { normalizeKnife, keepOnly } from '../lib/knifeSetup'
+import { skinReady } from './patterns'
 
 /* Item pictures, rendered from the real models rather than drawn: one small
    offscreen renderer lays each weapon on its side, lit by a studio
@@ -75,6 +76,7 @@ export function thumbnail(item) {
   if (pending.has(item.id)) return pending.get(item.id)
   const job = (async () => {
     setup()
+    if (item.image) await skinReady(item)   // don't photograph a gem before its stone has loaded
     let model
     if (item.kind === 'gun') {
       model = buildGun(item.weapon, { skin: item }).group

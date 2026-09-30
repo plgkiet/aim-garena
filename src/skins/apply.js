@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { paintSkin } from './patterns'
+import { paintSkin, skinReady } from './patterns'
 
 /* Put a skin on a built model.
 
@@ -15,6 +15,8 @@ export function skinMaterial(skin) {
   tex.colorSpace = THREE.SRGBColorSpace
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping
   tex.anisotropy = 8
+  // photo finishes arrive a moment later: re-upload the canvas when they do
+  if (skin.image) skinReady(skin).then(() => { tex.needsUpdate = true })
   const m = new THREE.MeshStandardMaterial({
     map: tex, metalness: skin.metal ?? 0.35, roughness: skin.rough ?? 0.45, envMapIntensity: 1.1,
   })

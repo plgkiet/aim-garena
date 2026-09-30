@@ -348,19 +348,83 @@ const P = {
   },
 }
 
+/* Gem finishes are photographs, not procedures: the stone is cropped to the
+   artwork's 2:1 at a seeded offset (so two gem skins never show the same
+   patch), pushed a little richer, and given a polished highlight. The picture
+   loads async, so the canvas starts as the stone's base colour and is painted
+   over once it arrives; `skinReady` resolves then. */
+const images = new Map()
+function loadImage(src) {
+  if (!images.has(src)) {
+    images.set(src, new Promise(res => {
+      const img = new Image()
+      img.onload = () => res(img)
+      img.onerror = () => res(null)
+      img.src = src
+    }))
+  }
+  return images.get(src)
+}
+
+/* A banner finish (Lore): one long artwork laid end to end along the weapon,
+   so the knotwork runs from the muzzle / blade root and the dragon's fire
+   lands at the far end. The band is sized to the part's height on the
+   artwork (`band`, a fraction of it) and repeated upward to cover any taller
+   part rather than being stretched. */
+function paintBand(g, skin, img) {
+  const h = TEX_H * (skin.band ?? 0.4)
+  for (let y = TEX_H - h; y > -h; y -= h) g.drawImage(img, 0, y, TEX_W, h)
+}
+
+function paintGem(g, skin, img) {
+  if (skin.fit === 'band') return paintBand(g, skin, img)
+  const r = rng(skin.seed)
+  // cover-crop, zoomed in a touch so the seeded offset has room to move
+  const k = Math.max(TEX_W / img.width, TEX_H / img.height) * (1.15 + r() * 0.35)
+  const w = img.width * k, h = img.height * k
+  g.filter = `saturate(${skin.sat ?? 1.35}) contrast(${skin.contrast ?? 1.12})`
+  g.drawImage(img, -(w - TEX_W) * r(), -(h - TEX_H) * r(), w, h)
+  g.filter = 'none'
+  if (skin.gloss === false) return   // a weathered finish (Rust Coat) stays matte
+  // polished stone: a soft band of light across the top, a darker belly
+  const gl = g.createLinearGradient(0, 0, 0, TEX_H)
+  gl.addColorStop(0, 'rgba(255,255,255,0.22)'); gl.addColorStop(0.35, 'rgba(255,255,255,0)')
+  gl.addColorStop(0.75, 'rgba(0,0,0,0)'); gl.addColorStop(1, 'rgba(0,0,0,0.25)')
+  g.fillStyle = gl; g.fillRect(0, 0, TEX_W, TEX_H)
+}
+
+function wear(g, skin) {
+  // a faint wear pass: nothing leaves the factory perfect
+  const r = rng(skin.seed + 99)
+  g.fillStyle = '#000'
+  for (let i = 0; i < 260; i++) { g.globalAlpha = 0.04 + r() * 0.06; g.fillRect(r() * TEX_W, r() * TEX_H, 1 + r() * 4, 1 + r() * 2) }
+  g.globalAlpha = 1
+}
+
 const cache = new Map()
+const ready = new Map()
 /** A canvas with the skin's artwork, painted once per skin. */
 export function paintSkin(skin) {
   if (cache.has(skin.id)) return cache.get(skin.id)
   const c = document.createElement('canvas')
   c.width = TEX_W; c.height = TEX_H
   const g = c.getContext('2d')
-  ;(P[skin.pattern] || P.fade)(g, skin)
-  // a faint wear pass: nothing leaves the factory perfect
-  const r = rng(skin.seed + 99)
-  g.fillStyle = '#000'
-  for (let i = 0; i < 260; i++) { g.globalAlpha = 0.04 + r() * 0.06; g.fillRect(r() * TEX_W, r() * TEX_H, 1 + r() * 4, 1 + r() * 2) }
-  g.globalAlpha = 1
+  if (skin.image) {
+    g.fillStyle = skin.pal?.[0] || '#555'; g.fillRect(0, 0, TEX_W, TEX_H)
+    ready.set(skin.id, loadImage(skin.image).then(img => {
+      if (img) { paintGem(g, skin, img); wear(g, skin) }
+      return c
+    }))
+  } else {
+    ;(P[skin.pattern] || P.fade)(g, skin)
+    wear(g, skin)
+  }
   cache.set(skin.id, c)
   return c
+}
+
+/** Resolves once the skin's canvas holds its final artwork. */
+export function skinReady(skin) {
+  paintSkin(skin)
+  return ready.get(skin.id) || Promise.resolve(cache.get(skin.id))
 }
