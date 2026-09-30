@@ -11,7 +11,7 @@ function useInventory() {
   return s
 }
 
-export function Inventory({ onBack, onCase }) {
+export function Inventory({ onBack, onCase, onTradeUp }) {
   const inv = useInventory()
   const [filter, setFilter] = useState('all')
   const [tier, setTier] = useState('all')
@@ -29,7 +29,10 @@ export function Inventory({ onBack, onCase }) {
       <div className="wrap page spin-page">
         <div className="case-top">
           <button type="button" className="btn btn--ghost btn--sm" onClick={onBack}>← Menu</button>
-          <button type="button" className="btn btn--primary btn--sm" onClick={onCase}>Mở hòm</button>
+          <div className="row gap-8">
+            <button type="button" className="btn btn--ghost btn--sm" onClick={onTradeUp}>Trade up</button>
+            <button type="button" className="btn btn--primary btn--sm" onClick={onCase}>Mở hòm</button>
+          </div>
         </div>
         <div className="page-head">
           <span className="eyebrow">Kho đồ</span>

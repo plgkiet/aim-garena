@@ -125,7 +125,6 @@ export function CaseOpen({ onBack, onInventory }) {
   const [revealed, setRevealed] = useState(false);
   const [result, setResult] = useState(null);
   const [sound, setSound] = useState(true);
-  const [equipped, setEquipped] = useState(false);
 
   const window_ = useRef(null);
   const track = useRef(null);
@@ -234,15 +233,14 @@ export function CaseOpen({ onBack, onInventory }) {
     frame.current = requestAnimationFrame(step);
   }
 
-  function open() {
-    // one kill = one key; no key, no case
-    if (!inventory.spendSpin()) return;
+  function open(free = false) {
+    // one kill = one key; no key, no case (the test button passes free)
+    if (!free && !inventory.spendSpin()) return;
     // unlock audio right in the click, before anything async (Safari)
     if (soundRef.current) {
       unlock();
       playOpen();
     }
-    setEquipped(false);
     setPhase("spinning");
     const item = drawItem(items);
     pendingRef.current = item;
@@ -352,7 +350,7 @@ export function CaseOpen({ onBack, onInventory }) {
               type="button"
               className="btn btn--primary btn--lg btn--block"
               disabled={phase === "spinning" || spins <= 0}
-              onClick={open}
+              onClick={() => open()}
             >
               {phase === "spinning"
                 ? "Đang quay…"
@@ -360,6 +358,16 @@ export function CaseOpen({ onBack, onInventory }) {
                   ? `Mở hòm · còn ${spins} lượt`
                   : "Hết lượt quay"}
             </button>
+            {/* TEST ONLY: open without spending a spin. Comment out when done testing. */}
+            <button
+              type="button"
+              className="btn btn--ghost btn--block"
+              disabled={phase === "spinning"}
+              onClick={() => open(true)}
+            >
+              Quay test (không tốn lượt)
+            </button>
+            {/* END TEST ONLY */}
             <p className="faint" style={{ fontSize: 12, textAlign: "center" }}>
               Mỗi kill trong trận được 1 lượt quay (ở mọi chế độ).
             </p>
@@ -368,53 +376,56 @@ export function CaseOpen({ onBack, onInventory }) {
       </div>
 
       {revealed && result && (
-        <div
-          className={"winner-modal spin-tile--" + result.item.tier}
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setRevealed(false)}
-        >
-          <div
-            className="winner-modal__inner"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <span className="winner-modal__label">Bạn nhận được</span>
-            <h2 className="winner-modal__title">{itemLabel(result.item)}</h2>
-            <p className="winner-modal__desc">
-              {tierBySlug(result.item.tier).label} ·{" "}
-              {tierBySlug(result.item.tier).vi}
-            </p>
-            <div className="winner-modal__art">
-              {winUrl && <img src={winUrl} alt="" />}
-            </div>
-            <div className="winner-modal__actions">
-              <span className="faint">
-                Đồ đã nằm trong kho. Trang bị để mang vào trận.
-              </span>
-              <div className="row gap-8">
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  disabled={equipped}
-                  onClick={() => {
-                    inventory.equip(result.drop.uid);
-                    setEquipped(true);
-                  }}
-                >
-                  {equipped ? "Đã trang bị" : "Trang bị ngay"}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--primary"
-                  onClick={() => setRevealed(false)}
-                >
-                  Tiếp tục
-                </button>
-              </div>
-            </div>
+        <WinnerModal
+          item={result.item}
+          drop={result.drop}
+          onClose={() => setRevealed(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** The "you got" card, shared by the case and the trade up. */
+export function WinnerModal({ item, drop, onClose, label = "Bạn nhận được" }) {
+  const url = useThumb(item);
+  const [equipped, setEquipped] = useState(false);
+  return (
+    <div
+      className={"winner-modal spin-tile--" + item.tier}
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <div className="winner-modal__inner" onClick={(e) => e.stopPropagation()}>
+        <span className="winner-modal__label">{label}</span>
+        <h2 className="winner-modal__title">{itemLabel(item)}</h2>
+        <p className="winner-modal__desc">
+          {tierBySlug(item.tier).label} · {tierBySlug(item.tier).vi}
+        </p>
+        <div className="winner-modal__art">{url && <img src={url} alt="" />}</div>
+        <div className="winner-modal__actions">
+          <span className="faint">
+            Đồ đã nằm trong kho. Trang bị để mang vào trận.
+          </span>
+          <div className="row gap-8">
+            <button
+              type="button"
+              className="btn btn--ghost"
+              disabled={equipped || !drop}
+              onClick={() => {
+                inventory.equip(drop.uid);
+                setEquipped(true);
+              }}
+            >
+              {equipped ? "Đã trang bị" : "Trang bị ngay"}
+            </button>
+            <button type="button" className="btn btn--primary" onClick={onClose}>
+              Tiếp tục
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

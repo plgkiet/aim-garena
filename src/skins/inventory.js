@@ -1,4 +1,4 @@
-import { itemById } from './catalog'
+import { TRADE_COUNT, drawFromTier, itemById, nextTier } from './catalog'
 
 /* What you own and what you have equipped, kept in this browser.
 
@@ -18,12 +18,14 @@ function load() {
     const equipped = Object.fromEntries(Object.entries(raw.equipped || {}).filter(([, uid]) => uids.has(uid)))
     return {
       items, equipped, opened: raw.opened || 0,
-      spins: Number.isFinite(raw.spins) ? raw.spins : 0,
+      spins: Number.isFinite(raw.spins) ? raw.spins : 0, traded: raw.traded || 0,
     }
-  } catch { return { items: [], equipped: {}, opened: 0, spins: 0 } }
+  } catch { return { items: [], equipped: {}, opened: 0, spins: 0, traded: 0 } }
 }
 
 let state = load()
+
+const newUid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
 
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)) } catch { /* private mode: keep it in memory */ }
@@ -49,8 +51,26 @@ export const inventory = {
 
   /** Add a fresh drop and return it. */
   add(itemId) {
-    const drop = { uid: `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`, id: itemId, at: Date.now() }
+    const drop = { uid: newUid(), id: itemId, at: Date.now() }
     state = { ...state, items: [drop, ...state.items], opened: state.opened + 1 }
+    save()
+    return drop
+  },
+
+  /** Trade five drops of one grade for a random item of the next grade.
+      Returns the new drop, or null if the five don't make a valid contract. */
+  tradeUp(uids) {
+    const gone = new Set(uids)
+    const drops = state.items.filter(d => gone.has(d.uid))
+    if (gone.size !== TRADE_COUNT || drops.length !== TRADE_COUNT) return null
+    const tiers = new Set(drops.map(d => itemById(d.id)?.tier))
+    const up = tiers.size === 1 && nextTier([...tiers][0])
+    if (!up) return null
+    const prize = drawFromTier(up.slug)
+    if (!prize) return null
+    const drop = { uid: newUid(), id: prize.id, at: Date.now(), via: 'tradeup' }
+    const equipped = Object.fromEntries(Object.entries(state.equipped).filter(([, uid]) => !gone.has(uid)))
+    state = { ...state, items: [drop, ...state.items.filter(d => !gone.has(d.uid))], equipped, traded: state.traded + 1 }
     save()
     return drop
   },

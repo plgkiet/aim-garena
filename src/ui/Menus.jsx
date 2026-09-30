@@ -122,7 +122,7 @@ function ThemeToggle() {
   );
 }
 
-export function MainMenu({ onStart, onCase, onInventory }) {
+export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
   const prefs = loadPrefs();
   const [team, setTeam] = useState(prefs.team || "CT");
   const [diff, setDiff] = useState(prefs.difficulty || "normal");
@@ -361,6 +361,9 @@ export function MainMenu({ onStart, onCase, onInventory }) {
                 </button>
                 <button type="button" className="btn" onClick={onInventory}>
                   Kho đồ · {inventory.get().items.length}
+                </button>
+                <button type="button" className="btn" onClick={onTradeUp}>
+                  Trade up
                 </button>
               </div>
             </div>

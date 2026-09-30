@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 
 /* The menu screens live at their own paths — / for the menu, /spin for the
-   case, /inventory for the inventory — so a screen can be linked, reloaded
+   case, /inventory for the inventory, /tradeup for the trade up — so a screen can be linked, reloaded
    and left with the browser's back button. Plain History API; no router. */
 
-const PATHS = { menu: '/', case: '/spin', inventory: '/inventory' }
+const PATHS = { menu: '/', case: '/spin', inventory: '/inventory', tradeup: '/tradeup' }
 const SCREEN_OF = Object.fromEntries(Object.entries(PATHS).map(([k, v]) => [v, k]))
 
 const screenOf = path => SCREEN_OF[path.replace(/\/+$/, '') || '/'] || 'menu'

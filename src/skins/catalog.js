@@ -139,4 +139,17 @@ export function drawItem(items = CASE.items) {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
+/* Trade up, as in CS:GO: five drops of one grade go in, one drop of the next
+   grade up comes out, any item of that grade with equal chance. Five Coverts
+   make a knife. */
+export const TRADE_COUNT = 5
+export function nextTier(slug) {
+  const i = TIERS.findIndex(t => t.slug === slug)
+  return i >= 0 && i < TIERS.length - 1 ? TIERS[i + 1] : null
+}
+export function drawFromTier(slug, items = CASE.items) {
+  const pool = items.filter(i => i.tier === slug)
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
 export const fullName = it => it.kind === 'knife' ? `${it.weaponName} | ${it.name}` : null
