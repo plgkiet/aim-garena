@@ -177,7 +177,7 @@ export function MainMenu({ onStart, onCase, onInventory }) {
               <h3 className="mm-title">Kho vũ khí</h3>
               <div className="mm-knife">
                 <span>Lượt quay</span>
-                <b>{inventory.get().spins} <span className="faint">· 1 kill = 1 lượt</span></b>
+                <b>{inventory.get().spins} <span className="faint">· (1 kill = 1 lượt)</span></b>
               </div>
               <div className="menu-shop">
                 <button type="button" className="btn btn--primary btn--led" onClick={onCase}>★ Mở hòm · {inventory.get().spins}</button>
