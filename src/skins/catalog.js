@@ -158,9 +158,20 @@ export const GUN_SKINS = [
   skin('m4a1s', 'Anti Social', 'covert', 'gem', ['#f4f3ef'], {
     image: '/textures/assc.jpg', fit: 'overlay', base: 'solid', metal: 0.1, rough: 0.55,
     emblems: [
-      { crop: [0.02, 0.2, 0.98, 0.73], at: [0.6, 0.27], h: 0.5, flip: true },    // wordmark
+      { crop: [0.02, 0.2, 0.98, 0.73], at: [0.58, 0.36], h: 0.3, flip: true },  // wordmark on the receiver
+      { crop: [0.02, 0.2, 0.98, 0.73], at: [0.92, 0.34], h: 0.22, flip: true },  // and larger on the stock
       { crop: [0.0, 0.4, 0.2, 0.5], at: [0.3, 0.42], h: 0.1, flip: true },       // sprig, handguard
-      { crop: [0.78, 0.55, 0.98, 0.68], at: [0.92, 0.3], h: 0.18, flip: true },  // sprig, stock
+    ],
+  }),
+  // the web stripe and the king snake: both stand upright in the picture, so
+  // both are turned to run the length of the gun, the snake's head toward the
+  // muzzle over the magazine; at this length the snake keeps its own shape and
+  // the stripe behind it lines up with the web running the gun's length
+  skin('awp', 'Gucci Snake', 'covert', 'gem', ['#050505'], {
+    image: '/textures/gucci.jpg', fit: 'overlay', base: 'solid', metal: 0.3, rough: 0.45,
+    emblems: [
+      { crop: [0.35, 0.0, 0.64, 0.1], at: [0.5, 0.21], h: 2, w: 0.09, rot: -Math.PI / 2 },   // green-red-green web
+      { crop: [0.22, 0.12, 0.78, 0.89], at: [0.77, 0.21], h: 0.9, w: 0.17, rot: -Math.PI / 2 }, // the snake
     ],
   }),
   skin('ak47', 'Wild Lotus', 'covert', 'gem', ['#1f6b52'], { image: '/textures/lotus.jpg', fit: 'tile', tile: 0.45, metal: 0.2, rough: 0.5 }),

@@ -1088,3 +1088,12 @@ canvas { display: block; cursor: crosshair; }
 @keyframes confirm-fade { from { opacity: 0; } }
 @keyframes confirm-pop { from { opacity: 0; transform: translateY(8px) scale(0.96); } }
 @media (prefers-reduced-motion: reduce) { .confirm, .confirm__card { animation: none; } }
+
+/* a thumbnail still waiting its turn: a soft sweep instead of a blank */
+.mini-item__ph {
+  border-radius: 8px;
+  background: linear-gradient(100deg, rgba(255,255,255,0.03) 30%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.03) 70%) 0 0 / 250% 100%;
+  animation: thumb-wait 1.3s linear infinite;
+}
+@keyframes thumb-wait { to { background-position: -150% 0; } }
+@media (prefers-reduced-motion: reduce) { .mini-item__ph { animation: none; } }

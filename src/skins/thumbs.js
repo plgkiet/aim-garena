@@ -86,20 +86,51 @@ export async function buildItemModel(item) {
   return wrap
 }
 
-/** PNG data URL for an item (async; cached). */
-export function thumbnail(item) {
-  if (cache.has(item.id)) return Promise.resolve(cache.get(item.id))
-  if (pending.has(item.id)) return pending.get(item.id)
-  const job = (async () => {
-    setup()
-    const model = await buildItemModel(item)
-    const url = shoot(model)
-    cache.set(item.id, url)
-    pending.delete(item.id)
-    return url
+/* Pictures are made one at a time, each in an idle moment between frames,
+   so opening a screen full of items never locks the page up. Callers give a
+   priority: what is on screen now goes first, warming the case strip last. */
+const queue = []
+let busy = false
+function pump() {
+  if (busy || !queue.length) return
+  busy = true
+  queue.sort((a, b) => b.priority - a.priority)
+  const job = queue.shift()
+  ;(async () => {
+    try {
+      setup()
+      const url = shoot(await buildItemModel(job.item))
+      cache.set(job.item.id, url)
+      job.resolve(url)
+    } catch (e) {
+      job.reject(e)
+    } finally {
+      pending.delete(job.item.id)
+      busy = false
+      schedule()
+    }
   })()
-  pending.set(item.id, job)
-  return job
+}
+function schedule() {
+  if (!queue.length) return
+  if (window.requestIdleCallback) window.requestIdleCallback(pump, { timeout: 120 })
+  else setTimeout(pump, 16)
+}
+
+/** PNG data URL for an item (async; cached; queued by `priority`, higher first). */
+export function thumbnail(item, { priority = 1 } = {}) {
+  if (cache.has(item.id)) return Promise.resolve(cache.get(item.id))
+  const waiting = pending.get(item.id)
+  if (waiting) {
+    waiting.job.priority = Math.max(waiting.job.priority, priority)
+    return waiting.promise
+  }
+  const job = { item, priority }
+  const promise = new Promise((resolve, reject) => { job.resolve = resolve; job.reject = reject })
+  pending.set(item.id, { job, promise })
+  queue.push(job)
+  schedule()
+  return promise
 }
 
 export const cachedThumb = id => cache.get(id) || null

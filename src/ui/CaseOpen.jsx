@@ -76,9 +76,10 @@ export const itemTitle = (it) =>
   it.kind === "knife" ? it.weaponName : W[it.weapon]?.name || it.weapon;
 export const itemLabel = (it) => `${itemTitle(it)} | ${it.name}`;
 
-/** Thumbnail for an item, rendered on first use. */
-export function useThumb(item) {
+/** Thumbnail for an item, rendered on first use (queued; see skins/thumbs). */
+export function useThumb(item, priority = 2) {
   const [url, setUrl] = useState(() => (item ? cachedThumb(item.id) : null));
+  const id = item?.id;
   useEffect(() => {
     if (!item) return;
     let live = true;
@@ -87,7 +88,8 @@ export function useThumb(item) {
       setUrl(hit);
       return;
     }
-    thumbnail(item)
+    setUrl(null);
+    thumbnail(item, { priority })
       .then((u) => {
         if (live) setUrl(u);
       })
@@ -95,8 +97,31 @@ export function useThumb(item) {
     return () => {
       live = false;
     };
-  }, [item]);
+    // keyed by id: a Case Hardened variant is a fresh object every render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, priority]);
   return url;
+}
+
+/** Same, but only once its element is about to scroll into view. */
+function useLazyThumb(item) {
+  const ref = useRef(null);
+  const [seen, setSeen] = useState(() => !!(item && cachedThumb(item.id)));
+  useEffect(() => {
+    if (seen || !ref.current) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setSeen(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, [seen]);
+  return [useThumb(seen ? item : null, 2), ref];
 }
 
 function Tile({ item }) {
@@ -156,7 +181,7 @@ export function CaseOpen({ onBack, onInventory }) {
   // warm the thumbnails of everything that can show on the strip
   useEffect(() => {
     for (const it of items)
-      if (it.tier !== "gold") thumbnail(it).catch(() => {});
+      if (it.tier !== "gold") thumbnail(it, { priority: 0 }).catch(() => {});
   }, [items]);
 
   /** The resting strip: enough tiles to overflow the window, not just one of each. */
@@ -263,7 +288,7 @@ export function CaseOpen({ onBack, onInventory }) {
     pendingRef.current = item;
     setResult(null);
     // the winning tile's picture must exist before it slides into view
-    thumbnail(item)
+    thumbnail(item, { priority: 10 })
       .catch(() => {})
       .finally(() => run(item));
   }
@@ -455,9 +480,10 @@ export function WinnerModal({ item, drop, onClose, label = "Bạn nhận đượ
 }
 
 export function MiniItem({ item, children, onClick, active }) {
-  const url = useThumb(item);
+  const [url, ref] = useLazyThumb(item);
   return (
     <div
+      ref={ref}
       className={`mini-item spin-tile--${item.tier}${active ? " is-on" : ""}${item.gem ? " is-gem" : ""}`}
       onClick={onClick}
       title={item.detail || undefined}
