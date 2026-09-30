@@ -179,8 +179,14 @@ export const GUN_SKINS = [
   // magazine and thumbhole pinned to the model's, stretched upright a little
   // so the photo's scope lands on the scope
   skin('awp', 'Gungnir', 'covert', 'gem', ['#3b8ad9'], {
-    image: '/textures/gungnir.jpg', fit: 'decal', metal: 0.35, rough: 0.4,
-    decal: { left: 0, right: 1258, bottom: 233, sy: 1.28, pins: [[819, 0.59], [986, 0.77]] },
+    image: '/textures/gungnir.png', fit: 'decal', metal: 0.35, rough: 0.4,
+    decal: { left: 0, right: 1260, bottom: 238, sy: 1.28, pins: [[819, 0.59], [986, 0.77]] },
+  }),
+  // the same kind of side photo (transparent around the gun, so the model's
+  // own colour fills where the silhouettes differ)
+  skin('awp', 'Medusa', 'covert', 'gem', ['#0e1a1d'], {
+    image: '/textures/medusa.png', fit: 'decal', metal: 0.35, rough: 0.4,
+    decal: { left: 0, right: 1260, bottom: 238, sy: 1.28, pins: [[752, 0.59], [873, 0.77]] },
   }),
   // Classified (the painted-in-code headliners moved down: Covert is for texture skins)
   skin('ak47', 'Dragon Fire', 'classified', 'flames', ['#140707', '#b3140f', '#ff6a00', '#ffd23f'], { metal: 0.3 }),
@@ -250,6 +256,7 @@ const FINISH = {
   web: { name: 'Crimson Web', pattern: 'web', pal: ['#b3121b', '#0b0000'], metal: 0.35, rough: 0.4 },
   slaughter: { name: 'Slaughter', pattern: 'slaughter', pal: ['#ffd0dc', '#ff5a7a', '#c0122e', '#ffe6ea'], metal: 0.75, rough: 0.25 },
   // every drop gets its own pattern number; see variantOf
+  blackPearl: { name: 'Doppler Black Pearl', pattern: 'doppler', pal: ['#07030d', '#241146', '#6437b5', '#d24c9c', '#3d6ad0'], metal: 0.75, rough: 0.14, iridescent: true },
   caseHardened: { name: 'Case Hardened', pattern: 'caseHardened', pal: ['#3f86e0'], seeded: true, metal: 0.8, rough: 0.24 },
   // gems: photographs of the stone (public/textures), painted by paintGem
   gemRuby: { name: 'Ruby', pattern: 'gem', image: '/textures/ruby.jpg', pal: ['#b0142e'], ...GEM_LOOK.ruby },
@@ -282,7 +289,7 @@ export const KNIFE_SKINS = [
   knife('flip', 'ruby'), knife('flip', 'web'), knife('flip', 'gamma'),
   knife('huntsman', 'slaughter'), knife('huntsman', 'emerald'), knife('huntsman', 'doppler'),
   // every knife comes in every gem, Case Hardened, Lore and Rust Coat
-  ...['karambit', 'flip', 'huntsman'].flatMap(t => ['gemRuby', 'gemSapphire', 'gemEmerald', 'caseHardened', 'lore', 'rust'].map(f => knife(t, f))),
+  ...['karambit', 'flip', 'huntsman'].flatMap(t => ['gemRuby', 'gemSapphire', 'gemEmerald', 'caseHardened', 'lore', 'rust', 'blackPearl'].map(f => knife(t, f))),
 ]
 
 /* The original model knives can drop too (their finish is baked into the file). */
@@ -297,7 +304,7 @@ export const MODEL_KNIVES = [
   { id: 'knife_m9a', kind: 'knife', knife: 'm9a', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Doppler', model: true },
   { id: 'knife_m9b', kind: 'knife', knife: 'm9b', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Autotronic', model: true },
   { id: 'knife_bfly', kind: 'knife', knife: 'bfly', tier: 'gold', weaponName: '★ Butterfly Knife', name: 'Crimson Web', model: true },
-  ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
+  ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
 ]
 
 export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES]

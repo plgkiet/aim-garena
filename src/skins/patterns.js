@@ -686,15 +686,16 @@ function wear(g, skin) {
    didn't, a dark violet rim where the two meet and a few silver flecks. The
    pattern also sets how much of the weapon ends up blue; most patterns are a
    blue/gold mix, and a few percent come out nearly all blue: the "Blue Gems". */
-export const BLUE_GEM_AT = 0.8
 
-/** How blue a pattern is (0..1) and whether it counts as a Blue Gem. Cheap. */
+/** How blue a pattern is (0..1) and whether it counts as a Blue Gem. Cheap.
+    A Blue Gem is all blue, not just mostly: no gold anywhere on the weapon. */
 export function caseHardenedInfo(patternNo) {
   const r = rng(patternNo * 31 + 7)
   const x = r()
-  // ~4% of patterns are gems; the rest spread over a 20-68% blue mix
-  const blue = x < 0.04 ? BLUE_GEM_AT + r() * 0.15 : 0.2 + r() * 0.48
-  return { blue, gem: blue >= BLUE_GEM_AT }
+  // ~3% of patterns are gems; the rest spread over a 20-70% blue mix
+  const gem = x < 0.03
+  const blue = gem ? 1 : 0.2 + r() * 0.5
+  return { blue, gem }
 }
 
 const CH_BLUE_LIGHT = hex('#7cc0f5'), CH_BLUE = hex('#2f6fd8'), CH_BLUE_DEEP = hex('#18307f')
@@ -711,14 +712,15 @@ function caseHardenedField(patternNo) {
     // plus a fine mottle, so the edges break up into specks and small islands
     return n(u * 4 + du * 4.4, v * 2 + dv * 4.4, 5) + (fine(u * 26, v * 13, 3) - 0.5) * 0.1
   }
-  // pick the blue/gold threshold so the painted part of the weapon (the lower
-  // ~half of the artwork) comes out at this pattern's share of blue
-  const { blue } = caseHardenedInfo(patternNo)
-  const samples = []
-  for (let j = 0; j < 32; j++) for (let i = 0; i < 128; i++) samples.push(heat((i + 0.5) / 128, ((j + 0.5) / 32) * 0.5))
-  samples.sort((a, b) => a - b)
-  const cut = samples[Math.min(samples.length - 1, Math.floor(blue * samples.length))]
+  // pick the blue/gold threshold so the whole artwork (every weapon's parts,
+  // tall pistols and knives included) comes out at this pattern's share of
+  // blue; a gem puts it past the hottest point, so nothing turns gold
+  const { blue, gem } = caseHardenedInfo(patternNo)
   const RIM = 0.016
+  const samples = []
+  for (let j = 0; j < 48; j++) for (let i = 0; i < 128; i++) samples.push(heat((i + 0.5) / 128, (j + 0.5) / 48))
+  samples.sort((a, b) => a - b)
+  const cut = gem ? samples[samples.length - 1] + RIM * 3 : samples[Math.min(samples.length - 1, Math.floor(blue * samples.length))]
   return (u, v) => {
     const t = heat(u, v)
     const k = tone(u * 10, v * 5, 4)
