@@ -321,6 +321,20 @@ export const MODEL_KNIVES = [
 const LATE_GUN_SKINS = [
   skin('p90', 'Neon Grid', 'restricted', 'circuit', ['#07071a', '#ff2bd6', '#2bf0ff']),
   skin('p90', 'Sand Spray', 'milspec', 'camo', ['#e3cf9e', '#b08a52', '#6e5431', '#3d2e1b']),
+  // the PLGK anniversary cards (year of the snake, year of the horse): the
+  // card's navy as the ground, its picture set mid-gun, mirrored to read
+  // right on the side you see (the snake stands upright, rising tail to head)
+  skin('m4a4', 'Kỉ niệm 2025', 'covert', 'gem', ['#23395b'], {
+    id: 'm4a4_plgk_2025',
+    // cut out, so the ground shows through round the snake
+    image: '/textures/plgk_2025.png', fit: 'overlay', base: 'solid', metal: 0.35, rough: 0.4,
+    emblems: [{ crop: [0, 0, 1, 1], at: [0.54, 0.21], h: 0.66, flip: true }],
+  }),
+  skin('m4a4', 'Kỉ niệm 2026', 'covert', 'gem', ['#253a5b'], {   // sampled off the card, so no seam
+    id: 'm4a4_plgk_2026',
+    image: '/textures/plgk_2026.jpg', fit: 'overlay', base: 'solid', metal: 0.3, rough: 0.45,
+    emblems: [{ crop: [0, 0, 1, 1], at: [0.58, 0.3], h: 0.58, flip: true }],
+  }),
 ]
 
 export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES, ...LATE_GUN_SKINS]
