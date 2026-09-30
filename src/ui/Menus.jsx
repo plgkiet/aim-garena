@@ -108,8 +108,8 @@ export function MainMenu({ onStart, onCase, onInventory }) {
       <div className="menu-card menu-main">
         <header className="mm-head">
           <div>
-            <div className="logo">AIM<span>·</span>GARENA <em>bot match</em></div>
-            <p className="mm-tag">Đấu súng với máy theo luật CS:GO</p>
+            <div className="logo">AIM<span>·</span>GARENA <em>shot match</em></div>
+            <p className="mm-tag">Rèn luyện kĩ năng FPS</p>
           </div>
           <ThemeToggle />
         </header>
