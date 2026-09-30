@@ -1,5 +1,6 @@
 import { game } from '../game/state'
 import { W } from '../game/weapons'
+import { map } from '../world/mapData'
 
 function Team({ team }) {
   const list = game.agents.filter(a => a.team === team).sort((a, b) => b.score - a.score || b.kills - a.kills)
@@ -38,7 +39,7 @@ export function Scoreboard() {
   const first = game.local.team === 'CT' ? 'CT' : 'T'
   return (
     <div className="scoreboard">
-      <div className="sb-head">de_dust2 · Competitive · Round {game.round}/{game.maxRounds}</div>
+      <div className="sb-head">{map.name} · {game.mode === 'aim' ? 'Solo aim' : 'Competitive'} · Round {game.round}/{game.maxRounds}</div>
       <Team team={first} />
       <div className="sb-history">
         {game.history.map((h, i) => (

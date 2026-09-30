@@ -1,0 +1,63 @@
+import { itemById } from './catalog'
+
+/* What you own and what you have equipped, kept in this browser.
+
+   Items are stored by catalog id with a unique drop id, so opening the same
+   skin twice gives two entries. `equipped` maps a weapon id (or 'knife') to
+   the drop you carry into matches. */
+
+const KEY = 'aimgarena.inventory.v1'
+const listeners = new Set()
+
+function load() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY) || '{}')
+    return { items: Array.isArray(raw.items) ? raw.items : [], equipped: raw.equipped || {}, opened: raw.opened || 0 }
+  } catch { return { items: [], equipped: {}, opened: 0 } }
+}
+
+let state = load()
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)) } catch { /* private mode: keep it in memory */ }
+  for (const fn of listeners) fn(state)
+}
+
+export const inventory = {
+  get: () => state,
+  subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) },
+
+  /** Add a fresh drop and return it. */
+  add(itemId) {
+    const drop = { uid: `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`, id: itemId, at: Date.now() }
+    state = { ...state, items: [drop, ...state.items], opened: state.opened + 1 }
+    save()
+    return drop
+  },
+
+  slotOf(item) { return item.kind === 'knife' ? 'knife' : item.weapon },
+
+  equip(uid) {
+    const drop = state.items.find(d => d.uid === uid)
+    const item = drop && itemById(drop.id)
+    if (!item) return
+    state = { ...state, equipped: { ...state.equipped, [inventory.slotOf(item)]: uid } }
+    save()
+  },
+
+  unequip(slot) {
+    const equipped = { ...state.equipped }
+    delete equipped[slot]
+    state = { ...state, equipped }
+    save()
+  },
+
+  isEquipped(uid) { return Object.values(state.equipped).includes(uid) },
+
+  /** The catalog item equipped in a slot ('ak47', 'knife', ...), or null. */
+  equippedItem(slot) {
+    const uid = state.equipped[slot]
+    const drop = uid && state.items.find(d => d.uid === uid)
+    return drop ? itemById(drop.id) : null
+  },
+}

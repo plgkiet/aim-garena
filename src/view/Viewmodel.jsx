@@ -13,6 +13,8 @@ import { swoosh, clack } from '../lib/audio'
 import { VM, viewmodelVFov, applyViewmodel } from '../lib/viewmodel'
 import { Trail } from './Trail'
 import { buildGun } from './guns'
+import { buildKnifeModel } from '../skins/knives'
+import { inventory } from '../skins/inventory'
 import { buildHand } from './HandRig'
 import { game, on, activeWeapon } from '../game/state'
 import { W } from '../game/weapons'
@@ -110,6 +112,28 @@ function placeArm(arm, p, r, aim, frame, mode = 'grip', back = null) {
   arm.group.matrixWorldNeedsUpdate = true
   // procedural hands bend at the wrist toward the shoulder
   if (arm.orientForearm) arm.orientForearm(_c.copy(_d).applyQuaternion(_q1.copy(_q).invert()))
+}
+
+/** A case knife built in code: already in the knife frame, no file to load. */
+function ProcKnife({ cfg, envMap, api }) {
+  const built = useMemo(() => {
+    const model = buildKnifeModel(cfg.build, cfg.finish)
+    model.traverse(o => { if (o.isMesh && o.material?.isMeshStandardMaterial) { o.material.envMap = envMap; o.material.envMapIntensity = 1.6 } })
+    const box = new THREE.Box3().setFromObject(model)
+    const tip = new THREE.Object3D(); tip.position.set(0, box.max.y * 0.97, 0)
+    const base = new THREE.Object3D(); base.position.set(0, box.max.y * 0.34, 0)
+    return { model, wings: [], tip, base, box }
+  }, [cfg, envMap])
+  useLayoutEffect(() => { api.current[cfg.id] = built }, [api, cfg.id, built])
+  const groupRef = useRef()
+  useFrame(() => { if (groupRef.current) groupRef.current.visible = knife.knifeKey === cfg.id })
+  return (
+    <group ref={groupRef}>
+      <primitive object={built.model} />
+      <primitive object={built.tip} />
+      <primitive object={built.base} />
+    </group>
+  )
 }
 
 /** One knife: normalised, re-rigged, with tip/base anchors for the trail. */
@@ -299,7 +323,7 @@ export function Viewmodel() {
     gunArms.right.group.matrixAutoUpdate = false
     gunArms.left.group.matrixAutoUpdate = false
     gunArms.team = team
-    rig.current.id = '__remount'
+    rig.current.key = '__remount'
   }
   const flashTex = useMemo(() => starTexture(), [])
   const flashMat = useMemo(() => new THREE.MeshBasicMaterial({
@@ -341,14 +365,18 @@ export function Viewmodel() {
   function mountGun(id) {
     const R = rig.current
     const hold = gunHold.current
-    if (R.id === id) return
+    // the equipped skin from the inventory is part of what is mounted
+    const skin = id && id !== 'knife' ? inventory.equippedItem(id) : null
+    const key = `${id}|${skin?.id || ''}`
+    if (R.key === key) return
     if (R.model) hold.remove(R.model)
     if (R.anchors) hold.remove(R.anchors)
     R.id = id
+    R.key = key
     if (!id || id === 'knife') { R.gun = null; R.model = null; R.anchors = null; return }
-    let entry = gunCache.current.get(id)
+    let entry = gunCache.current.get(key)
     if (!entry) {
-      const gun = buildGun(id)
+      const gun = buildGun(id, { skin })
       const model = new THREE.Group()
       model.scale.setScalar(GUN_SCALE)
       model.add(gun.group)
@@ -371,7 +399,7 @@ export function Viewmodel() {
       eject.position.copy(gun.eject).multiplyScalar(GUN_SCALE)
       anchors.add(eject)
       entry = { gun, model, anchors, gripR, gripL, flash, eject, gripLRest: gripL?.position.clone(), gripLQuat: gripL?.quaternion.clone() }
-      gunCache.current.set(id, entry)
+      gunCache.current.set(key, entry)
     }
     Object.assign(R, entry)
     hold.add(entry.model)
@@ -682,9 +710,9 @@ export function Viewmodel() {
             <group ref={poseRef}>
               <group ref={knifeHandMount} />
               <group ref={spinRef}>
-                {KNIFE_ORDER.map(id => (
-                  <Knife key={id} cfg={KNIVES[id]} envMap={envMap} api={knives} />
-                ))}
+                {KNIFE_ORDER.map(id => (KNIVES[id].build
+                  ? <ProcKnife key={id} cfg={KNIVES[id]} envMap={envMap} api={knives} />
+                  : <Knife key={id} cfg={KNIVES[id]} envMap={envMap} api={knives} />))}
               </group>
             </group>
           </group>
@@ -705,4 +733,4 @@ export function Viewmodel() {
 const SHELL_GEO = new THREE.CylinderGeometry(0.004, 0.004, 0.02, 8).rotateZ(Math.PI / 2)
 const SHELL_MAT = new THREE.MeshStandardMaterial({ color: '#d4a948', metalness: 0.9, roughness: 0.3 })
 
-KNIFE_ORDER.forEach(id => useGLTF.preload(KNIVES[id].file))
+KNIFE_ORDER.forEach(id => KNIVES[id].file && useGLTF.preload(KNIVES[id].file))

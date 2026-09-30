@@ -1,3 +1,4 @@
+import { KNIFE_SKINS, KNIFE_TYPES } from "../skins/catalog";
 /* Per-model tuning.
 
    A CS:GO knife has one stance, not two: the idle *is* the fighting hold. The
@@ -117,4 +118,38 @@ export const KNIVES = {
     ],
   },
 };
-export const KNIFE_ORDER = ["m9a", "m9b", "bfly"];
+
+/* The case knives built in code (skins/knives.js): one entry per knife + finish,
+   held in the same stance as the model knives. */
+for (const it of KNIFE_SKINS) {
+  KNIVES[it.id] = {
+    id: it.id,
+    build: it.knife,
+    finish: it,
+    name: KNIFE_TYPES[it.knife].name,
+    skin: `★ | ${it.name}`,
+    rarity: "Covert",
+    pose: copy(POSE),
+    hand: copy(HAND),
+    offhand: copy(OFFHAND),
+    wings: null,
+  };
+}
+
+/* The stock knife: what everyone holds until a case gives them better. */
+KNIVES.default = {
+  id: "default",
+  build: "default",
+  finish: null,
+  name: "Knife",
+  skin: "Mặc định",
+  rarity: "Stock",
+  pose: copy(POSE),
+  hand: copy(HAND),
+  offhand: copy(OFFHAND),
+  wings: null,
+};
+
+export const KNIFE_ORDER = ["default", "m9a", "m9b", "bfly", ...KNIFE_SKINS.map((k) => k.id)];
+/** Every other knife comes out of a case. */
+export const DEFAULT_KNIFE = "default";

@@ -1,0 +1,121 @@
+/* The case and everything that can come out of it.
+
+   Five tiers, the CS:GO case ladder (blue → purple → pink → red → gold), with
+   the same slugs and colours as plgk's gift wheel so its reel, tiles and modal
+   carry over unchanged. Knives are the gold tier and only ever gold.
+
+   Odds are the real CS:GO case odds, split evenly inside a tier. */
+
+/* The CS:GO case ladder, colours as the game shows them, with the real case
+   odds: Mil-Spec 79.92%, Restricted 15.98%, Classified 3.2%, Covert 0.64%
+   and a knife 0.26%. Odds are split evenly inside a grade. */
+export const TIERS = [
+  { slug: 'milspec', label: 'Mil-Spec', vi: 'Quân dụng', color: '#4b69ff', odds: 79.92 },
+  { slug: 'restricted', label: 'Restricted', vi: 'Hạn chế', color: '#8847ff', odds: 15.98 },
+  { slug: 'classified', label: 'Classified', vi: 'Tối mật', color: '#d32ce6', odds: 3.2 },
+  { slug: 'covert', label: 'Covert', vi: 'Tuyệt mật', color: '#eb4b4b', odds: 0.64 },
+  { slug: 'gold', label: '★ Rare Special', vi: 'Cực hiếm', color: '#e4ae39', odds: 0.26 },
+]
+export const tierBySlug = slug => TIERS.find(t => t.slug === slug) || TIERS[0]
+export const TIER_COLOR = Object.fromEntries(TIERS.map(t => [t.slug, t.color]))
+
+let seed = 100
+const skin = (weapon, name, tier, pattern, pal, extra = {}) => ({
+  id: `${weapon}_${name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+  kind: 'gun', weapon, name, tier, pattern, pal, seed: seed++, ...extra,
+})
+
+/* ---------------------------------------------------------------- guns --- */
+
+export const GUN_SKINS = [
+  // Covert
+  skin('ak47', 'Dragon Fire', 'covert', 'flames', ['#140707', '#b3140f', '#ff6a00', '#ffd23f'], { metal: 0.3 }),
+  skin('awp', 'Neo Dragon', 'covert', 'neon', ['#0b0616', '#ff2bd6', '#8a2bff', '#2be4ff']),
+  skin('m4a4', 'Solar Flare', 'covert', 'geometric', ['#f4f1ea', '#15171b', '#ff6a1a', '#15171b'], { tag: 'SOL-4' }),
+  skin('deagle', 'Blaze', 'covert', 'fade', ['#ffe066', '#ff8a00', '#ff2a00', '#6b0000'], { metal: 0.75, rough: 0.28 }),
+  skin('m4a1s', 'Hyper Violet', 'covert', 'splatter', ['#1a0f2e', '#ff2e97', '#39ff14', '#00e5ff', '#fff200']),
+  // Classified
+  skin('ak47', 'Neon Revolution', 'classified', 'neon', ['#0a0a12', '#ff3ea5', '#18f2ff', '#fffb00']),
+  skin('usp', 'Cortex Pink', 'classified', 'circuit', ['#2a0b22', '#ff4fb8', '#ffe3f5']),
+  skin('awp', 'Aurora', 'classified', 'aurora', ['#05091c', '#14f1b6', '#6b5bff', '#ff4fd8']),
+  skin('glock', 'Fade', 'classified', 'fade', ['#fff27a', '#ff7ad9', '#9b5bff', '#3b3bff'], { metal: 0.8, rough: 0.25 }),
+  skin('mp9', 'Hydra', 'classified', 'waves', ['#031a2b', '#0ff0ff', '#0b8fff', '#004b9c', '#9ef8ff']),
+  // Restricted
+  skin('m4a1s', 'Cyrex', 'restricted', 'geometric', ['#f2f2f2', '#c8102e', '#1b1b1b', '#c8102e'], { tag: 'CYREX' }),
+  skin('famas', 'Mecha Orange', 'restricted', 'hex', ['#ff7a00', '#3a1a00', '#ffd08a']),
+  skin('galil', 'Toxic Lime', 'restricted', 'stripes', ['#b6ff00', '#121212', '#b6ff00', '#2a2a2a']),
+  skin('deagle', 'Ocean Drive', 'restricted', 'waves', ['#073b4c', '#06d6a0', '#ff5d8f', '#118ab2', '#ffd166']),
+  skin('p250', 'Violet Hex', 'restricted', 'hex', ['#2d0a4e', '#8f2bff', '#e0b3ff']),
+  // Mil-Spec
+  skin('mac10', 'Candy Stripes', 'milspec', 'stripes', ['#ff4d6d', '#ffffff', '#4dc9ff', '#ffffff']),
+  skin('ump', 'Arctic Camo', 'milspec', 'camo', ['#e9f5ff', '#9cc9ec', '#4f86c6', '#1e3a5f']),
+  skin('ssg08', 'Sand Viper', 'milspec', 'scales', ['#3a2410', '#ffcf6b', '#b3561b']),
+  skin('glock', 'Blue Circuit', 'milspec', 'circuit', ['#06122b', '#2f8cff', '#bfe0ff']),
+  skin('mp9', 'Sunset Grid', 'milspec', 'fade', ['#ff9a3c', '#ff4f81', '#6a2cff', '#16103a']),
+]
+
+/* -------------------------------------------------------------- knives --- */
+
+/* Knife finishes, after the CS:GO ones. */
+const FINISH = {
+  fade: { name: 'Fade', pattern: 'fade', pal: ['#fff04d', '#ff8ad8', '#b44dff', '#5b2bff'], metal: 0.9, rough: 0.2 },
+  doppler: { name: 'Doppler', pattern: 'doppler', pal: ['#0a0212', '#3b0a52', '#c1128c', '#ff5bd1', '#1b1f5a'], metal: 0.85, rough: 0.2 },
+  ruby: { name: 'Doppler Ruby', pattern: 'doppler', pal: ['#1a0003', '#6e0010', '#e0102c', '#ff4d5e', '#3a0008'], metal: 0.9, rough: 0.18 },
+  sapphire: { name: 'Doppler Sapphire', pattern: 'doppler', pal: ['#00031a', '#001b6e', '#0a52ff', '#48a7ff', '#000b3a'], metal: 0.9, rough: 0.18 },
+  emerald: { name: 'Gamma Emerald', pattern: 'doppler', pal: ['#001207', '#00471f', '#00c853', '#7dff9c', '#002a12'], metal: 0.9, rough: 0.18 },
+  gamma: { name: 'Gamma Doppler', pattern: 'doppler', pal: ['#02140a', '#0b5e3a', '#2cf5a1', '#b8ff3b', '#083b28'], metal: 0.85, rough: 0.2 },
+  marble: { name: 'Marble Fade', pattern: 'marble', pal: ['#ffe600', '#ff2a00', '#fff4c2', '#1f4fff', '#ffe600'], metal: 0.85, rough: 0.22 },
+  tiger: { name: 'Tiger Tooth', pattern: 'tiger', pal: ['#fff2b0', '#e8a317', '#3b1d00'], metal: 0.95, rough: 0.2 },
+  web: { name: 'Crimson Web', pattern: 'web', pal: ['#b3121b', '#0b0000'], metal: 0.35, rough: 0.4 },
+  slaughter: { name: 'Slaughter', pattern: 'slaughter', pal: ['#ffd0dc', '#ff5a7a', '#c0122e', '#ffe6ea'], metal: 0.75, rough: 0.25 },
+  caseHardened: { name: 'Case Hardened', pattern: 'caseHardened', pal: ['#1a2a6b', '#3f6fd6', '#9ab0c8', '#d9a23a', '#6b4a12'], metal: 0.85, rough: 0.3 },
+}
+
+export const KNIFE_TYPES = {
+  karambit: { name: 'Karambit' },
+  flip: { name: 'Flip Knife' },
+  huntsman: { name: 'Huntsman Knife' },
+}
+
+const knife = (type, finish) => ({
+  id: `knife_${type}_${finish}`,
+  kind: 'knife', knife: type, tier: 'gold',
+  name: FINISH[finish].name,
+  weaponName: `★ ${KNIFE_TYPES[type].name}`,
+  seed: seed++,
+  ...FINISH[finish],
+})
+
+export const KNIFE_SKINS = [
+  knife('karambit', 'fade'), knife('karambit', 'sapphire'), knife('karambit', 'marble'), knife('karambit', 'tiger'),
+  knife('flip', 'ruby'), knife('flip', 'web'), knife('flip', 'gamma'),
+  knife('huntsman', 'slaughter'), knife('huntsman', 'caseHardened'), knife('huntsman', 'emerald'), knife('huntsman', 'doppler'),
+]
+
+/* The original model knives can drop too (their finish is baked into the file). */
+export const MODEL_KNIVES = [
+  { id: 'knife_m9a', kind: 'knife', knife: 'm9a', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Doppler', model: true },
+  { id: 'knife_m9b', kind: 'knife', knife: 'm9b', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Autotronic', model: true },
+  { id: 'knife_bfly', kind: 'knife', knife: 'bfly', tier: 'gold', weaponName: '★ Butterfly Knife', name: 'Crimson Web', model: true },
+]
+
+export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES]
+export const itemById = id => ITEMS.find(i => i.id === id) || null
+
+export const CASE = {
+  id: 'garena_case_1',
+  name: 'Hòm Garena #1',
+  items: ITEMS,
+}
+
+/** Weighted draw: pick a tier by the CS odds, then an item inside it. */
+export function drawItem(items = CASE.items) {
+  const total = TIERS.reduce((s, t) => s + t.odds, 0)
+  let p = Math.random() * total
+  let tier = TIERS[0]
+  for (const t of TIERS) { p -= t.odds; if (p < 0) { tier = t; break } }
+  const pool = items.filter(i => i.tier === tier.slug)
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+export const fullName = it => it.kind === 'knife' ? `${it.weaponName} | ${it.name}` : null

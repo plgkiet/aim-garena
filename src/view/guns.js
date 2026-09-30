@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { paintMeshes } from '../skins/apply'
 
 /* Procedural weapon models, built from boxes and cylinders at real-world scale.
 
@@ -363,15 +364,25 @@ const BUILDERS = {
 }
 
 /** Build a weapon model. Returns { group, ...anchors }. */
-export function buildGun(id, { shadows = false } = {}) {
+/** Build a weapon model, optionally wearing a skin (see skins/catalog.js). */
+export function buildGun(id, { shadows = false, skin = null } = {}) {
   const g = new THREE.Group()
   g.name = `gun_${id}`
   const build = BUILDERS[id]
   if (!build) return null
-  const info = build(g, mats())
+  const M = mats()
+  const info = build(g, M)
   g.traverse(o => {
     if (o.isMesh) { o.castShadow = shadows; o.receiveShadow = false }
   })
+  if (skin) {
+    // the skin goes on the body, furniture and polymer — steel, glass and
+    // brass keep their own finish, as on a real skinned gun
+    const paintable = new Set([M.black, M.dark, M.polymer, M.wood, M.woodLight, M.tan, M.olive, M.green, M.orange])
+    const parts = []
+    g.traverse(o => { if (o.isMesh && paintable.has(o.material)) parts.push(o) })
+    paintMeshes(g, parts, skin, 'z')
+  }
   if (info.mag) info.magRest = { pos: info.mag.position.clone(), rot: info.mag.rotation.clone() }
   return { group: g, id, ...info }
 }

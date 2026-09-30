@@ -12,6 +12,9 @@ import { knife } from '../lib/knifeController'
 import { BuyMenu } from './BuyMenu'
 import { Scoreboard } from './Scoreboard'
 import { MainMenu, PauseMenu, MatchEnd } from './Menus'
+import { CaseOpen } from './CaseOpen'
+import { inventory } from '../skins/inventory'
+import { Inventory } from './Inventory'
 
 /* The HUD reads the shared game state on its own clock (~30 Hz): nothing in the
    simulation pushes React updates, so the canvas never re-renders for a number. */
@@ -40,10 +43,19 @@ const WEAPON_ICON = {
 
 export function Hud({ locked, onRequestLock }) {
   useTick(30)
+  const [screen, setScreen] = useState(null)      // null | 'case' | 'inventory' (from the main menu)
   const me = game.local
   const phase = game.phase
 
-  if (phase === 'menu' || !me) return <div className="hud"><MainMenu onStart={onRequestLock} /></div>
+  if (phase === 'menu' || !me) {
+    return (
+      <div className="hud">
+        {screen === 'case' ? <CaseOpen onBack={() => setScreen(null)} onInventory={() => setScreen('inventory')} />
+          : screen === 'inventory' ? <Inventory onBack={() => setScreen(null)} onCase={() => setScreen('case')} />
+          : <MainMenu onStart={onRequestLock} onCase={() => setScreen('case')} onInventory={() => setScreen('inventory')} />}
+      </div>
+    )
+  }
   if (phase === 'matchEnd') return <div className="hud"><MatchEnd onRestart={onRequestLock} /></div>
 
   const view = me.alive ? me : game.spectate
@@ -94,7 +106,7 @@ export function Hud({ locked, onRequestLock }) {
       {view && inst && (
         <div className="ammo">
           {w?.clip ? (<><b className={inst.clip <= Math.ceil(w.clip * 0.2) ? 'low' : ''}>{inst.clip}</b><span>/ {inst.reserve}</span></>) : <b className="wname-only">{w?.name}</b>}
-          <div className="wname">{w?.name}{view.w.reloadEnd ? ' · đang nạp…' : ''}</div>
+          <div className="wname">{w?.name}{view === me && inventory.equippedItem(inst.id) ? ` | ${inventory.equippedItem(inst.id).name}` : ''}{view.w.reloadEnd ? ' · đang nạp…' : ''}</div>
         </div>
       )}
       {me.alive && <WeaponList me={me} />}

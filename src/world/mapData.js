@@ -86,12 +86,12 @@ export const PENETRATION = { wall: 4, sand: Infinity }
 
 const MAPS = {
   dust2: {
-    id: 'dust2', name: 'de_dust2',
+    id: 'dust2', name: 'Dust',
     SITES: DUST2_SITES, BUY_ZONES: DUST2_BUY, SPAWNS: DUST2_SPAWNS, SPOTS: DUST2_SPOTS,
     SPAWN_YAW: { T: 0, CT: Math.PI },      // T spawn is south: face north (-Z)
   },
   aim: {
-    id: 'aim', name: 'aim_arena', ...AIM_DATA,
+    id: 'aim', name: 'Aim Garena', ...AIM_DATA,
     SPAWN_YAW: { T: Math.PI, CT: 0 },
   },
 }
