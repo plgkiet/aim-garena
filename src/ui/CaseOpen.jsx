@@ -129,6 +129,7 @@ export function CaseOpen({ onBack, onInventory }) {
   const window_ = useRef(null);
   const track = useRef(null);
   const frame = useRef(0);
+  const finishTimer = useRef(0);
   const soundRef = useRef(sound);
   soundRef.current = sound;
 
@@ -147,6 +148,7 @@ export function CaseOpen({ onBack, onInventory }) {
   useEffect(
     () => () => {
       cancelAnimationFrame(frame.current);
+      clearTimeout(finishTimer.current);
       claim();
     },
     [],
@@ -209,9 +211,24 @@ export function CaseOpen({ onBack, onInventory }) {
     const from = width / 2 - TILE / 2;
     const to = width / 2 - (winnerAt * STEP + TILE * stopFraction());
     let lastIndex = -1;
+    let done = false;
     const start = performance.now();
 
+    const finish = () => {
+      if (done) return;
+      done = true;
+      cancelAnimationFrame(frame.current);
+      clearTimeout(finishTimer.current);
+      setOffset(to);
+      const drop = claim();
+      setResult({ item: winner, drop });
+      setPhase("done");
+      setRevealed(true);
+      if (soundRef.current) playReveal(winner.tier);
+    };
+
     const step = (now) => {
+      if (done) return;
       const t = Math.min(1, (now - start) / profile.durationMs);
       const x = from + (to - from) * ease(t, profile.friction);
       setOffset(x);
@@ -219,17 +236,15 @@ export function CaseOpen({ onBack, onInventory }) {
       const index = Math.round((width / 2 - x - TILE / 2) / STEP);
       if (index !== lastIndex) {
         lastIndex = index;
-        if (soundRef.current && t < 0.995) playTick();
+        if (soundRef.current && t < 0.995 && !document.hidden) playTick();
       }
       if (t < 1) frame.current = requestAnimationFrame(step);
-      else {
-        const drop = claim();
-        setResult({ item: winner, drop });
-        setPhase("done");
-        setRevealed(true);
-        if (soundRef.current) playReveal(winner.tier);
-      }
+      else finish();
     };
+    // a hidden tab gets no animation frames at all: this timer still fires
+    // there, so the reel lands on time and the reveal plays while you are
+    // on another tab, rather than the spin freezing until you come back
+    finishTimer.current = setTimeout(finish, profile.durationMs + 30);
     frame.current = requestAnimationFrame(step);
   }
 
