@@ -376,8 +376,24 @@ function paintBand(g, skin, img) {
   for (let y = TEX_H - h; y > -h; y -= h) g.drawImage(img, 0, y, TEX_W, h)
 }
 
+/* A tiled finish (Wild Lotus, Gungnir): the artwork keeps its own aspect,
+   one tile `tile` of the artwork tall, repeated along and up the weapon from
+   a seeded start so the motif is whole rather than stretched. */
+function paintTile(g, skin, img) {
+  const th = TEX_H * (skin.tile ?? 0.45), tw = th * img.width / img.height
+  const x0 = -tw * rng(skin.seed)()
+  for (let y = TEX_H - th; y > -th; y -= th)
+    for (let x = x0; x < TEX_W; x += tw) g.drawImage(img, x, y, tw, th)
+}
+
 function paintGem(g, skin, img) {
   if (skin.fit === 'band') return paintBand(g, skin, img)
+  if (skin.fit === 'tile') {
+    g.filter = `saturate(${skin.sat ?? 1}) brightness(${skin.bright ?? 1})`
+    paintTile(g, skin, img)
+    g.filter = 'none'
+    return
+  }
   const r = rng(skin.seed)
   // cover-crop, zoomed in a touch so the seeded offset has room to move
   const k = Math.max(TEX_W / img.width, TEX_H / img.height) * (1.15 + r() * 0.35)

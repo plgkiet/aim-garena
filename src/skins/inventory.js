@@ -12,8 +12,12 @@ const listeners = new Set()
 function load() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || '{}')
+    // drops of skins since taken out of the catalog are dropped, and unequipped
+    const items = (Array.isArray(raw.items) ? raw.items : []).filter(d => itemById(d.id))
+    const uids = new Set(items.map(d => d.uid))
+    const equipped = Object.fromEntries(Object.entries(raw.equipped || {}).filter(([, uid]) => uids.has(uid)))
     return {
-      items: Array.isArray(raw.items) ? raw.items : [], equipped: raw.equipped || {}, opened: raw.opened || 0,
+      items, equipped, opened: raw.opened || 0,
       spins: Number.isFinite(raw.spins) ? raw.spins : 0,
     }
   } catch { return { items: [], equipped: {}, opened: 0, spins: 0 } }

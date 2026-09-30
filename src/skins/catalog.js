@@ -39,7 +39,10 @@ export const GUN_SKINS = [
   skin('awp', 'Sapphire', 'covert', 'gem', ['#0a1a5a'], { image: '/textures/sapphire.jpg', metal: 0.55, rough: 0.2 }),
   skin('m4a4', 'Emerald', 'covert', 'gem', ['#0f6b45'], { image: '/textures/emerald.jpg', metal: 0.5, rough: 0.2 }),
   skin('awp', 'Dragon Lore', 'covert', 'gem', ['#b9b08a'], { image: '/textures/lore.jpg', fit: 'band', band: 0.45, metal: 0.25, rough: 0.45 }),
-  skin('deagle', 'Blue Gem', 'covert', 'gem', ['#4fb4e6'], { image: '/textures/bluegem.jpg', metal: 0.6, rough: 0.18, sat: 1.6 }),
+  skin('m4a1s', 'Howl', 'covert', 'gem', ['#8a1a08'], { image: '/textures/howl.jpg', fit: 'band', band: 0.47, metal: 0.3, rough: 0.4 }),
+  skin('ak47', 'Blue Gem', 'covert', 'gem', ['#4f7fd6'], { image: '/textures/bluegem.jpg', metal: 0.7, rough: 0.2, sat: 1.15 }),
+  skin('ak47', 'Wild Lotus', 'covert', 'gem', ['#1f6b52'], { image: '/textures/lotus.jpg', fit: 'tile', tile: 0.45, metal: 0.2, rough: 0.5 }),
+  skin('awp', 'Gungnir', 'covert', 'gem', ['#2a7fd6'], { image: '/textures/gungnir.jpg', fit: 'tile', tile: 1.5, sat: 1.4, bright: 0.82, metal: 0.25, rough: 0.45 }),
   // Classified
   skin('ak47', 'Neon Revolution', 'classified', 'neon', ['#0a0a12', '#ff3ea5', '#18f2ff', '#fffb00']),
   skin('usp', 'Cortex Pink', 'classified', 'circuit', ['#2a0b22', '#ff4fb8', '#ffe3f5']),
@@ -81,7 +84,7 @@ const FINISH = {
   gemEmerald: { name: 'Emerald', pattern: 'gem', image: '/textures/emerald.jpg', pal: ['#0f6b45'], metal: 0.75, rough: 0.14 },
   lore: { name: 'Lore', pattern: 'gem', image: '/textures/lore.jpg', fit: 'band', pal: ['#b9b08a'], metal: 0.6, rough: 0.3 },
   rust: { name: 'Rust Coat', pattern: 'gem', image: '/textures/rust.jpg', pal: ['#8a4a22'], metal: 0.45, rough: 0.8, sat: 1.1, contrast: 1.05, gloss: false },
-  blueGem: { name: 'Blue Gem', pattern: 'gem', image: '/textures/bluegem.jpg', pal: ['#4fb4e6'], metal: 0.85, rough: 0.14, sat: 1.6 },
+  blueGem: { name: 'Blue Gem', pattern: 'gem', image: '/textures/bluegem.jpg', pal: ['#4f7fd6'], metal: 0.55, rough: 0.2, sat: 1.15 },
 }
 
 /* `band`: how tall the blade sits on the artwork, so a banner finish (Lore)
