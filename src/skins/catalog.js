@@ -39,12 +39,7 @@ const skin = (weapon, name, tier, pattern, pal, extra = {}) => ({
 /* ---------------------------------------------------------------- guns --- */
 
 export const GUN_SKINS = [
-  // Covert
-  skin('ak47', 'Dragon Fire', 'covert', 'flames', ['#140707', '#b3140f', '#ff6a00', '#ffd23f'], { metal: 0.3 }),
-  skin('awp', 'Neo Dragon', 'covert', 'neon', ['#0b0616', '#ff2bd6', '#8a2bff', '#2be4ff']),
-  skin('m4a4', 'Solar Flare', 'covert', 'geometric', ['#f4f1ea', '#15171b', '#ff6a1a', '#15171b'], { tag: 'SOL-4' }),
-  skin('deagle', 'Blaze', 'covert', 'fade', ['#ffe066', '#ff8a00', '#ff2a00', '#6b0000'], { metal: 0.75, rough: 0.28 }),
-  skin('m4a1s', 'Hyper Violet', 'covert', 'splatter', ['#1a0f2e', '#ff2e97', '#39ff14', '#00e5ff', '#fff200']),
+  // Covert: only the texture skins (photos, paintings, patterns from pictures)
   // Covert photo finishes (public/textures)
   // the dragon runs the length of the body and stock, breathing fire toward
   // the barrel; barrel and scope wear the gold harlequin (layout from the AWP's
@@ -65,9 +60,35 @@ export const GUN_SKINS = [
     },
     metalOnly: true, metal: 0.35, rough: 0.45,
   }),
+  // paintings: a strip cut to the M4A4's 3.3:1 side (v 0-0.61), laid on once
+  // and mirrored so the side you look at reads the right way round
+  skin('m4a4', 'Starry Night', 'covert', 'gem', ['#1b2a5e'], {
+    image: '/textures/starry_night.jpg', fit: 'band', metal: 0.2, rough: 0.5,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.61, crop: [0.01, 0.99], cropV: [0.06, 0.44], flip: true },
+  }),
+  skin('m4a4', 'Doraemon', 'covert', 'gem', ['#e9d9f0'], {
+    image: '/textures/doraemon.jpg', fit: 'band', metal: 0.15, rough: 0.5,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.61, crop: [0.401, 0.801], cropV: [0.46, 0.708], flip: true },   // the big Doraemon by the door sits mid-gun
+  }),
+  // Hokusai's wave: the curling crest, cut to the AK's 3.3:1 side
+  skin('ak47', 'Great Wave', 'covert', 'gem', ['#e9dcc0'], {
+    image: '/textures/great_wave.jpg', fit: 'band', metal: 0.15, rough: 0.5,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.604, crop: [0.1, 0.62], cropV: [0.33, 0.56], flip: true },
+  }),
+  // Munch's Scream on the Deagle: its side is taller than the artwork, so it
+  // is squeezed (vSpan) to fit, and the face lands on the frame
+  skin('deagle', 'The Scream', 'covert', 'gem', ['#4a3528'], {
+    image: '/textures/scream.jpg', fit: 'band', metal: 0.15, rough: 0.55, vSpan: 1.6, paintChrome: true,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0.12, v1: 1, cropV: [0.37, 1], flip: true },
+  }),
   skin('ak47', 'Wild Lotus', 'covert', 'gem', ['#1f6b52'], { image: '/textures/lotus.jpg', fit: 'tile', tile: 0.45, metal: 0.2, rough: 0.5 }),
   skin('awp', 'Gungnir', 'covert', 'gem', ['#2a7fd6'], { image: '/textures/gungnir.jpg', fit: 'tile', tile: 1.5, sat: 1.4, bright: 0.82, metal: 0.25, rough: 0.45 }),
-  // Classified
+  // Classified (the painted-in-code headliners moved down: Covert is for texture skins)
+  skin('ak47', 'Dragon Fire', 'classified', 'flames', ['#140707', '#b3140f', '#ff6a00', '#ffd23f'], { metal: 0.3 }),
+  skin('awp', 'Neo Dragon', 'classified', 'neon', ['#0b0616', '#ff2bd6', '#8a2bff', '#2be4ff']),
+  skin('m4a4', 'Solar Flare', 'classified', 'geometric', ['#f4f1ea', '#15171b', '#ff6a1a', '#15171b'], { tag: 'SOL-4' }),
+  skin('deagle', 'Blaze', 'classified', 'fade', ['#ffe066', '#ff8a00', '#ff2a00', '#6b0000'], { metal: 0.75, rough: 0.28 }),
+  skin('m4a1s', 'Hyper Violet', 'classified', 'splatter', ['#1a0f2e', '#ff2e97', '#39ff14', '#00e5ff', '#fff200']),
   skin('ak47', 'Neon Revolution', 'classified', 'neon', ['#0a0a12', '#ff3ea5', '#18f2ff', '#fffb00']),
   skin('usp', 'Cortex Pink', 'classified', 'circuit', ['#2a0b22', '#ff4fb8', '#ffe3f5']),
   skin('awp', 'Aurora', 'classified', 'aurora', ['#05091c', '#14f1b6', '#6b5bff', '#ff4fd8']),

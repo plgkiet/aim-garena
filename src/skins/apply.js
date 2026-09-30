@@ -67,7 +67,8 @@ export function paintMeshes(root, meshes, skin, long = 'z') {
     for (let i = 0; i < pos.count; i++) {
       _p.fromBufferAttribute(pos, i).applyMatrix4(_m)
       uv[i * 2] = (_p[long] - lo) / len
-      uv[i * 2 + 1] = (_p[across] - lo2) / (len * 0.5)
+      // `vSpan` squeezes a tall, short weapon (a pistol) to fit the artwork's height
+      uv[i * 2 + 1] = (_p[across] - lo2) / (len * 0.5 * (skin.vSpan ?? 1))
     }
     g.setAttribute('uv', new THREE.BufferAttribute(uv, 2))
     m.geometry = g

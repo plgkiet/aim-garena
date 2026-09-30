@@ -374,15 +374,19 @@ function paintBand(g, skin, img) {
     return
   }
   // laid out on one weapon: the art spans only [u0,u1] x [v0,v1] (its body),
-  // everything else (barrel, scope) wears the harlequin that frames the art
-  harlequin(g, L.cell ?? 22)
+  // everything else (barrel, scope) wears the harlequin that frames the art,
+  // or just the base colour for a plain layout
+  if (L.plain) { g.fillStyle = skin.pal?.[0] || '#222'; g.fillRect(0, 0, TEX_W, TEX_H) }
+  else harlequin(g, L.cell ?? 22)
   const [c0, c1] = L.crop ?? [0, 1]
+  const [r0, r1] = L.cropV ?? [0, 1]
   const sx = img.width * c0, sw = img.width * (c1 - c0)
+  const sy = img.height * r0, sh = img.height * (r1 - r0)
   const x = L.u0 * TEX_W, w = (L.u1 - L.u0) * TEX_W
   const y = (1 - L.v1) * TEX_H, h = (L.v1 - L.v0) * TEX_H
   g.save()
-  if (L.flip) { g.translate(x + w, 0); g.scale(-1, 1); g.drawImage(img, sx, 0, sw, img.height, 0, y, w, h) }
-  else g.drawImage(img, sx, 0, sw, img.height, x, y, w, h)
+  if (L.flip) { g.translate(x + w, 0); g.scale(-1, 1); g.drawImage(img, sx, sy, sw, sh, 0, y, w, h) }
+  else g.drawImage(img, sx, sy, sw, sh, x, y, w, h)
   g.restore()
 }
 

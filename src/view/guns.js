@@ -562,7 +562,9 @@ export function buildGun(id, { shadows = false, skin = null } = {}) {
     // brass keep their own finish, as on a real skinned gun
     // (a metal-only finish like Case Hardened leaves the wood furniture alone)
     const paintable = new Set([M.black, M.dark, M.polymer, M.tan, M.olive, M.green, M.orange,
-      ...(skin.metalOnly ? [] : [M.wood, M.woodLight])])
+      ...(skin.metalOnly ? [] : [M.wood, M.woodLight]),
+      // a painting covers the chrome too (the Deagle's slide)
+      ...(skin.paintChrome ? [M.chrome] : [])])
     const parts = []
     g.traverse(o => { if (o.isMesh && paintable.has(o.material)) parts.push(o) })
     paintMeshes(g, parts, skin, 'z')
