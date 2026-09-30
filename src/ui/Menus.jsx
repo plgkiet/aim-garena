@@ -193,6 +193,11 @@ export function MainMenu({ onStart, onCase, onInventory }) {
         </div>
 
         <Controls />
+
+        <footer className="made-by">
+          <span>Made by</span>
+          <img src="/plgk-logo.png" alt="plgk" />
+        </footer>
       </div>
     </div>
   )
