@@ -359,6 +359,22 @@ const LATE_GUN_SKINS = [
     image: '/textures/mona_lisa.jpg', fit: 'tile', tile: 0.53, tileCrop: [0, 0.2, 0.26, 0.56], tileFlip: true, metal: 0.15, rough: 0.55,
     emblem: { crop: [0.2, 0.1, 0.8, 0.62], at: [0.6, 0.27], h: 0.5, flip: true },
   }),
+  // Hermès: one copy of the collage laid over the whole gun, cut to the AK's
+  // 3.3:1 side (the middle band: the Birkin, the rider and the H seal),
+  // mirrored so the lettering reads right on the side you see
+  skin('ak47', 'Hermès', 'covert', 'gem', ['#f26a1b'], {
+    id: 'ak47_hermes',
+    image: '/textures/hermes.jpg', fit: 'band', metal: 0.2, rough: 0.45,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.604, cropV: [0.31, 0.48], flip: true },
+  }),
+  // Billionaire Boys Club on the Deagle: one copy of the pop-art painting over
+  // the whole pistol (squeezed with vSpan like the Scream), the astronaut,
+  // flamingo and palm in view
+  skin('deagle', 'Billionaire Boys Club', 'covert', 'gem', ['#2f7d32'], {
+    id: 'deagle_bbc',
+    image: '/textures/bbc_art.jpg', fit: 'band', metal: 0.2, rough: 0.5, vSpan: 1.6, paintChrome: true,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 1, cropV: [0.04, 0.56], flip: true },
+  }),
   // Pollock's drip painting, tiled over the P90 without its white margin
   skin('p90', 'Number 5', 'covert', 'gem', ['#6b4a2c'], {
     image: '/textures/pollock.jpg', fit: 'tile', tile: 0.8, tileCrop: [0.04, 0.03, 0.96, 0.97], metal: 0.15, rough: 0.6,
