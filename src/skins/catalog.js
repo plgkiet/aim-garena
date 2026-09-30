@@ -46,9 +46,25 @@ export const GUN_SKINS = [
   skin('deagle', 'Blaze', 'covert', 'fade', ['#ffe066', '#ff8a00', '#ff2a00', '#6b0000'], { metal: 0.75, rough: 0.28 }),
   skin('m4a1s', 'Hyper Violet', 'covert', 'splatter', ['#1a0f2e', '#ff2e97', '#39ff14', '#00e5ff', '#fff200']),
   // Covert photo finishes (public/textures)
-  skin('awp', 'Dragon Lore', 'covert', 'gem', ['#b9b08a'], { image: '/textures/lore.jpg', fit: 'band', band: 0.45, metal: 0.25, rough: 0.45 }),
-  skin('m4a1s', 'Howl', 'covert', 'gem', ['#8a1a08'], { image: '/textures/howl.jpg', fit: 'band', band: 0.47, metal: 0.3, rough: 0.4 }),
-  skin('ak47', 'Case Hardened', 'covert', 'caseHardened', ['#3f86e0'], { seeded: true, metal: 0.75, rough: 0.26 }),
+  // the dragon runs the length of the body and stock, breathing fire toward
+  // the barrel; barrel and scope wear the gold harlequin (layout from the AWP's
+  // parts on its artwork: body and stock span u 0.3-1, v 0-0.34)
+  skin('awp', 'Dragon Lore', 'covert', 'gem', ['#b9b08a'], {
+    image: '/textures/lore.jpg', fit: 'band', metal: 0.25, rough: 0.45,
+    layout: { u0: 0.3, u1: 1, v0: 0.0, v1: 0.34, crop: [0.18, 1], flip: true },
+  }),
+  skin('m4a4', 'Howl', 'covert', 'gem', ['#8a1a08'], { image: '/textures/howl.jpg', fit: 'band', band: 0.61, metal: 0.3, rough: 0.4 }),
+  skin('ak47', 'Case Hardened', 'covert', 'caseHardened', ['#3f86e0'], { seeded: true, metalOnly: true, metal: 0.75, rough: 0.26 }),
+  // a side photo of the real skin, laid onto the model muzzle to butt; wood stays wood
+  skin('ak47', 'Fire Serpent', 'covert', 'gem', ['#2b2e33'], {
+    image: '/textures/fire_serpent.png', fit: 'decal', decal: {
+      left: 94, right: 986, bottom: 427,
+      // the model's receiver is shorter ahead of the magazine than the photo's:
+      // pin the serpent's head onto the receiver front and the mag onto the mag
+      pins: [[405, 0.392], [455, 0.435], [600, 0.575]],
+    },
+    metalOnly: true, metal: 0.35, rough: 0.45,
+  }),
   skin('ak47', 'Wild Lotus', 'covert', 'gem', ['#1f6b52'], { image: '/textures/lotus.jpg', fit: 'tile', tile: 0.45, metal: 0.2, rough: 0.5 }),
   skin('awp', 'Gungnir', 'covert', 'gem', ['#2a7fd6'], { image: '/textures/gungnir.jpg', fit: 'tile', tile: 1.5, sat: 1.4, bright: 0.82, metal: 0.25, rough: 0.45 }),
   // Classified
@@ -140,12 +156,14 @@ export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES]
 export const itemById = id => ITEMS.find(i => i.id === id) || null
 
 /* Items renamed or merged since, so drops already in someone's inventory
-   keep working: Blue Gem is now what a very blue Case Hardened is called. */
+   keep working: Blue Gem is now what a very blue Case Hardened is called, and
+   the Howl moved to the M4A4 where it belongs. */
 export const LEGACY_IDS = {
   ak47_blue_gem: 'ak47_case_hardened',
   knife_karambit_blueGem: 'knife_karambit_caseHardened',
   knife_flip_blueGem: 'knife_flip_caseHardened',
   knife_huntsman_blueGem: 'knife_huntsman_caseHardened',
+  m4a1s_howl: 'm4a4_howl',
 }
 
 /* Pattern-seeded finishes (Case Hardened). The catalog item is the finish;

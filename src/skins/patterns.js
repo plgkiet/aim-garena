@@ -367,8 +367,36 @@ function loadImage(src) {
    artwork (`band`, a fraction of it) and repeated upward to cover any taller
    part rather than being stretched. */
 function paintBand(g, skin, img) {
-  const h = TEX_H * (skin.band ?? 0.4)
-  for (let y = TEX_H - h; y > -h; y -= h) g.drawImage(img, 0, y, TEX_W, h)
+  const L = skin.layout
+  if (!L) {
+    const h = TEX_H * (skin.band ?? 0.4)
+    for (let y = TEX_H - h; y > -h; y -= h) g.drawImage(img, 0, y, TEX_W, h)
+    return
+  }
+  // laid out on one weapon: the art spans only [u0,u1] x [v0,v1] (its body),
+  // everything else (barrel, scope) wears the harlequin that frames the art
+  harlequin(g, L.cell ?? 22)
+  const [c0, c1] = L.crop ?? [0, 1]
+  const sx = img.width * c0, sw = img.width * (c1 - c0)
+  const x = L.u0 * TEX_W, w = (L.u1 - L.u0) * TEX_W
+  const y = (1 - L.v1) * TEX_H, h = (L.v1 - L.v0) * TEX_H
+  g.save()
+  if (L.flip) { g.translate(x + w, 0); g.scale(-1, 1); g.drawImage(img, sx, 0, sw, img.height, 0, y, w, h) }
+  else g.drawImage(img, sx, 0, sw, img.height, x, y, w, h)
+  g.restore()
+}
+
+/** Gold and olive diamonds, the Dragon Lore's barrel and scope. */
+function harlequin(g, cell) {
+  g.fillStyle = '#e0a526'; g.fillRect(0, 0, TEX_W, TEX_H)
+  g.fillStyle = '#35300f'
+  for (let y = 0; y < TEX_H + cell; y += cell) {
+    for (let x = ((y / cell) % 2) * cell; x < TEX_W + cell; x += cell * 2) {
+      g.beginPath()
+      g.moveTo(x, y - cell / 2); g.lineTo(x + cell / 2, y); g.lineTo(x, y + cell / 2); g.lineTo(x - cell / 2, y)
+      g.closePath(); g.fill()
+    }
+  }
 }
 
 /* A tiled finish (Wild Lotus, Gungnir): the artwork keeps its own aspect,
@@ -381,8 +409,30 @@ function paintTile(g, skin, img) {
     for (let x = x0; x < TEX_W; x += tw) g.drawImage(img, x, y, tw, th)
 }
 
+/* A decal finish (Fire Serpent): the picture is a side photo of the skinned
+   weapon itself. The artwork is a side projection of the weapon too, so the
+   photo lands on the model by lining up its muzzle, butt and lowest point
+   (`decal`, in photo pixels) with the painted parts' ends: one scale fits
+   both axes because the artwork is 2:1 over the weapon's length. Anything
+   the photo doesn't cover stays the base colour. */
+function paintDecal(g, skin, img) {
+  const D = skin.decal
+  const s = TEX_W / (D.right - D.left)
+  g.fillStyle = skin.pal?.[0] || '#2a2c30'
+  g.fillRect(0, 0, TEX_W, TEX_H)
+  const y = TEX_H - D.bottom * s + (D.dy ?? 0), h = img.height * s
+  // `pins`: [photo x, u] pairs that pull a landmark of the photo onto the same
+  // landmark of the model; the photo is stretched piecewise between them
+  const pins = [[D.left, 0], ...(D.pins ?? []), [D.right, 1]]
+  for (let i = 0; i < pins.length - 1; i++) {
+    const [x0, u0] = pins[i], [x1, u1] = pins[i + 1]
+    g.drawImage(img, x0, 0, x1 - x0, img.height, u0 * TEX_W, y, (u1 - u0) * TEX_W, h)
+  }
+}
+
 function paintGem(g, skin, img) {
   if (skin.fit === 'band') return paintBand(g, skin, img)
+  if (skin.fit === 'decal') return paintDecal(g, skin, img)
   if (skin.fit === 'tile') {
     g.filter = `saturate(${skin.sat ?? 1}) brightness(${skin.bright ?? 1})`
     paintTile(g, skin, img)

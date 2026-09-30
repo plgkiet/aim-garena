@@ -111,11 +111,18 @@ export const KNIVES = {
     pose: copy(POSE, { p: [0.112, -0.064, -0.305] }),
     hand: copy(HAND),
     offhand: copy(OFFHAND),
-    // handles pivot on the two blade bolts, exactly like a real balisong
-    wings: [
-      { parts: [["base_handle"]], bolt: ["screw_blade_t"], sign: 1 },
-      { parts: [["grip_br"], ["screws"]], bolt: ["screw_blade_b"], sign: -1 },
-    ],
+    // handles pivot on the two blade bolts, exactly like a real balisong.
+    // The file merges both handles into each mesh, so the rig splits the
+    // meshes into pieces and sorts them by side (see rigButterflySplit).
+    wings: {
+      split: true,
+      frame: "base_handle_mat",
+      keep: ["blade_blade", "screw_blade"],
+      bolts: [
+        { bolt: ["screw_blade_t"], sign: 1 },
+        { bolt: ["screw_blade_b"], sign: -1 },
+      ],
+    },
   },
 };
 

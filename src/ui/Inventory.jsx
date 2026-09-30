@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ITEMS, TIERS } from "../skins/catalog"; // tierBySlug: only needed if the rarity tag comes back
 import { inventory } from "../skins/inventory";
 import { MiniItem, itemLabel } from "./CaseOpen";
+import { Confirm } from "./Confirm";
 
 const ORDER = Object.fromEntries(TIERS.map((t, i) => [t.slug, i]));
 
@@ -15,6 +16,7 @@ export function Inventory({ onBack, onCase, onTradeUp, onOpen }) {
   const inv = useInventory();
   const [filter, setFilter] = useState("all");
   const [tier, setTier] = useState("all");
+  const [clearing, setClearing] = useState(false); // TEST ONLY: "Dọn full skin" confirmation
   const owned = inv.items
     .map((d) => ({ drop: d, item: inventory.itemOf(d) }))
     .filter((x) => x.item);
@@ -48,13 +50,21 @@ export function Inventory({ onBack, onCase, onTradeUp, onOpen }) {
           </button>
           <div className="row gap-8">
             {/* TEST ONLY: one of every skin and knife in the case. Comment out when done testing. */}
-            {/* <button
+            <button
               type="button"
               className="btn btn--ghost btn--sm"
               onClick={() => ITEMS.forEach((it) => inventory.add(it.id))}
             >
               Nhận full skin
-            </button> */}
+            </button>
+            {/* TEST ONLY: empty the whole inventory (spins are kept). Comment out when done testing. */}
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => setClearing(true)}
+            >
+              Dọn full skin
+            </button>
             {/* END TEST ONLY */}
             <button
               type="button"
@@ -165,6 +175,20 @@ export function Inventory({ onBack, onCase, onTradeUp, onOpen }) {
           </div>
         )}
       </div>
+      {/* TEST ONLY: confirmation for "Dọn full skin" */}
+      {clearing && (
+        <Confirm
+          danger
+          title="Dọn sạch kho đồ?"
+          message={`Toàn bộ ${inv.items.length} vật phẩm sẽ bị xoá và mọi món đang trang bị được gỡ ra. Lượt quay vẫn giữ nguyên. Không thể hoàn tác.`}
+          confirmLabel="Xoá hết"
+          onCancel={() => setClearing(false)}
+          onConfirm={() => {
+            inventory.clear();
+            setClearing(false);
+          }}
+        />
+      )}
     </div>
   );
 }

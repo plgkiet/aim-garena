@@ -149,6 +149,7 @@ export function centerOf(obj) {
  */
 export function rigButterfly(model, spec) {
   if (!spec) return []
+  if (spec.split) return rigButterflySplit(model, spec)
   const wings = []
   model.updateMatrixWorld(true)
   for (const w of spec) {
@@ -164,6 +165,97 @@ export function rigButterfly(model, spec) {
     for (const p of parts) g.attach(p)
     wings.push({ group: g, sign: w.sign, rest: g.rotation.z })
   }
+  return wings
+}
+
+/** Split a mesh into its connected pieces (welded by position so UV seams
+    don't cut a piece apart). Each piece shares the original vertex buffers
+    and keeps only its own triangles. */
+function splitMesh(mesh) {
+  const g = mesh.geometry
+  const pos = g.attributes.position
+  const idx = g.index ? g.index.array : Array.from({ length: pos.count }, (_, i) => i)
+  const weld = new Map(), rep = new Int32Array(pos.count)
+  for (let i = 0; i < pos.count; i++) {
+    const k = `${pos.getX(i).toFixed(5)},${pos.getY(i).toFixed(5)},${pos.getZ(i).toFixed(5)}`
+    if (!weld.has(k)) weld.set(k, i)
+    rep[i] = weld.get(k)
+  }
+  const up = Int32Array.from({ length: pos.count }, (_, i) => i)
+  const find = x => { while (up[x] !== x) { up[x] = up[up[x]]; x = up[x] } return x }
+  for (let t = 0; t < idx.length; t += 3) {
+    const a = find(rep[idx[t]]), b = find(rep[idx[t + 1]]), c = find(rep[idx[t + 2]])
+    up[a] = c; up[b] = c
+  }
+  const pieces = new Map()
+  for (let t = 0; t < idx.length; t += 3) {
+    const r = find(rep[idx[t]])
+    if (!pieces.has(r)) pieces.set(r, [])
+    pieces.get(r).push(idx[t], idx[t + 1], idx[t + 2])
+  }
+  return [...pieces.values()].map(tris => {
+    const sub = g.clone()
+    sub.setIndex(tris)
+    const m = new THREE.Mesh(sub, mesh.material)
+    m.name = mesh.name
+    m.position.copy(mesh.position); m.quaternion.copy(mesh.quaternion); m.scale.copy(mesh.scale)
+    // centroid of just this piece, in the mesh's own space
+    const c = new THREE.Vector3(), v = new THREE.Vector3()
+    for (const i of tris) c.add(v.fromBufferAttribute(pos, i))
+    m.userData.centroid = c.divideScalar(tris.length)
+    return m
+  })
+}
+
+/* Butterfly files often merge both handles into each mesh (one mesh for both
+   frames, one for both grip inlays, one for every screw), so splitting the
+   rig by mesh sends a frame one way and its own inlays and screws the other.
+   Instead: break every handle mesh into its pieces, find the two frames (the
+   two biggest pieces of the frame mesh), and give each piece to the handle
+   on its side of the line between them. Each handle then turns on the blade
+   bolt it wraps. */
+function rigButterflySplit(model, spec) {
+  model.updateMatrixWorld(true)
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert()
+  const keep = spec.keep.map(t => t.toLowerCase())
+  const targets = []
+  model.traverse(o => { if (o.isMesh && !keep.some(t => o.name.toLowerCase().includes(t))) targets.push(o) })
+  const pieces = []
+  for (const mesh of targets) {
+    const parent = mesh.parent
+    for (const p of splitMesh(mesh)) {
+      parent.add(p)
+      p.updateMatrixWorld(true)
+      p.userData.at = p.userData.centroid.clone().applyMatrix4(p.matrixWorld).applyMatrix4(toModel)
+      p.userData.size = p.geometry.index.count
+      p.userData.frame = mesh.name.toLowerCase().includes(spec.frame.toLowerCase())
+      pieces.push(p)
+    }
+    parent.remove(mesh)
+  }
+  const frames = pieces.filter(p => p.userData.frame).sort((a, b) => b.userData.size - a.userData.size).slice(0, 2)
+  if (frames.length < 2) return []
+  const a = frames[0].userData.at, b = frames[1].userData.at
+  const axis = b.clone().sub(a), mid = a.clone().add(b).multiplyScalar(0.5)
+  const side = at => (at.clone().sub(mid).dot(axis) < 0 ? 0 : 1)
+  // each handle turns on the blade bolt nearest its frame
+  const bolts = spec.bolts.map(w => {
+    const o = findByTokens(model, w.bolt)
+    return o && { ...w, at: centerOf(o).applyMatrix4(toModel) }
+  }).filter(Boolean)
+  if (bolts.length < 2) return []
+  const dA0 = bolts[0].at.distanceTo(a) + bolts[1].at.distanceTo(b)
+  const dA1 = bolts[1].at.distanceTo(a) + bolts[0].at.distanceTo(b)
+  const bySide = dA0 <= dA1 ? [bolts[0], bolts[1]] : [bolts[1], bolts[0]]
+  const wings = bySide.map(w => {
+    const g = new THREE.Group()
+    g.name = 'wingPivot'
+    model.add(g)
+    g.position.copy(w.at)
+    g.updateMatrixWorld(true)
+    return { group: g, sign: w.sign, rest: g.rotation.z }
+  })
+  for (const p of pieces) wings[side(p.userData.at)].group.attach(p)
   return wings
 }
 

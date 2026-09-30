@@ -131,7 +131,8 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
   const [sens, setSens] = useState(prefs.sensitivity || 2);
   const [name, setName] = useState(prefs.name || "Bạn");
   const [mode, setMode] = useState(prefs.mode || "comp");
-  const [aimWeapon, setAimWeapon] = useState(prefs.aimWeapon || "ak47");
+  // M4A1-S left the solo list for the M4A4; an old saved pick follows it
+  const [aimWeapon, setAimWeapon] = useState(prefs.aimWeapon === "m4a1s" ? "m4a4" : prefs.aimWeapon || "ak47");
   const [aimBots, setAimBots] = useState(prefs.aimBots || 1);
   const [aimRounds, setAimRounds] = useState(prefs.aimRounds || 10);
   const [loading, setLoading] = useState(false);
@@ -223,7 +224,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
               {aim ? (
                 <>
                   <Field label="Súng" wide>
-                    {["ak47", "m4a1s", "awp", "ssg08", "deagle", "usp"].map(
+                    {["ak47", "m4a4", "awp", "ssg08", "deagle", "usp"].map(
                       (id) => (
                         <button
                           key={id}

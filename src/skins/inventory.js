@@ -17,7 +17,10 @@ function load() {
       .map(d => (LEGACY_IDS[d.id] ? { ...d, id: LEGACY_IDS[d.id] } : d))
       .filter(d => itemById(d.id))
     const uids = new Set(items.map(d => d.uid))
-    const equipped = Object.fromEntries(Object.entries(raw.equipped || {}).filter(([, uid]) => uids.has(uid)))
+    // a drop stays equipped only in its own slot (an item may have moved weapon)
+    const slotOfDrop = uid => { const it = itemById(items.find(d => d.uid === uid)?.id); return it && (it.kind === 'knife' ? 'knife' : it.weapon) }
+    const equipped = {}
+    for (const [, uid] of Object.entries(raw.equipped || {})) if (uids.has(uid)) equipped[slotOfDrop(uid)] = uid
     return {
       items, equipped, opened: raw.opened || 0,
       spins: Number.isFinite(raw.spins) ? raw.spins : 0, traded: raw.traded || 0,
@@ -91,6 +94,12 @@ export const inventory = {
   itemOf(drop) {
     const item = drop && itemById(drop.id)
     return item?.seeded ? variantOf(item, patternFor(drop)) : item
+  },
+
+  /** Empty the inventory and unequip everything; spins are kept. */
+  clear() {
+    state = { ...state, items: [], equipped: {} }
+    save()
   },
 
   slotOf(item) { return item.kind === 'knife' ? 'knife' : item.weapon },

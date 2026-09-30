@@ -1053,3 +1053,38 @@ canvas { display: block; cursor: crosshair; }
 .inspect-facts b { font-weight: 500; color: #e8edf2; font-size: 14px; }
 .inspect-hint { position: absolute; left: 0; right: 0; bottom: 70px; text-align: center; margin: 0; font-size: 12px; color: rgba(255,255,255,0.4); pointer-events: none; }
 @media (max-width: 640px) { .inspect-hint { display: none; } }
+
+/* ------------------------------------------------------------ confirm --- */
+.confirm {
+  position: fixed; inset: 0; z-index: 95; display: grid; place-items: center; padding: 20px;
+  background: rgba(6, 8, 11, 0.62); backdrop-filter: blur(6px);
+  animation: confirm-fade 0.18s ease-out;
+}
+.confirm__card {
+  --accent: var(--brand);
+  width: min(420px, 100%); display: grid; justify-items: center; text-align: center; gap: 10px;
+  padding: 28px 26px 22px; border-radius: 16px;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 9%, #1a1e25), #14171c);
+  border: 1px solid color-mix(in oklab, var(--accent) 35%, rgba(255,255,255,0.08));
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.3);
+  animation: confirm-pop 0.22s cubic-bezier(.2,.9,.3,1.2);
+}
+.confirm__card.is-danger { --accent: var(--danger); }
+.confirm__mark {
+  width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 24px; font-weight: 700; color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 16%, transparent);
+  box-shadow: 0 0 0 6px color-mix(in oklab, var(--accent) 8%, transparent);
+}
+.confirm__card h2 { margin: 6px 0 0; font-size: 20px; font-weight: 600; color: #fff; }
+.confirm__card p { margin: 0; font-size: 14px; line-height: 1.55; color: #aeb8c3; }
+.confirm__actions { display: flex; gap: 10px; width: 100%; margin-top: 12px; }
+.confirm__actions .btn { flex: 1; }
+.confirm__actions .btn--ghost { color: #dfe6ec; border-color: rgba(255,255,255,0.22); }
+.plgk .btn--danger, .btn--danger {
+  background: var(--danger); color: #fff; border: 1px solid transparent;
+}
+.plgk .btn--danger:hover, .btn--danger:hover { background: color-mix(in oklab, var(--danger) 85%, #fff); }
+@keyframes confirm-fade { from { opacity: 0; } }
+@keyframes confirm-pop { from { opacity: 0; transform: translateY(8px) scale(0.96); } }
+@media (prefers-reduced-motion: reduce) { .confirm, .confirm__card { animation: none; } }
