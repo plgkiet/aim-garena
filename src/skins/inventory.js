@@ -12,8 +12,11 @@ const listeners = new Set()
 function load() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || '{}')
-    return { items: Array.isArray(raw.items) ? raw.items : [], equipped: raw.equipped || {}, opened: raw.opened || 0 }
-  } catch { return { items: [], equipped: {}, opened: 0 } }
+    return {
+      items: Array.isArray(raw.items) ? raw.items : [], equipped: raw.equipped || {}, opened: raw.opened || 0,
+      spins: Number.isFinite(raw.spins) ? raw.spins : 0,
+    }
+  } catch { return { items: [], equipped: {}, opened: 0, spins: 0 } }
 }
 
 let state = load()
@@ -26,6 +29,19 @@ function save() {
 export const inventory = {
   get: () => state,
   subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) },
+
+  /** Case keys: one is earned per kill, one is spent per opening. */
+  addSpins(n = 1) {
+    state = { ...state, spins: state.spins + n }
+    save()
+  },
+  /** Take one key; false when there is none left. */
+  spendSpin() {
+    if (state.spins <= 0) return false
+    state = { ...state, spins: state.spins - 1 }
+    save()
+    return true
+  },
 
   /** Add a fresh drop and return it. */
   add(itemId) {

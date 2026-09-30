@@ -99,6 +99,8 @@ export function CaseOpen({ onBack, onInventory }) {
   // the drawn item waits here until the reel stops; nothing reaches the
   // inventory (or its counter) while the reel is still running
   const pendingRef = useRef(null)
+  const [spins, setSpins] = useState(inventory.get().spins)
+  useEffect(() => inventory.subscribe(s => setSpins(s.spins)), [])
   const claim = () => {
     const item = pendingRef.current
     if (!item) return null
@@ -181,6 +183,8 @@ export function CaseOpen({ onBack, onInventory }) {
   }
 
   function open() {
+    // one kill = one key; no key, no case
+    if (!inventory.spendSpin()) return
     // unlock audio right in the click, before anything async (Safari)
     if (soundRef.current) { unlock(); playOpen() }
     setEquipped(false)
@@ -243,14 +247,14 @@ export function CaseOpen({ onBack, onInventory }) {
               <h2>{itemLabel(result.item)}</h2>
               <p>{tierBySlug(result.item.tier).label} · đã vào kho đồ</p>
             </div>
-            <button type="button" className="btn btn--ghost" onClick={again}>Mở tiếp</button>
+            <button type="button" className="btn btn--ghost" onClick={again}>{spins > 0 ? `Mở tiếp · ${spins} lượt` : 'Quay lại'}</button>
           </div>
         ) : (
           <div className="card spin-form">
-            <button type="button" className="btn btn--primary btn--lg btn--block" disabled={phase === 'spinning'} onClick={open}>
-              {phase === 'spinning' ? 'Đang quay…' : 'Mở hòm'}
+            <button type="button" className="btn btn--primary btn--lg btn--block" disabled={phase === 'spinning' || spins <= 0} onClick={open}>
+              {phase === 'spinning' ? 'Đang quay…' : spins > 0 ? `Mở hòm · còn ${spins} lượt` : 'Hết lượt quay'}
             </button>
-            <p className="faint" style={{ fontSize: 12, textAlign: 'center' }}>Miễn phí, mở bao nhiêu lần cũng được. Tỉ lệ đúng như hòm CS:GO.</p>
+            <p className="faint" style={{ fontSize: 12, textAlign: 'center' }}>Mỗi kill trong trận được 1 lượt quay, ở mọi chế độ. Tỉ lệ đúng như hòm CS:GO.</p>
           </div>
         )}
 

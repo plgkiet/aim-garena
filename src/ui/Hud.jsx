@@ -93,6 +93,9 @@ export function Hud({ locked, onRequestLock }) {
       </div>
 
       <KillFeed />
+      {game.time - (game.spinToast ?? -10) < 1.6 && (
+        <div className="spin-toast" key={game.spinToast}>+1 lượt quay hòm</div>
+      )}
       <CenterText />
 
       {/* ----- bottom ----- */}

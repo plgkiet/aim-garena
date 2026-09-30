@@ -19,6 +19,7 @@ import { hfovToVfov, BASE_FOV } from './game/constants'
 import { KNIVES } from './lib/knives'
 import { MOVES } from './lib/moves'
 import { setMuted, isMuted, unlockAudio } from './lib/audio'
+import './skins/earn'
 import './styles.css'
 
 export default function App() {

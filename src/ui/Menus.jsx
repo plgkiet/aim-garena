@@ -98,7 +98,6 @@ export function MainMenu({ onStart, onCase, onInventory }) {
   }
 
   const aim = mode === 'aim'
-  const eqKnife = inventory.equippedItem('knife')
   const summary = aim
     ? `Aim Garena · 1 vs ${aimBots} · ${W[aimWeapon].name} · thắng ${aimRounds} round`
     : `Dust · ${team === 'CT' ? 'Counter-Terrorist' : 'Terrorist'} · ${size}v${size} · ${rounds === 16 ? 'MR8' : 'MR15'}`
@@ -177,11 +176,11 @@ export function MainMenu({ onStart, onCase, onInventory }) {
             <div className="mm-panel">
               <h3 className="mm-title">Kho vũ khí</h3>
               <div className="mm-knife">
-                <span>Dao</span>
-                <b>{eqKnife ? `${eqKnife.weaponName} | ${eqKnife.name}` : 'Dao cơ bản'}</b>
+                <span>Lượt quay</span>
+                <b>{inventory.get().spins} <span className="faint">· 1 kill = 1 lượt</span></b>
               </div>
               <div className="menu-shop">
-                <button type="button" className="btn btn--primary btn--led" onClick={onCase}>★ Mở hòm</button>
+                <button type="button" className="btn btn--primary btn--led" onClick={onCase}>★ Mở hòm · {inventory.get().spins}</button>
                 <button type="button" className="btn" onClick={onInventory}>Kho đồ · {inventory.get().items.length}</button>
               </div>
             </div>
