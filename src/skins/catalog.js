@@ -371,7 +371,7 @@ const LATE_GUN_SKINS = [
       // the wordmark and the duc-carriage from the clean logo (transparent PNG)
       { image: '/textures/hermes_logo.png', crop: [0.015, 0.45, 0.995, 0.77], at: [0.338, 0.47], h: 0.06, flip: true },   // HERMÈS, clear of the receiver
       { image: '/textures/hermes_logo.png', crop: [0.21, 0, 0.77, 0.43], at: [0.57, 0.465], h: 0.095, flip: true },   // the carriage (horse's head and all), mid-receiver
-      { crop: [0.3, 0.55, 0.75, 0.8], at: [0.52, 0.2], h: 0.44, w: 0.22, flip: true },     // the collage over the whole magazine
+      { crop: [0.25, 0.55, 0.8, 0.8], at: [0.49, 0.2], h: 0.46, w: 0.28, flip: true },     // the collage over the whole magazine
     ],
   }),
   // Billionaire Boys Club on the Deagle: black, the whole pop-art painting set
