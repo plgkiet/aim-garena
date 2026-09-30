@@ -359,21 +359,30 @@ const LATE_GUN_SKINS = [
     image: '/textures/mona_lisa.jpg', fit: 'tile', tile: 0.53, tileCrop: [0, 0.2, 0.26, 0.56], tileFlip: true, metal: 0.15, rough: 0.55,
     emblem: { crop: [0.2, 0.1, 0.8, 0.62], at: [0.6, 0.27], h: 0.5, flip: true },
   }),
-  // Hermès: one copy of the collage laid over the whole gun, cut to the AK's
-  // 3.3:1 side (the middle band: the Birkin, the rider and the H seal),
-  // mirrored so the lettering reads right on the side you see
+  // Hermès, composed rather than wallpapered: the house orange all over, the
+  // collage itself framed on the stock like a panel, the wordmark on the
+  // handguard, the duc-carriage on the receiver and more of the collage over
+  // the magazine (mirrored to read right on the side you see)
   skin('ak47', 'Hermès', 'covert', 'gem', ['#f26a1b'], {
     id: 'ak47_hermes',
-    image: '/textures/hermes.jpg', fit: 'band', metal: 0.2, rough: 0.45,
-    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.604, cropV: [0.31, 0.48], flip: true },
+    image: '/textures/hermes.jpg', fit: 'overlay', base: 'solid', metal: 0.2, rough: 0.45,
+    emblems: [
+      { crop: [0.08, 0.31, 0.92, 0.62], at: [0.86, 0.3], h: 0.46, w: 0.3, flip: true },   // the collage on the stock
+      // the wordmark and the duc-carriage from the clean logo (transparent PNG)
+      { image: '/textures/hermes_logo.png', crop: [0.015, 0.45, 0.995, 0.77], at: [0.338, 0.47], h: 0.06, flip: true },   // HERMÈS, clear of the receiver
+      { image: '/textures/hermes_logo.png', crop: [0.21, 0, 0.77, 0.43], at: [0.57, 0.465], h: 0.095, flip: true },   // the carriage (horse's head and all), mid-receiver
+      { crop: [0.3, 0.55, 0.75, 0.8], at: [0.52, 0.2], h: 0.44, w: 0.22, flip: true },     // the collage over the whole magazine
+    ],
   }),
-  // Billionaire Boys Club on the Deagle: one copy of the pop-art painting over
-  // the whole pistol (squeezed with vSpan like the Scream), the astronaut,
-  // flamingo and palm in view
-  skin('deagle', 'Billionaire Boys Club', 'covert', 'gem', ['#2f7d32'], {
+  // Billionaire Boys Club on the Deagle: black, the whole pop-art painting set
+  // on the grip like a framed print, the arched white wordmark along the slide
+  skin('deagle', 'Billionaire Boys Club', 'covert', 'gem', ['#060606'], {
     id: 'deagle_bbc',
-    image: '/textures/bbc_art.jpg', fit: 'band', metal: 0.2, rough: 0.5, vSpan: 1.6, paintChrome: true,
-    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 1, cropV: [0.04, 0.56], flip: true },
+    image: '/textures/bbc_art.jpg', fit: 'overlay', base: 'solid', metal: 0.25, rough: 0.45, vSpan: 1.6, paintChrome: true,
+    emblems: [
+      { crop: [0, 0, 1, 1], at: [0.84, 0.3], h: 0.56, flip: true },
+      { image: '/textures/bbc_logo.jpg', crop: [0.05, 0.28, 0.97, 0.76], at: [0.42, 0.8], h: 0.36, flip: true },
+    ],
   }),
   // Pollock's drip painting, tiled over the P90 without its white margin
   skin('p90', 'Number 5', 'covert', 'gem', ['#6b4a2c'], {
