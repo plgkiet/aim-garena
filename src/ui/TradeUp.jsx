@@ -29,7 +29,8 @@ export function TradeUp({ onBack, onInventory, onCase }) {
     owned.filter((x) => x.item.tier === slug && free(x)).length;
 
   const [tier, setTier] = useState(
-    () => (GRADES.find((t) => countFree(t.slug) >= TRADE_COUNT) || GRADES[0]).slug,
+    () =>
+      (GRADES.find((t) => countFree(t.slug) >= TRADE_COUNT) || GRADES[0]).slug,
   );
   const [picked, setPicked] = useState([]); // uids, in the order they went in
   const [phase, setPhase] = useState("idle"); // idle | signing
@@ -107,24 +108,41 @@ export function TradeUp({ onBack, onInventory, onCase }) {
       <div className="spin-shell" aria-hidden="true" />
       <div className="wrap page spin-page">
         <div className="case-top">
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onBack} disabled={signing}>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={onBack}
+            disabled={signing}
+          >
             ← Menu
           </button>
           <div className="row gap-8">
-            <button type="button" className="btn btn--ghost btn--sm" onClick={onInventory} disabled={signing}>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={onInventory}
+              disabled={signing}
+            >
               Kho đồ ({inv.items.length})
             </button>
-            <button type="button" className="btn btn--primary btn--sm" onClick={onCase} disabled={signing}>
+            <button
+              type="button"
+              className="btn btn--primary btn--sm"
+              onClick={onCase}
+              disabled={signing}
+            >
               Mở hòm
             </button>
           </div>
         </div>
         <div className="page-head">
-          <span className="eyebrow">Trade up</span>
-          <h1 style={{ marginTop: 10 }}>Đổi {TRADE_COUNT} lấy 1</h1>
+          {/* <span className="eyebrow">Trade up</span> */}
+          <h1 className="eyebrow" style={{ marginTop: 10 }}>
+            Trade up
+          </h1>
           <p>
-            Bỏ vào {TRADE_COUNT} món cùng độ hiếm, nhận 1 món ngẫu nhiên ở bậc cao hơn.
-            {" "}{TRADE_COUNT} món Covert đổi được 1 con dao ★.
+            Bỏ vào {TRADE_COUNT} món cùng độ hiếm, nhận 1 món ngẫu nhiên ở bậc
+            cao hơn.
           </p>
         </div>
 
@@ -151,7 +169,11 @@ export function TradeUp({ onBack, onInventory, onCase }) {
           <div className="tu-slots">
             {slots.map((x, i) =>
               x ? (
-                <div key={x.drop.uid} className="tu-slot" onClick={() => toggle(x)}>
+                <div
+                  key={x.drop.uid}
+                  className="tu-slot"
+                  onClick={() => toggle(x)}
+                >
                   <MiniItem item={x.item} />
                 </div>
               ) : (
@@ -161,20 +183,41 @@ export function TradeUp({ onBack, onInventory, onCase }) {
               ),
             )}
           </div>
-          <div className="tu-arrow" aria-hidden="true">→</div>
+          <div className="tu-arrow" aria-hidden="true">
+            →
+          </div>
           <div className={`tu-target spin-tile--${up.slug}`}>
-            <span className="tu-target__q">{up.slug === "gold" ? "★" : "?"}</span>
+            <span className="tu-target__q">
+              {up.slug === "gold" ? "★" : "?"}
+            </span>
             <b>{up.label}</b>
-            <small>{up.slug === "gold" ? "Dao ngẫu nhiên" : "Món ngẫu nhiên"}</small>
+            <small>
+              {up.slug === "gold" ? "Dao ngẫu nhiên" : "Món ngẫu nhiên"}
+            </small>
           </div>
           <div className="tu-actions">
-            <button type="button" className="btn btn--ghost btn--sm" onClick={autofill} disabled={signing || full}>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={autofill}
+              disabled={signing || full}
+            >
               Tự chọn
             </button>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setPicked([])} disabled={signing || !picked.length}>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => setPicked([])}
+              disabled={signing || !picked.length}
+            >
               Bỏ hết
             </button>
-            <button type="button" className="btn btn--primary btn--led" onClick={sign} disabled={!full || signing}>
+            <button
+              type="button"
+              className="btn btn--primary btn--led"
+              onClick={sign}
+              disabled={!full || signing}
+            >
               {signing
                 ? "Đang đổi…"
                 : full
@@ -186,7 +229,9 @@ export function TradeUp({ onBack, onInventory, onCase }) {
 
         {pool.length === 0 ? (
           <div className="card inv-empty">
-            <p>Bạn chưa có món {TIERS.find((t) => t.slug === tier).label} nào.</p>
+            <p>
+              Bạn chưa có món {TIERS.find((t) => t.slug === tier).label} nào.
+            </p>
           </div>
         ) : (
           <div className="case-grid inv-grid">
@@ -194,8 +239,18 @@ export function TradeUp({ onBack, onInventory, onCase }) {
               const k = picked.indexOf(x.drop.uid);
               const locked = !free(x);
               return (
-                <div key={x.drop.uid} className={locked ? "tu-locked" : ""} title={locked ? "Đang trang bị, gỡ ra trong kho đồ để đổi" : ""}>
-                  <MiniItem item={x.item} active={k >= 0} onClick={() => toggle(x)}>
+                <div
+                  key={x.drop.uid}
+                  className={locked ? "tu-locked" : ""}
+                  title={
+                    locked ? "Đang trang bị, gỡ ra trong kho đồ để đổi" : ""
+                  }
+                >
+                  <MiniItem
+                    item={x.item}
+                    active={k >= 0}
+                    onClick={() => toggle(x)}
+                  >
                     {locked ? (
                       <em className="mini-item__tag">Đang dùng</em>
                     ) : k >= 0 ? (
