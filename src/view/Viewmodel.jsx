@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -13,7 +13,7 @@ import { swoosh, clack } from '../lib/audio'
 import { VM, viewmodelVFov, applyViewmodel } from '../lib/viewmodel'
 import { Trail } from './Trail'
 import { buildGun } from './guns'
-import { buildKnifeModel } from '../skins/knives'
+import { buildKnifeModel, paintModelBlade } from '../skins/knives'
 import { inventory } from '../skins/inventory'
 import { buildHand } from './HandRig'
 import { game, on, activeWeapon } from '../game/state'
@@ -116,14 +116,17 @@ function placeArm(arm, p, r, aim, frame, mode = 'grip', back = null) {
 
 /** A case knife built in code: already in the knife frame, no file to load. */
 function ProcKnife({ cfg, envMap, api }) {
+  // the finish can be swapped for another pattern of it before a match
+  const [finish, setFinish] = useState(cfg.finish)
+  useEffect(() => knife.subscribe(() => setFinish(cfg.finish)), [cfg])
   const built = useMemo(() => {
-    const model = buildKnifeModel(cfg.build, cfg.finish)
+    const model = buildKnifeModel(cfg.build, finish)
     model.traverse(o => { if (o.isMesh && o.material?.isMeshStandardMaterial) { o.material.envMap = envMap; o.material.envMapIntensity = 1.6 } })
     const box = new THREE.Box3().setFromObject(model)
     const tip = new THREE.Object3D(); tip.position.set(0, box.max.y * 0.97, 0)
     const base = new THREE.Object3D(); base.position.set(0, box.max.y * 0.34, 0)
     return { model, wings: [], tip, base, box }
-  }, [cfg, envMap])
+  }, [cfg, finish, envMap])
   useLayoutEffect(() => { api.current[cfg.id] = built }, [api, cfg.id, built])
   const groupRef = useRef()
   useFrame(() => { if (groupRef.current) groupRef.current.visible = knife.knifeKey === cfg.id })
@@ -139,16 +142,20 @@ function ProcKnife({ cfg, envMap, api }) {
 /** One knife: normalised, re-rigged, with tip/base anchors for the trail. */
 function Knife({ cfg, envMap, api }) {
   const gltf = useGLTF(cfg.file)
+  // a finish from the inventory (Butterfly | Emerald, ...) repaints the blade
+  const [finish, setFinish] = useState(cfg.finish)
+  useEffect(() => knife.subscribe(() => setFinish(cfg.finish)), [cfg])
   const built = useMemo(() => {
     const model = cloneSkeleton(gltf.scene)
     normalizeKnife(model, cfg)
+    if (finish) paintModelBlade(model, finish)
     const wings = rigButterfly(model, cfg.wings)
     dressMaterials(model, envMap, cfg.tint)
     const box = new THREE.Box3().setFromObject(model)
     const tip = new THREE.Object3D(); tip.position.set(0, box.max.y * 0.97, 0)
     const base = new THREE.Object3D(); base.position.set(0, box.max.y * 0.34, 0)
     return { model, wings, tip, base, box }
-  }, [gltf, cfg, envMap])
+  }, [gltf, cfg, finish, envMap])
 
   useLayoutEffect(() => {
     api.current[cfg.id] = built

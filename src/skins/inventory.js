@@ -1,4 +1,4 @@
-import { TRADE_COUNT, drawFromTier, itemById, nextTier } from './catalog'
+import { LEGACY_IDS, TRADE_COUNT, drawFromTier, itemById, nextTier, rollPattern, variantOf } from './catalog'
 
 /* What you own and what you have equipped, kept in this browser.
 
@@ -13,7 +13,9 @@ function load() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || '{}')
     // drops of skins since taken out of the catalog are dropped, and unequipped
-    const items = (Array.isArray(raw.items) ? raw.items : []).filter(d => itemById(d.id))
+    const items = (Array.isArray(raw.items) ? raw.items : [])
+      .map(d => (LEGACY_IDS[d.id] ? { ...d, id: LEGACY_IDS[d.id] } : d))
+      .filter(d => itemById(d.id))
     const uids = new Set(items.map(d => d.uid))
     const equipped = Object.fromEntries(Object.entries(raw.equipped || {}).filter(([, uid]) => uids.has(uid)))
     return {
@@ -24,6 +26,16 @@ function load() {
 }
 
 let state = load()
+
+/* A drop of a pattern-seeded finish keeps its pattern number; drops from
+   before patterns existed get a steady one from their uid. */
+function patternFor(drop) {
+  if (drop.pattern) return drop.pattern
+  let h = 0
+  for (const ch of drop.uid) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  return 1 + (h % 1000)
+}
+const withPattern = (itemId, drop) => (itemById(itemId)?.seeded && !drop.pattern ? { ...drop, pattern: rollPattern() } : drop)
 
 const newUid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
 
@@ -49,9 +61,9 @@ export const inventory = {
     return true
   },
 
-  /** Add a fresh drop and return it. */
-  add(itemId) {
-    const drop = { uid: newUid(), id: itemId, at: Date.now() }
+  /** Add a fresh drop and return it (`extra.pattern` pins a seeded finish's pattern). */
+  add(itemId, extra = {}) {
+    const drop = withPattern(itemId, { uid: newUid(), id: itemId, at: Date.now(), ...extra })
     state = { ...state, items: [drop, ...state.items], opened: state.opened + 1 }
     save()
     return drop
@@ -68,11 +80,17 @@ export const inventory = {
     if (!up) return null
     const prize = drawFromTier(up.slug)
     if (!prize) return null
-    const drop = { uid: newUid(), id: prize.id, at: Date.now(), via: 'tradeup' }
+    const drop = withPattern(prize.id, { uid: newUid(), id: prize.id, at: Date.now(), via: 'tradeup' })
     const equipped = Object.fromEntries(Object.entries(state.equipped).filter(([, uid]) => !gone.has(uid)))
     state = { ...state, items: [drop, ...state.items.filter(d => !gone.has(d.uid))], equipped, traded: state.traded + 1 }
     save()
     return drop
+  },
+
+  /** What a drop actually is: its catalog item, at its own pattern if seeded. */
+  itemOf(drop) {
+    const item = drop && itemById(drop.id)
+    return item?.seeded ? variantOf(item, patternFor(drop)) : item
   },
 
   slotOf(item) { return item.kind === 'knife' ? 'knife' : item.weapon },
@@ -98,6 +116,6 @@ export const inventory = {
   equippedItem(slot) {
     const uid = state.equipped[slot]
     const drop = uid && state.items.find(d => d.uid === uid)
-    return drop ? itemById(drop.id) : null
+    return drop ? inventory.itemOf(drop) : null
   },
 }

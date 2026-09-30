@@ -17,9 +17,14 @@ export function skinMaterial(skin) {
   tex.anisotropy = 8
   // photo finishes arrive a moment later: re-upload the canvas when they do
   if (skin.image) skinReady(skin).then(() => { tex.needsUpdate = true })
-  const m = new THREE.MeshStandardMaterial({
-    map: tex, metalness: skin.metal ?? 0.35, roughness: skin.rough ?? 0.45, envMapIntensity: 1.1,
-  })
+  const opts = { map: tex, metalness: skin.metal ?? 0.35, roughness: skin.rough ?? 0.45, envMapIntensity: 1.1 }
+  // the stones: a lacquer coat and a thin-film sheen that shifts with the angle
+  const m = skin.iridescent
+    ? new THREE.MeshPhysicalMaterial({
+      ...opts, envMapIntensity: 1.5, clearcoat: 1, clearcoatRoughness: 0.06,
+      iridescence: 0.9, iridescenceIOR: 1.6, iridescenceThicknessRange: [180, 520],
+    })
+    : new THREE.MeshStandardMaterial(opts)
   matCache.set(skin.id, m)
   return m
 }

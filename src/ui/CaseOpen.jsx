@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { CASE, drawItem, tierBySlug } from "../skins/catalog";
+import { CASE, drawItem, rollPattern, tierBySlug, variantOf } from "../skins/catalog";
 import { inventory } from "../skins/inventory";
 import { thumbnail, cachedThumb } from "../skins/thumbs";
 import { W } from "../game/weapons";
@@ -142,7 +142,7 @@ export function CaseOpen({ onBack, onInventory }) {
     const item = pendingRef.current;
     if (!item) return null;
     pendingRef.current = null;
-    return inventory.add(item.id);
+    return inventory.add(item.baseId || item.id, item.patternNo ? { pattern: item.patternNo } : {});
   };
   // leaving mid-spin must not lose the drop
   useEffect(
@@ -257,7 +257,9 @@ export function CaseOpen({ onBack, onInventory }) {
       playOpen();
     }
     setPhase("spinning");
-    const item = drawItem(items);
+    // a Case Hardened drop gets its pattern now, so the reel shows the real one
+    const drawn = drawItem(items);
+    const item = drawn.seeded ? variantOf(drawn, rollPattern()) : drawn;
     pendingRef.current = item;
     setResult(null);
     // the winning tile's picture must exist before it slides into view
@@ -417,6 +419,7 @@ export function WinnerModal({ item, drop, onClose, label = "Bạn nhận đượ
         <h2 className="winner-modal__title">{itemLabel(item)}</h2>
         <p className="winner-modal__desc">
           {tierBySlug(item.tier).label} · {tierBySlug(item.tier).vi}
+          {item.detail ? ` · ${item.detail}` : ""}
         </p>
         <div className="winner-modal__art">
           {url && <img src={url} alt="" />}
@@ -455,8 +458,9 @@ export function MiniItem({ item, children, onClick, active }) {
   const url = useThumb(item);
   return (
     <div
-      className={`mini-item spin-tile--${item.tier}${active ? " is-on" : ""}`}
+      className={`mini-item spin-tile--${item.tier}${active ? " is-on" : ""}${item.gem ? " is-gem" : ""}`}
       onClick={onClick}
+      title={item.detail || undefined}
     >
       {url ? <img src={url} alt="" /> : <div className="mini-item__ph" />}
       <small>{itemTitle(item)}</small>

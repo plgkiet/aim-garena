@@ -1,3 +1,5 @@
+import { caseHardenedInfo } from './patterns'
+
 /* The case and everything that can come out of it.
 
    Five tiers, the CS:GO case ladder (blue → purple → pink → red → gold), with
@@ -19,6 +21,15 @@ export const TIERS = [
 export const tierBySlug = slug => TIERS.find(t => t.slug === slug) || TIERS[0]
 export const TIER_COLOR = Object.fromEntries(TIERS.map(t => [t.slug, t.color]))
 
+/* The three stones, lifted from their dark photos into bright, glassy
+   colour: brighter and richer paint, a clearcoat and a thin-film shimmer
+   (see skinMaterial) so they catch the light like cut gems. */
+const GEM_LOOK = {
+  ruby: { bright: 1.45, sat: 1.5, contrast: 1.1, hue: -8, metal: 0.35, rough: 0.12, iridescent: true },
+  sapphire: { bright: 2.1, sat: 1.35, contrast: 1.05, metal: 0.35, rough: 0.12, iridescent: true },
+  emerald: { bright: 1.08, sat: 1.6, contrast: 1.2, metal: 0.3, rough: 0.12, iridescent: true },
+}
+
 let seed = 100
 const skin = (weapon, name, tier, pattern, pal, extra = {}) => ({
   id: `${weapon}_${name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
@@ -35,12 +46,12 @@ export const GUN_SKINS = [
   skin('deagle', 'Blaze', 'covert', 'fade', ['#ffe066', '#ff8a00', '#ff2a00', '#6b0000'], { metal: 0.75, rough: 0.28 }),
   skin('m4a1s', 'Hyper Violet', 'covert', 'splatter', ['#1a0f2e', '#ff2e97', '#39ff14', '#00e5ff', '#fff200']),
   // Covert gems: photo finishes of the stone (public/textures)
-  skin('ak47', 'Ruby', 'covert', 'gem', ['#5a0a1e'], { image: '/textures/ruby.jpg', metal: 0.55, rough: 0.2 }),
-  skin('awp', 'Sapphire', 'covert', 'gem', ['#0a1a5a'], { image: '/textures/sapphire.jpg', metal: 0.55, rough: 0.2 }),
-  skin('m4a4', 'Emerald', 'covert', 'gem', ['#0f6b45'], { image: '/textures/emerald.jpg', metal: 0.5, rough: 0.2 }),
+  skin('ak47', 'Ruby', 'covert', 'gem', ['#b0142e'], { image: '/textures/ruby.jpg', ...GEM_LOOK.ruby }),
+  skin('awp', 'Sapphire', 'covert', 'gem', ['#1f4fd6'], { image: '/textures/sapphire.jpg', ...GEM_LOOK.sapphire }),
+  skin('m4a4', 'Emerald', 'covert', 'gem', ['#12a866'], { image: '/textures/emerald.jpg', ...GEM_LOOK.emerald }),
   skin('awp', 'Dragon Lore', 'covert', 'gem', ['#b9b08a'], { image: '/textures/lore.jpg', fit: 'band', band: 0.45, metal: 0.25, rough: 0.45 }),
   skin('m4a1s', 'Howl', 'covert', 'gem', ['#8a1a08'], { image: '/textures/howl.jpg', fit: 'band', band: 0.47, metal: 0.3, rough: 0.4 }),
-  skin('ak47', 'Blue Gem', 'covert', 'gem', ['#4f7fd6'], { image: '/textures/bluegem.jpg', metal: 0.7, rough: 0.2, sat: 1.15 }),
+  skin('ak47', 'Case Hardened', 'covert', 'caseHardened', ['#3f86e0'], { seeded: true, metal: 0.75, rough: 0.26 }),
   skin('ak47', 'Wild Lotus', 'covert', 'gem', ['#1f6b52'], { image: '/textures/lotus.jpg', fit: 'tile', tile: 0.45, metal: 0.2, rough: 0.5 }),
   skin('awp', 'Gungnir', 'covert', 'gem', ['#2a7fd6'], { image: '/textures/gungnir.jpg', fit: 'tile', tile: 1.5, sat: 1.4, bright: 0.82, metal: 0.25, rough: 0.45 }),
   // Classified
@@ -77,14 +88,14 @@ const FINISH = {
   tiger: { name: 'Tiger Tooth', pattern: 'tiger', pal: ['#fff2b0', '#e8a317', '#3b1d00'], metal: 0.95, rough: 0.2 },
   web: { name: 'Crimson Web', pattern: 'web', pal: ['#b3121b', '#0b0000'], metal: 0.35, rough: 0.4 },
   slaughter: { name: 'Slaughter', pattern: 'slaughter', pal: ['#ffd0dc', '#ff5a7a', '#c0122e', '#ffe6ea'], metal: 0.75, rough: 0.25 },
-  caseHardened: { name: 'Case Hardened', pattern: 'caseHardened', pal: ['#1a2a6b', '#3f6fd6', '#9ab0c8', '#d9a23a', '#6b4a12'], metal: 0.85, rough: 0.3 },
+  // every drop gets its own pattern number; see variantOf
+  caseHardened: { name: 'Case Hardened', pattern: 'caseHardened', pal: ['#3f86e0'], seeded: true, metal: 0.8, rough: 0.24 },
   // gems: photographs of the stone (public/textures), painted by paintGem
-  gemRuby: { name: 'Ruby', pattern: 'gem', image: '/textures/ruby.jpg', pal: ['#5a0a1e'], metal: 0.8, rough: 0.14 },
-  gemSapphire: { name: 'Sapphire', pattern: 'gem', image: '/textures/sapphire.jpg', pal: ['#0a1a5a'], metal: 0.8, rough: 0.14 },
-  gemEmerald: { name: 'Emerald', pattern: 'gem', image: '/textures/emerald.jpg', pal: ['#0f6b45'], metal: 0.75, rough: 0.14 },
+  gemRuby: { name: 'Ruby', pattern: 'gem', image: '/textures/ruby.jpg', pal: ['#b0142e'], ...GEM_LOOK.ruby },
+  gemSapphire: { name: 'Sapphire', pattern: 'gem', image: '/textures/sapphire.jpg', pal: ['#1f4fd6'], ...GEM_LOOK.sapphire },
+  gemEmerald: { name: 'Emerald', pattern: 'gem', image: '/textures/emerald.jpg', pal: ['#12a866'], ...GEM_LOOK.emerald },
   lore: { name: 'Lore', pattern: 'gem', image: '/textures/lore.jpg', fit: 'band', pal: ['#b9b08a'], metal: 0.6, rough: 0.3 },
   rust: { name: 'Rust Coat', pattern: 'gem', image: '/textures/rust.jpg', pal: ['#8a4a22'], metal: 0.45, rough: 0.8, sat: 1.1, contrast: 1.05, gloss: false },
-  blueGem: { name: 'Blue Gem', pattern: 'gem', image: '/textures/bluegem.jpg', pal: ['#4f7fd6'], metal: 0.55, rough: 0.2, sat: 1.15 },
 }
 
 /* `band`: how tall the blade sits on the artwork, so a banner finish (Lore)
@@ -108,20 +119,60 @@ const knife = (type, finish) => ({
 export const KNIFE_SKINS = [
   knife('karambit', 'fade'), knife('karambit', 'sapphire'), knife('karambit', 'marble'), knife('karambit', 'tiger'),
   knife('flip', 'ruby'), knife('flip', 'web'), knife('flip', 'gamma'),
-  knife('huntsman', 'slaughter'), knife('huntsman', 'caseHardened'), knife('huntsman', 'emerald'), knife('huntsman', 'doppler'),
-  // every knife comes in every gem, in Lore and in Rust Coat
-  ...['karambit', 'flip', 'huntsman'].flatMap(t => ['gemRuby', 'gemSapphire', 'gemEmerald', 'blueGem', 'lore', 'rust'].map(f => knife(t, f))),
+  knife('huntsman', 'slaughter'), knife('huntsman', 'emerald'), knife('huntsman', 'doppler'),
+  // every knife comes in every gem, Case Hardened, Lore and Rust Coat
+  ...['karambit', 'flip', 'huntsman'].flatMap(t => ['gemRuby', 'gemSapphire', 'gemEmerald', 'caseHardened', 'lore', 'rust'].map(f => knife(t, f))),
 ]
 
 /* The original model knives can drop too (their finish is baked into the file). */
+/* The Butterfly's own model with a finish painted on its blade: the stones and
+   Case Hardened. `finish` marks a model knife whose blade gets repainted. */
+const modelKnife = (type, weaponName, f) => ({
+  id: `knife_${type}_${f}`, kind: 'knife', knife: type, tier: 'gold', weaponName, model: true,
+  seed: seed++, ...FINISH[f], finish: true,
+})
+
 export const MODEL_KNIVES = [
   { id: 'knife_m9a', kind: 'knife', knife: 'm9a', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Doppler', model: true },
   { id: 'knife_m9b', kind: 'knife', knife: 'm9b', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Autotronic', model: true },
   { id: 'knife_bfly', kind: 'knife', knife: 'bfly', tier: 'gold', weaponName: '★ Butterfly Knife', name: 'Crimson Web', model: true },
+  ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
 ]
 
 export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES]
 export const itemById = id => ITEMS.find(i => i.id === id) || null
+
+/* Items renamed or merged since, so drops already in someone's inventory
+   keep working: Blue Gem is now what a very blue Case Hardened is called. */
+export const LEGACY_IDS = {
+  ak47_blue_gem: 'ak47_case_hardened',
+  knife_karambit_blueGem: 'knife_karambit_caseHardened',
+  knife_flip_blueGem: 'knife_flip_caseHardened',
+  knife_huntsman_blueGem: 'knife_huntsman_caseHardened',
+}
+
+/* Pattern-seeded finishes (Case Hardened). The catalog item is the finish;
+   what you hold is that finish at one pattern number, 1-1000, rolled when it
+   drops. The variant carries its own id so its texture and picture are its
+   own, and is named Blue Gem when the pattern came out nearly all blue. */
+export const PATTERN_MAX = 1000
+export const rollPattern = () => 1 + Math.floor(Math.random() * PATTERN_MAX)
+
+export function variantOf(item, patternNo) {
+  if (!item?.seeded || !patternNo) return item
+  const { blue, gem } = caseHardenedInfo(patternNo)
+  return {
+    ...item,
+    id: `${item.id}#${patternNo}`,
+    baseId: item.id,
+    patternNo,
+    seed: 5000 + patternNo,
+    blue,
+    gem,
+    name: gem ? `${item.name} (Blue Gem)` : item.name,
+    detail: `Pattern #${patternNo}${gem ? ' · Blue Gem' : ''}`,
+  }
+}
 
 export const CASE = {
   id: 'garena_case_1',

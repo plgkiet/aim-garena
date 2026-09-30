@@ -17,6 +17,7 @@ import { useScreen } from '../lib/route'
 import { inventory } from '../skins/inventory'
 import { Inventory } from './Inventory'
 import { TradeUp } from './TradeUp'
+import { ItemDetail } from './ItemDetail'
 
 /* The HUD reads the shared game state on its own clock (~30 Hz): nothing in the
    simulation pushes React updates, so the canvas never re-renders for a number. */
@@ -45,7 +46,7 @@ const WEAPON_ICON = {
 
 export function Hud({ locked, onRequestLock }) {
   useTick(30)
-  const [screen, go] = useScreen()      // 'menu' | 'case' | 'inventory' | 'tradeup', mirrored in the URL
+  const [screen, go, param] = useScreen()   // 'menu' | 'case' | 'inventory' | 'tradeup' | 'item', mirrored in the URL
   const me = game.local
   const phase = game.phase
 
@@ -53,7 +54,8 @@ export function Hud({ locked, onRequestLock }) {
     return (
       <div className="hud">
         {screen === 'case' ? <CaseOpen onBack={() => go('menu')} onInventory={() => go('inventory')} />
-          : screen === 'inventory' ? <Inventory onBack={() => go('menu')} onCase={() => go('case')} onTradeUp={() => go('tradeup')} />
+          : screen === 'inventory' ? <Inventory onBack={() => go('menu')} onCase={() => go('case')} onTradeUp={() => go('tradeup')} onOpen={uid => go('item', uid)} />
+          : screen === 'item' ? <ItemDetail uid={param} onBack={() => go('inventory')} />
           : screen === 'tradeup' ? <TradeUp onBack={() => go('menu')} onInventory={() => go('inventory')} onCase={() => go('case')} />
           : <MainMenu onStart={onRequestLock} onCase={() => go('case')} onInventory={() => go('inventory')} onTradeUp={() => go('tradeup')} />}
       </div>

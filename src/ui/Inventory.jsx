@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ITEMS, itemById, TIERS } from "../skins/catalog"; // tierBySlug: only needed if the rarity tag comes back
+import { ITEMS, TIERS } from "../skins/catalog"; // tierBySlug: only needed if the rarity tag comes back
 import { inventory } from "../skins/inventory";
 import { MiniItem, itemLabel } from "./CaseOpen";
 
@@ -11,12 +11,12 @@ function useInventory() {
   return s;
 }
 
-export function Inventory({ onBack, onCase, onTradeUp }) {
+export function Inventory({ onBack, onCase, onTradeUp, onOpen }) {
   const inv = useInventory();
   const [filter, setFilter] = useState("all");
   const [tier, setTier] = useState("all");
   const owned = inv.items
-    .map((d) => ({ drop: d, item: itemById(d.id) }))
+    .map((d) => ({ drop: d, item: inventory.itemOf(d) }))
     .filter((x) => x.item);
   const byKind = owned.filter(
     (x) =>
@@ -48,7 +48,13 @@ export function Inventory({ onBack, onCase, onTradeUp }) {
           </button>
           <div className="row gap-8">
             {/* TEST ONLY: one of every skin and knife in the case. Comment out when done testing. */}
-            {/* <button type="button" className="btn btn--ghost btn--sm" onClick={() => ITEMS.forEach(it => inventory.add(it.id))}>Nhận full skin</button> */}
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => ITEMS.forEach((it) => inventory.add(it.id))}
+            >
+              Nhận full skin
+            </button>
             {/* END TEST ONLY */}
             <button
               type="button"
@@ -70,8 +76,8 @@ export function Inventory({ onBack, onCase, onTradeUp }) {
           <span className="eyebrow">Kho đồ</span>
           <h1 style={{ marginTop: 10 }}>{inv.items.length} vật phẩm</h1>
           <p>
-            Bấm vào một món để trang bị. Mỗi súng mang được một skin, dao mang
-            được một con.
+            Bấm vào một món để xem chi tiết và trang bị. Mỗi súng mang được một
+            skin, dao mang được một con.
           </p>
         </div>
 
@@ -144,11 +150,7 @@ export function Inventory({ onBack, onCase, onTradeUp }) {
                   key={drop.uid}
                   item={item}
                   active={on}
-                  onClick={() =>
-                    on
-                      ? inventory.unequip(inventory.slotOf(item))
-                      : inventory.equip(drop.uid)
-                  }
+                  onClick={() => onOpen(drop.uid)}
                 >
                   {/* rarity tag hidden; only the equipped badge shows
                   <em className="mini-item__tag" title={itemLabel(item)}>{on ? 'Đang dùng' : tierBySlug(item.tier).label}</em> */}

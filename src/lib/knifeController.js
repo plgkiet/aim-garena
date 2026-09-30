@@ -32,6 +32,8 @@ export const knife = {
     knife.seq++
     emit()
   },
+  /** Tell the view a knife's finish changed (a new Case Hardened pattern). */
+  refresh() { emit() },
   subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) },
 }
 

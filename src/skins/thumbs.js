@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { buildGun } from '../view/guns'
-import { buildKnifeModel } from './knives'
+import { buildKnifeModel, paintModelBlade } from './knives'
 import { KNIVES } from '../lib/knives'
 import { normalizeKnife, keepOnly } from '../lib/knifeSetup'
 import { skinReady } from './patterns'
@@ -60,14 +60,29 @@ function shoot(model) {
 }
 
 const loader = new GLTFLoader()
-function modelKnife(key) {
+function modelKnife(key, finish = null) {
   const cfg = KNIVES[key]
   return loader.loadAsync(cfg.file).then(gltf => {
     const m = gltf.scene.clone(true)
     if (cfg.pick) keepOnly(m, cfg.pick)
     normalizeKnife(m, cfg)
+    if (finish) paintModelBlade(m, finish)
     return m
   })
+}
+
+/** The item's model, lying on its side for a camera at +X: guns muzzle to
+    the right, knives laid across tip up and to the right. Shared by the
+    thumbnails and the inspect screen. */
+export async function buildItemModel(item) {
+  if (item.image) await skinReady(item)   // don't show a photo finish before its picture has loaded
+  if (item.kind === 'gun') return buildGun(item.weapon, { skin: item }).group
+  const model = item.model ? await modelKnife(item.knife, item.finish ? item : null) : buildKnifeModel(item.knife, item)
+  // knives stand blade-up with the flat on Z: turn the flat to the camera,
+  // then lay the blade across the picture, tip up and to the right
+  model.rotation.y = Math.PI / 2
+  const wrap = new THREE.Group(); wrap.add(model); wrap.rotation.x = -1.05
+  return wrap
 }
 
 /** PNG data URL for an item (async; cached). */
@@ -76,18 +91,7 @@ export function thumbnail(item) {
   if (pending.has(item.id)) return pending.get(item.id)
   const job = (async () => {
     setup()
-    if (item.image) await skinReady(item)   // don't photograph a gem before its stone has loaded
-    let model
-    if (item.kind === 'gun') {
-      model = buildGun(item.weapon, { skin: item }).group
-    } else {
-      model = item.model ? await modelKnife(item.knife) : buildKnifeModel(item.knife, item)
-      // knives stand blade-up with the flat on Z: turn the flat to the camera,
-      // then lay the blade across the picture, tip up and to the right
-      model.rotation.y = Math.PI / 2
-      const wrap = new THREE.Group(); wrap.add(model); wrap.rotation.x = -1.05
-      model = wrap
-    }
+    const model = await buildItemModel(item)
     const url = shoot(model)
     cache.set(item.id, url)
     pending.delete(item.id)

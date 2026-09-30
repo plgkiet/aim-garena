@@ -330,14 +330,9 @@ const P = {
   },
 
   /** Case hardened: blue and gold patina. */
+  /** Case Hardened: see caseHardenedField below. */
   caseHardened(g, s) {
-    const n = noise2(s.seed)
-    const n2 = noise2(s.seed + 11)
-    field(g, (u, v) => {
-      const t = n(u * 5, v * 3, 5)
-      const k = n2(u * 12, v * 6, 3)
-      return ramp(s.pal, Math.max(0, Math.min(1, t * 1.4 - 0.2 + (k - 0.5) * 0.3)))
-    })
+    field(g, caseHardenedField(s.patternNo ?? s.seed))
   },
 
   /** Plain polished steel. */
@@ -398,7 +393,7 @@ function paintGem(g, skin, img) {
   // cover-crop, zoomed in a touch so the seeded offset has room to move
   const k = Math.max(TEX_W / img.width, TEX_H / img.height) * (1.15 + r() * 0.35)
   const w = img.width * k, h = img.height * k
-  g.filter = `saturate(${skin.sat ?? 1.35}) contrast(${skin.contrast ?? 1.12})`
+  g.filter = `saturate(${skin.sat ?? 1.35}) contrast(${skin.contrast ?? 1.12}) brightness(${skin.bright ?? 1}) hue-rotate(${skin.hue ?? 0}deg)`
   g.drawImage(img, -(w - TEX_W) * r(), -(h - TEX_H) * r(), w, h)
   g.filter = 'none'
   if (skin.gloss === false) return   // a weathered finish (Rust Coat) stays matte
@@ -409,12 +404,76 @@ function paintGem(g, skin, img) {
   g.fillStyle = gl; g.fillRect(0, 0, TEX_W, TEX_H)
 }
 
+
 function wear(g, skin) {
   // a faint wear pass: nothing leaves the factory perfect
   const r = rng(skin.seed + 99)
   g.fillStyle = '#000'
   for (let i = 0; i < 260; i++) { g.globalAlpha = 0.04 + r() * 0.06; g.fillRect(r() * TEX_W, r() * TEX_H, 1 + r() * 4, 1 + r() * 2) }
   g.globalAlpha = 1
+}
+
+/* Case Hardened, as in CS:GO: every drop carries a pattern number (1-1000)
+   and the pattern decides the whole look. The steel is heat-blued in oily,
+   domain-warped pools: blue where the metal cooled first, gold where it
+   didn't, a dark violet rim where the two meet and a few silver flecks. The
+   pattern also sets how much of the weapon ends up blue; most patterns are a
+   blue/gold mix, and a few percent come out nearly all blue: the "Blue Gems". */
+export const BLUE_GEM_AT = 0.8
+
+/** How blue a pattern is (0..1) and whether it counts as a Blue Gem. Cheap. */
+export function caseHardenedInfo(patternNo) {
+  const r = rng(patternNo * 31 + 7)
+  const x = r()
+  // ~4% of patterns are gems; the rest spread over a 20-68% blue mix
+  const blue = x < 0.04 ? BLUE_GEM_AT + r() * 0.15 : 0.2 + r() * 0.48
+  return { blue, gem: blue >= BLUE_GEM_AT }
+}
+
+const CH_BLUE_LIGHT = hex('#7cc0f5'), CH_BLUE = hex('#2f6fd8'), CH_BLUE_DEEP = hex('#18307f')
+const CH_RIM = hex('#6b3aa6'), CH_RIM_DARK = hex('#26134a')
+const CH_GOLD = hex('#c7861c'), CH_GOLD_LIGHT = hex('#f2c64e'), CH_SILVER = hex('#c9ced6')
+const CH_PURPLE = hex('#8a5bb8')
+
+function caseHardenedField(patternNo) {
+  const base = patternNo * 97 + 13
+  const n = noise2(base), wx = noise2(base + 1), wy = noise2(base + 2), tone = noise2(base + 3), fine = noise2(base + 4)
+  const heat = (u, v) => {
+    // warp the lookup by two other noises: that is what makes the pools run like oil
+    const du = wx(u * 3, v * 1.5, 3) - 0.5, dv = wy(u * 3 + 5, v * 1.5, 3) - 0.5
+    // plus a fine mottle, so the edges break up into specks and small islands
+    return n(u * 4 + du * 4.4, v * 2 + dv * 4.4, 5) + (fine(u * 26, v * 13, 3) - 0.5) * 0.1
+  }
+  // pick the blue/gold threshold so the painted part of the weapon (the lower
+  // ~half of the artwork) comes out at this pattern's share of blue
+  const { blue } = caseHardenedInfo(patternNo)
+  const samples = []
+  for (let j = 0; j < 32; j++) for (let i = 0; i < 128; i++) samples.push(heat((i + 0.5) / 128, ((j + 0.5) / 32) * 0.5))
+  samples.sort((a, b) => a - b)
+  const cut = samples[Math.min(samples.length - 1, Math.floor(blue * samples.length))]
+  const RIM = 0.016
+  return (u, v) => {
+    const t = heat(u, v)
+    const k = tone(u * 10, v * 5, 4)
+    const d = t - cut
+    if (d < -RIM) {
+      // blue pools: deep at the rim, brighter inside, clouded by the tone noise
+      const depth = Math.min(1, -d * 7)
+      const m = fine(u * 18 + 3, v * 9, 3)
+      let c = mix(CH_BLUE_DEEP, CH_BLUE, Math.min(1, depth * 1.6))
+      c = mix(c, CH_BLUE_LIGHT, Math.min(0.85, Math.max(0, k - 0.55) * 4) * depth)
+      return mix(c, CH_BLUE_DEEP, Math.min(0.8, Math.max(0, 0.46 - k) * 4 + Math.max(0, m - 0.6) * 2))
+    }
+    if (d < RIM) {
+      // the tempered edge: violet fading to near-black
+      return mix(CH_RIM, CH_RIM_DARK, Math.abs(d) / RIM)
+    }
+    // gold, bruised purple in places, with silver flecks
+    const g = mix(CH_GOLD, CH_GOLD_LIGHT, Math.min(1, (d - RIM) * 5 + (k - 0.5)))
+    if (k < 0.43) return mix(g, CH_PURPLE, Math.min(0.9, (0.43 - k) * 7))
+    if (k > 0.6) return mix(g, CH_SILVER, Math.min(0.8, (k - 0.6) * 5))
+    return g
+  }
 }
 
 const cache = new Map()

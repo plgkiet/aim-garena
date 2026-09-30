@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { game } from "../game/state";
 import { startMatch } from "../game/rules";
-import { DEFAULT_KNIFE } from "../lib/knives";
+import { DEFAULT_KNIFE, KNIVES } from "../lib/knives";
 import { knife } from "../lib/knifeController";
 import { isMuted, setMuted, unlockAudio } from "../lib/audio";
 import { Scoreboard } from "./Scoreboard";
@@ -163,7 +163,12 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
     });
     // everyone starts on the stock knife; a ★ knife only comes from a case
     const eq = inventory.equippedItem("knife");
-    knife.setKnife(eq ? (eq.model ? eq.knife : eq.id) : DEFAULT_KNIFE);
+    // a model knife carries its finish on the blade (or none: the file's own);
+    // a Case Hardened knife is its catalog knife painted at its own pattern
+    if (eq?.model) KNIVES[eq.knife].finish = eq.finish ? eq : null;
+    else if (eq?.baseId) KNIVES[eq.baseId].finish = eq;
+    knife.setKnife(eq ? (eq.model ? eq.knife : eq.baseId || eq.id) : DEFAULT_KNIFE);
+    knife.refresh();
     unlockAudio();
     setLoading(true);
     await loadLevel(aim ? "aim" : "dust2");

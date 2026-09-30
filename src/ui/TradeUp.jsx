@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { TIERS, TRADE_COUNT, itemById, nextTier } from "../skins/catalog";
+import { TIERS, TRADE_COUNT, nextTier } from "../skins/catalog";
 import { inventory } from "../skins/inventory";
 import { playOpen, playReveal, unlock } from "../lib/caseSound";
 import { MiniItem, WinnerModal } from "./CaseOpen";
@@ -22,7 +22,7 @@ function useInventory() {
 export function TradeUp({ onBack, onInventory, onCase }) {
   const inv = useInventory();
   const owned = inv.items
-    .map((d) => ({ drop: d, item: itemById(d.id) }))
+    .map((d) => ({ drop: d, item: inventory.itemOf(d) }))
     .filter((x) => x.item);
   const free = (x) => !inventory.isEquipped(x.drop.uid);
   const countFree = (slug) =>
@@ -96,7 +96,7 @@ export function TradeUp({ onBack, onInventory, onCase }) {
       setPhase("idle");
       setPicked([]);
       if (!drop) return;
-      const item = itemById(drop.id);
+      const item = inventory.itemOf(drop);
       setResult({ item, drop });
       playReveal(item.tier);
     }, SIGN_MS);

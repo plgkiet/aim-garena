@@ -127,3 +127,17 @@ export function buildKnifeModel(type, finish = null) {
 }
 
 export const KNIFE_BUILDERS = Object.keys(BUILD)
+
+/** Repaint the blade of a model knife (the Butterfly) with a finish; its
+    handles, bolts and screws keep the look baked into the file. */
+const GRIP_STEEL = new THREE.MeshStandardMaterial({ color: '#1c1f24', metalness: 0.6, roughness: 0.42 })
+export function paintModelBlade(model, finish) {
+  const blades = []
+  model.traverse(o => {
+    if (!o.isMesh) return
+    if (/^blade_/i.test(o.name)) blades.push(o)
+    // the file's pink Crimson Web grip inlays would fight any other finish
+    else if (/red_grip/i.test(o.name)) o.material = GRIP_STEEL
+  })
+  paintMeshes(model, blades, finish, 'y')
+}
