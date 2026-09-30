@@ -45,10 +45,7 @@ export const GUN_SKINS = [
   skin('m4a4', 'Solar Flare', 'covert', 'geometric', ['#f4f1ea', '#15171b', '#ff6a1a', '#15171b'], { tag: 'SOL-4' }),
   skin('deagle', 'Blaze', 'covert', 'fade', ['#ffe066', '#ff8a00', '#ff2a00', '#6b0000'], { metal: 0.75, rough: 0.28 }),
   skin('m4a1s', 'Hyper Violet', 'covert', 'splatter', ['#1a0f2e', '#ff2e97', '#39ff14', '#00e5ff', '#fff200']),
-  // Covert gems: photo finishes of the stone (public/textures)
-  skin('ak47', 'Ruby', 'covert', 'gem', ['#b0142e'], { image: '/textures/ruby.jpg', ...GEM_LOOK.ruby }),
-  skin('awp', 'Sapphire', 'covert', 'gem', ['#1f4fd6'], { image: '/textures/sapphire.jpg', ...GEM_LOOK.sapphire }),
-  skin('m4a4', 'Emerald', 'covert', 'gem', ['#12a866'], { image: '/textures/emerald.jpg', ...GEM_LOOK.emerald }),
+  // Covert photo finishes (public/textures)
   skin('awp', 'Dragon Lore', 'covert', 'gem', ['#b9b08a'], { image: '/textures/lore.jpg', fit: 'band', band: 0.45, metal: 0.25, rough: 0.45 }),
   skin('m4a1s', 'Howl', 'covert', 'gem', ['#8a1a08'], { image: '/textures/howl.jpg', fit: 'band', band: 0.47, metal: 0.3, rough: 0.4 }),
   skin('ak47', 'Case Hardened', 'covert', 'caseHardened', ['#3f86e0'], { seeded: true, metal: 0.75, rough: 0.26 }),
