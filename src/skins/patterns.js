@@ -335,6 +335,141 @@ const P = {
     field(g, caseHardenedField(s.patternNo ?? s.seed))
   },
 
+  /** Digital camo: square pixels stepped out of smooth noise. */
+  digital(g, s) {
+    const n = noise2(s.seed), cell = 14
+    for (let y = 0; y < TEX_H; y += cell) for (let x = 0; x < TEX_W; x += cell) {
+      const t = n((x / TEX_W) * 7, (y / TEX_H) * 3.5, 4)
+      const i = Math.min(s.pal.length - 1, Math.max(0, Math.floor(((t - 0.28) / 0.44) * s.pal.length)))
+      g.fillStyle = s.pal[i]; g.fillRect(x, y, cell, cell)
+    }
+  },
+
+  /** Topographic map: contour lines over a flat ground, every fourth heavier. */
+  topo(g, s) {
+    const n = noise2(s.seed), bg = hex(s.pal[0]), ln = hex(s.pal[1])
+    field(g, (u, v) => {
+      const t = n(u * 3, v * 1.5, 4) * 16
+      const f = t - Math.floor(t), d = Math.min(f, 1 - f)
+      const w = Math.floor(t) % 4 === 0 ? 0.1 : 0.05
+      return d < w ? mix(bg, ln, 1 - (d / w) * 0.5) : mix(bg, ln, 0.06)
+    })
+  },
+
+  /** Carbon fibre: a woven checker of sheened tows, with optional racing pinstripes. */
+  carbon(g, s) {
+    const [a, b, accent] = s.pal, c = 12
+    for (let y = 0; y < TEX_H; y += c) for (let x = 0; x < TEX_W; x += c) {
+      const across = ((x + y) / c) % 2 === 0
+      const grad = g.createLinearGradient(x, y, across ? x + c : x, across ? y : y + c)
+      grad.addColorStop(0, a); grad.addColorStop(0.5, b); grad.addColorStop(1, a)
+      g.fillStyle = grad; g.fillRect(x, y, c, c)
+    }
+    if (accent) {
+      g.fillStyle = accent
+      g.fillRect(0, TEX_H * 0.62, TEX_W, 7); g.fillRect(0, TEX_H * 0.62 + 12, TEX_W, 2)
+    }
+  },
+
+  /** Tartan: a repeating sett of bands woven both ways, with a fine twill. */
+  tartan(g, s) {
+    const [base, c1, c2, dark] = s.pal
+    g.fillStyle = base; g.fillRect(0, 0, TEX_W, TEX_H)
+    const sett = [[dark, 44], [c1, 14], [dark, 8], [c2, 5], [base, 30], [c1, 5]]
+    g.globalAlpha = 0.55
+    for (let o = 0; o < TEX_W;) for (const [col, w] of sett) {
+      g.fillStyle = col
+      g.fillRect(o, 0, w, TEX_H)
+      if (o < TEX_H) g.fillRect(0, o, TEX_W, w)
+      o += w
+    }
+    g.globalAlpha = 1
+    g.strokeStyle = 'rgba(0,0,0,0.12)'; g.lineWidth = 1
+    for (let d = -TEX_H; d < TEX_W; d += 4) { g.beginPath(); g.moveTo(d, TEX_H); g.lineTo(d + TEX_H, 0); g.stroke() }
+  },
+
+  /** Leopard / cheetah: broken dark rosettes around warm centres. */
+  leopard(g, s) {
+    const r = rng(s.seed), [base, dark, light] = s.pal
+    g.fillStyle = base; g.fillRect(0, 0, TEX_W, TEX_H)
+    g.lineCap = 'round'
+    for (let i = 0; i < 230; i++) {
+      const x = r() * TEX_W, y = r() * TEX_H, R = 8 + r() * 16
+      g.globalAlpha = 0.6; g.fillStyle = light
+      g.beginPath(); g.ellipse(x, y, R * 0.7, R * 0.55, r() * 3, 0, 7); g.fill()
+      g.globalAlpha = 1; g.strokeStyle = dark; g.lineWidth = R * 0.35
+      for (let k = 0; k < 3; k++) { const a0 = r() * 6.28; g.beginPath(); g.ellipse(x, y, R, R * 0.8, 0, a0, a0 + 1 + r() * 1.2); g.stroke() }
+    }
+  },
+
+  /** Chevrons: bold zig-zag bands running the length of the weapon. */
+  chevron(g, s) {
+    const [bg, ...cols] = s.pal
+    g.fillStyle = bg; g.fillRect(0, 0, TEX_W, TEX_H)
+    const step = 46, amp = 20, half = 30, N = Math.ceil(TEX_W / half) + 1
+    const zig = i => (i % 2 ? amp : -amp)
+    for (let b = -1, k = 0; b * step < TEX_H + step; b++, k++) {
+      g.fillStyle = cols[k % cols.length]
+      const y0 = b * step
+      g.beginPath()
+      for (let i = 0; i <= N; i++) g.lineTo(i * half, y0 + zig(i))
+      for (let i = N; i >= 0; i--) g.lineTo(i * half, y0 + step * 0.5 + zig(i))
+      g.fill()
+    }
+  },
+
+  /** Halftone: a dot screen swelling from nothing at the muzzle to solid at the stock. */
+  halftone(g, s) {
+    const [bg, dot] = s.pal, n = noise2(s.seed), c = 14
+    g.fillStyle = bg; g.fillRect(0, 0, TEX_W, TEX_H)
+    g.fillStyle = dot
+    for (let y = 0, row = 0; y < TEX_H + c; y += c * 0.866, row++) for (let x = (row % 2) * c / 2; x < TEX_W + c; x += c) {
+      const t = Math.min(1, Math.max(0, (x / TEX_W) * 0.9 + (n((x / TEX_W) * 4, (y / TEX_H) * 2, 3) - 0.5) * 0.8))
+      const R = c * 0.58 * t
+      if (R > 0.4) { g.beginPath(); g.arc(x, y, R, 0, 7); g.fill() }
+    }
+  },
+
+  /** Street-racer livery (the silver-and-blue tuner car): metallic silver,
+      twin racing stripes down the length, and a run of slanted blade decals
+      along the bottom that grow taller toward the stock. */
+  livery(g, s) {
+    const [silver, blue, shade, light] = s.pal
+    const grad = g.createLinearGradient(0, 0, 0, TEX_H)
+    grad.addColorStop(0, '#f2f4f7'); grad.addColorStop(0.55, silver); grad.addColorStop(1, shade || '#8d949c')
+    g.fillStyle = grad; g.fillRect(0, 0, TEX_W, TEX_H)
+    const Y = v => (1 - v) * TEX_H
+    // twin stripes, the upper one a touch wider
+    g.fillStyle = blue
+    g.fillRect(0, Y(0.3), TEX_W, 0.05 * TEX_H)
+    g.fillRect(0, Y(0.235), TEX_W, 0.036 * TEX_H)
+    const blade = (x, y0, w, h, lean) => {
+      g.beginPath()
+      g.moveTo(x, y0); g.lineTo(x + w, y0); g.lineTo(x + w - lean, y0 - h); g.lineTo(x - lean, y0 - h)
+      g.closePath(); g.fill()
+    }
+    if (s.blades === false) return   // the blades come from a picture instead
+    // the sill row: short light-blue slashes the whole length
+    g.fillStyle = light || blue
+    for (let u = 0.03; u < 1; u += 0.018) blade(u * TEX_W, Y(0.012), 0.008 * TEX_W, 0.055 * TEX_H, 0.03 * TEX_H)
+    // the main blades: taller toward the stock (u = 1), tops leaning toward
+    // the muzzle, each one cut through by a thin silver slice like the car's
+    for (let u = 0.3; u < 1; u += 0.034) {
+      const t = (u - 0.3) / 0.7
+      const h = (0.05 + Math.pow(t, 1.4) * 0.2) * TEX_H, w = (0.014 + t * 0.01) * TEX_W, lean = h * 0.6
+      const x = u * TEX_W, y0 = Y(0.075)
+      g.fillStyle = blue
+      blade(x, y0, w, h, lean)
+      g.fillStyle = silver
+      blade(x - lean * 0.55 - w * 0.2, y0 - h * 0.55, w * 1.4, h * 0.07, lean * 0.07)
+    }
+  },
+
+  /** One flat colour: the ground for decals laid on top. */
+  solid(g, s) {
+    g.fillStyle = s.pal[0]; g.fillRect(0, 0, TEX_W, TEX_H)
+  },
+
   /** Plain polished steel. */
   vanilla(g) {
     const grad = g.createLinearGradient(0, 0, 0, TEX_H)
@@ -407,10 +542,41 @@ function harlequin(g, cell) {
    one tile `tile` of the artwork tall, repeated along and up the weapon from
    a seeded start so the motif is whole rather than stretched. */
 function paintTile(g, skin, img) {
-  const th = TEX_H * (skin.tile ?? 0.45), tw = th * img.width / img.height
+  // `tileCrop` [x0, y0, x1, y1] (fractions) tiles just part of the picture,
+  // e.g. the plain camo around a logo
+  const [cx0, cy0, cx1, cy1] = skin.tileCrop ?? [0, 0, 1, 1]
+  const sx = cx0 * img.width, sy = cy0 * img.height, sw = (cx1 - cx0) * img.width, sh = (cy1 - cy0) * img.height
+  const th = TEX_H * (skin.tile ?? 0.45), tw = th * sw / sh
   const x0 = -tw * rng(skin.seed)()
+  g.save()
+  // `tileFlip` mirrors the pattern so lettering in it reads right on the side you see
+  if (skin.tileFlip) { g.translate(TEX_W, 0); g.scale(-1, 1) }
   for (let y = TEX_H - th; y > -th; y -= th)
-    for (let x = x0; x < TEX_W; x += tw) g.drawImage(img, x, y, tw, th)
+    for (let x = x0; x < TEX_W; x += tw) g.drawImage(img, sx, sy, sw, sh, x, y, tw, th)
+  g.restore()
+}
+
+/* An emblem: one piece of the picture (a logo, a face) set once on the
+   weapon at `at` [u, v], `h` of the artwork tall, keeping its own aspect
+   (the artwork is square in weapon units, so pixels scale alike both ways).
+   `flip` mirrors it so it reads right on the side you look at. */
+function paintEmblem(g, E, img) {
+  const [x0, y0, x1, y1] = E.crop
+  const sw = (x1 - x0) * img.width, sh = (y1 - y0) * img.height
+  // `w` (a fraction of the artwork's width) stretches a strip to a length;
+  // otherwise it keeps its own aspect at height `h`
+  const h = E.h * TEX_H, w = E.w ? E.w * TEX_W : h * sw / sh
+  const cx = E.at[0] * TEX_W, cy = (1 - E.at[1]) * TEX_H
+  g.save()
+  g.translate(cx, cy)
+  // `pad`: a clear field of `padColor` around it, so the tiled pattern doesn't crowd it
+  if (E.pad) { g.fillStyle = E.padColor; g.fillRect(-w / 2 - E.pad * h, -h / 2 - E.pad * h, w + 2 * E.pad * h, h + 2 * E.pad * h) }
+  // `rot` (radians) turns a piece that sits sideways on the sheet
+  if (E.rot) g.rotate(E.rot)
+  // `flipY`: texture sheets taken off a model are often stored upside down
+  g.scale(E.flip ? -1 : 1, E.flipY ? -1 : 1)
+  g.drawImage(img, x0 * img.width, y0 * img.height, sw, sh, -w / 2, -h / 2, w, h)
+  g.restore()
 }
 
 /* A decal finish (Fire Serpent): the picture is a side photo of the skinned
@@ -434,13 +600,43 @@ function paintDecal(g, skin, img) {
   }
 }
 
+/* A lettered sticker: `text` at `at` [u, v], `h` of the artwork tall, in
+   `color` with an optional `outline`; `flip` mirrors it to read right on the
+   side you see. */
+function paintText(g, T) {
+  const size = T.h * TEX_H
+  g.save()
+  g.translate(T.at[0] * TEX_W, (1 - T.at[1]) * TEX_H)
+  if (T.flip) g.scale(-1, 1)
+  if (T.skew) g.transform(1, 0, T.skew, 1, 0, 0)
+  g.font = `${T.weight ?? 900} ${T.italic ? 'italic ' : ''}${size}px ${T.font ?? 'Arial Black, Arial, sans-serif'}`
+  g.textAlign = 'center'; g.textBaseline = 'middle'
+  if (T.box) {
+    const w = g.measureText(T.text).width
+    g.fillStyle = T.box; g.fillRect(-w / 2 - size * 0.25, -size * 0.62, w + size * 0.5, size * 1.24)
+  }
+  if (T.outline) { g.lineWidth = size * 0.16; g.strokeStyle = T.outline; g.strokeText(T.text, 0, 0) }
+  g.fillStyle = T.color ?? '#1f4fb8'
+  g.fillText(T.text, 0, 0)
+  g.restore()
+}
+
 function paintGem(g, skin, img) {
+  // `overlay`: a pattern painted in code, with pieces of the picture stuck on
+  // top as decals (the street racer's sponsor stickers)
+  if (skin.fit === 'overlay') {
+    ;(P[skin.base] || P.fade)(g, skin)
+    for (const e of skin.emblems ?? []) paintEmblem(g, e, img)
+    for (const t of skin.texts ?? []) paintText(g, t)
+    return
+  }
   if (skin.fit === 'band') return paintBand(g, skin, img)
   if (skin.fit === 'decal') return paintDecal(g, skin, img)
   if (skin.fit === 'tile') {
     g.filter = `saturate(${skin.sat ?? 1}) brightness(${skin.bright ?? 1})`
     paintTile(g, skin, img)
     g.filter = 'none'
+    if (skin.emblem) paintEmblem(g, skin.emblem, img)
     return
   }
   const r = rng(skin.seed)

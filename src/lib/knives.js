@@ -111,6 +111,8 @@ export const KNIVES = {
     pose: copy(POSE, { p: [0.112, -0.064, -0.305] }),
     hand: copy(HAND),
     offhand: copy(OFFHAND),
+    // the blade bolts come tinted pink in the file; show them as plain steel
+    silver: ["screw_blade"],
     // handles pivot on the two blade bolts, exactly like a real balisong.
     // The file merges both handles into each mesh, so the rig splits the
     // meshes into pieces and sorts them by side (see rigButterflySplit).

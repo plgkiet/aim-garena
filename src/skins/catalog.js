@@ -81,6 +81,78 @@ export const GUN_SKINS = [
     image: '/textures/scream.jpg', fit: 'band', metal: 0.15, rough: 0.55, vSpan: 1.6, paintChrome: true,
     layout: { plain: true, u0: 0, u1: 1, v0: 0.12, v1: 1, cropV: [0.37, 1], flip: true },
   }),
+  // a tiled background with one emblem set mid-gun (tileCrop / emblem in patterns.js)
+  skin('m4a4', 'Bape Shark', 'covert', 'gem', ['#4c8fd6'], {
+    image: '/textures/bape.jpg', fit: 'tile', tile: 0.6, tileCrop: [0, 0, 1, 0.3], metal: 0.15, rough: 0.55,
+    emblem: { crop: [0.3, 0.355, 0.69, 0.66], at: [0.58, 0.3], h: 0.5 },
+  }),
+  skin('awp', 'Supreme', 'covert', 'gem', ['#e0141e'], {
+    image: '/textures/supreme_lv.jpg', fit: 'tile', tile: 0.35, tileCrop: [0, 0, 1, 0.33], tileFlip: true, metal: 0.15, rough: 0.5,
+    emblem: { crop: [0.25, 0.43, 0.77, 0.63], at: [0.6, 0.2], h: 0.13, flip: true, pad: 0.5, padColor: '#fe0000' },
+  }),
+  // Michelangelo on the AWP: the two hands almost touching land on the body
+  skin('awp', 'Creation of Adam', 'covert', 'gem', ['#d9cbb0'], {
+    image: '/textures/creation_of_adam.jpg', fit: 'band', metal: 0.15, rough: 0.55,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.46, crop: [0.08, 0.92], cropV: [0.14, 0.566], flip: true },
+  }),
+  // Monet's water lilies on the USP-S: its side (silencer and all) is about
+  // the painting's 1.9:1 once squeezed, so the whole canvas goes on
+  skin('usp', 'Water Lilies', 'covert', 'gem', ['#5b7fb8'], {
+    image: '/textures/water_lilies.jpg', fit: 'band', metal: 0.15, rough: 0.5, vSpan: 1.1,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.94, flip: true },
+  }),
+  // painted in code after the silver-and-blue street racer
+  // the silver-and-blue street racer, from a flat livery sheet: silver with
+  // the twin stripes painted in code, the band of blue blades off the sheet
+  // (upright there, turned to run along the gun) low on the body, and each
+  // sponsor sticker cut from the sheet's column and set on the forend and stock
+  skin('awp', 'Street Racer', 'covert', 'gem', ['#c7ccd2', '#2438c8', '#8d949c'], {
+    image: '/textures/r34_livery.jpg', fit: 'overlay', base: 'livery', blades: false, metal: 0.7, rough: 0.3,
+    emblems: [
+      { crop: [0, 0.02, 0.44, 0.98], at: [0.66, 0.1], h: 1.34, w: 0.1, rot: -Math.PI / 2 },   // blade band
+      { crop: [0.76, 0.05, 0.94, 0.105], at: [0.37, 0.27], h: 0.055, flip: true },   // HKS
+      { crop: [0.76, 0.375, 0.94, 0.46], at: [0.45, 0.27], h: 0.06, flip: true },    // JBL
+      { crop: [0.76, 0.31, 0.94, 0.36], at: [0.54, 0.27], h: 0.045, flip: true },    // NOPI
+      { crop: [0.76, 0.59, 0.94, 0.63], at: [0.63, 0.27], h: 0.04, flip: true },     // sparco
+      { crop: [0.76, 0.115, 0.94, 0.18], at: [0.95, 0.29], h: 0.06, flip: true },    // JIC magic
+      { crop: [0.76, 0.19, 0.94, 0.235], at: [0.79, 0.29], h: 0.045, flip: true },   // Gold-Line
+      { crop: [0.76, 0.245, 0.94, 0.295], at: [0.95, 0.2], h: 0.045, flip: true },   // flexivity
+      { crop: [0.76, 0.52, 0.94, 0.585], at: [0.955, 0.1], h: 0.06, flip: true },    // APC
+      { crop: [0.76, 0.47, 0.94, 0.515], at: [0.8, 0.045], h: 0.04, flip: true },    // Modern Image
+    ],
+  }),
+  // the orange street racer, from a side photo: the whole door graphic (green
+  // streaks, silver runner, stripes) shrunk into one band along the receiver
+  // and handguard over plain orange; unflipped, so the runner heads for the muzzle
+  skin('m4a4', 'Street Flames', 'covert', 'gem', ['#f47a00'], {
+    image: '/textures/supra_side.jpg', fit: 'band', metal: 0.5, rough: 0.32,
+    layout: { plain: true, u0: 0.38, u1: 0.98, v0: 0.3, v1: 0.55, crop: [0, 0.9], cropV: [0.33, 0.6] },
+  }),
+  // the maneki-neko print: a square around the cat (the Glock's side is about
+  // square once squeezed with vSpan), frame and wall cut away
+  skin('glock', 'Lucky Cat', 'covert', 'gem', ['#e9dcc2'], {
+    image: '/textures/lucky_cat.jpg', fit: 'band', metal: 0.15, rough: 0.5, vSpan: 2,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.97, crop: [0.274, 0.733], cropV: [0.37, 0.851], flip: true },
+  }),
+  // black ground with the horseshoe-and-tongue logo mid-gun and the wordmark
+  // on the handguard, both mirrored to read right on the side you see
+  skin('m4a4', 'Chrome Hearts', 'covert', 'gem', ['#0b0b0c'], {
+    image: '/textures/chrome_hearts.jpg', fit: 'overlay', base: 'solid', metal: 0.55, rough: 0.35,
+    emblems: [
+      { crop: [0.06, 0.16, 0.94, 0.67], at: [0.6, 0.4], h: 0.52, flip: true },   // horseshoe + tongue, raised so the tongue clears the trigger gap
+      { crop: [0.06, 0.68, 0.94, 0.86], at: [0.31, 0.49], h: 0.1, flip: true },  // wordmark on the handguard
+      { crop: [0.06, 0.68, 0.94, 0.86], at: [0.9, 0.42], h: 0.09, flip: true },  // and on the stock
+    ],
+  }),
+  // hot-rod flames burning upward: the picture tiled along the gun, each
+  // tile as tall as the gun's side so the roots sit on its underside
+  skin('m4a4', 'Green Flames', 'covert', 'gem', ['#1b1c1b'], {
+    image: '/textures/green_flames.jpg', fit: 'tile', tile: 0.61, tileCrop: [0, 0.2, 1, 1], metal: 0.4, rough: 0.4,
+  }),
+  // the same in blue for the M4A1-S (its side runs to v 0.53)
+  skin('m4a1s', 'Blue Flames', 'covert', 'gem', ['#05070d'], {
+    image: '/textures/blue_flames.jpg', fit: 'tile', tile: 0.53, tileCrop: [0, 0.03, 1, 1], metal: 0.4, rough: 0.4,
+  }),
   skin('ak47', 'Wild Lotus', 'covert', 'gem', ['#1f6b52'], { image: '/textures/lotus.jpg', fit: 'tile', tile: 0.45, metal: 0.2, rough: 0.5 }),
   skin('awp', 'Gungnir', 'covert', 'gem', ['#2a7fd6'], { image: '/textures/gungnir.jpg', fit: 'tile', tile: 1.5, sat: 1.4, bright: 0.82, metal: 0.25, rough: 0.45 }),
   // Classified (the painted-in-code headliners moved down: Covert is for texture skins)
@@ -94,13 +166,41 @@ export const GUN_SKINS = [
   skin('awp', 'Aurora', 'classified', 'aurora', ['#05091c', '#14f1b6', '#6b5bff', '#ff4fd8']),
   skin('glock', 'Fade', 'classified', 'fade', ['#fff27a', '#ff7ad9', '#9b5bff', '#3b3bff'], { metal: 0.8, rough: 0.25 }),
   skin('mp9', 'Hydra', 'classified', 'waves', ['#031a2b', '#0ff0ff', '#0b8fff', '#004b9c', '#9ef8ff']),
+  skin('galil', 'Cerberus', 'classified', 'flames', ['#0c0303', '#6b0f1a', '#ff3b1f', '#ffd24a'], { metal: 0.3 }),
+  skin('ssg08', 'Blood in the Water', 'classified', 'waves', ['#02121c', '#0b4f6c', '#01baef', '#c1121f', '#fbfbff']),
+  skin('p250', 'Splash Jam', 'classified', 'splatter', ['#f7f7f2', '#ff006e', '#3a86ff', '#ffbe0b', '#8338ec']),
+  skin('mp9', 'Starlight', 'classified', 'neon', ['#070b1a', '#ffd166', '#06d6a0', '#ef476f']),
   // Restricted
   skin('m4a1s', 'Cyrex', 'restricted', 'geometric', ['#f2f2f2', '#c8102e', '#1b1b1b', '#c8102e'], { tag: 'CYREX' }),
   skin('famas', 'Mecha Orange', 'restricted', 'hex', ['#ff7a00', '#3a1a00', '#ffd08a']),
   skin('galil', 'Toxic Lime', 'restricted', 'stripes', ['#b6ff00', '#121212', '#b6ff00', '#2a2a2a']),
   skin('deagle', 'Ocean Drive', 'restricted', 'waves', ['#073b4c', '#06d6a0', '#ff5d8f', '#118ab2', '#ffd166']),
   skin('p250', 'Violet Hex', 'restricted', 'hex', ['#2d0a4e', '#8f2bff', '#e0b3ff']),
+  skin('ak47', 'Tartan Riot', 'restricted', 'tartan', ['#3a0d0d', '#e03c31', '#f2c14e', '#111111']),
+  skin('m4a1s', 'Halftone Sunset', 'restricted', 'halftone', ['#2a0f3d', '#ff7a3d']),
+  skin('awp', 'Neon Topo', 'restricted', 'topo', ['#050816', '#00f0ff']),
+  skin('usp', 'Orion Chevron', 'restricted', 'chevron', ['#0a1a3a', '#4fd1ff', '#ffffff']),
+  skin('glock', 'Cheetah', 'restricted', 'leopard', ['#f2b134', '#241507', '#ffe3a3']),
+  skin('mac10', 'Pixel Pop', 'restricted', 'digital', ['#2be4ff', '#8a5bff', '#ff4fd8', '#1b0f3a']),
+  skin('ump', 'Grand Prix', 'restricted', 'stripes', ['#ffcc00', '#111111', '#ffcc00', '#e10600']),
+  skin('famas', 'Aqua Hex', 'restricted', 'hex', ['#003b46', '#07575b', '#66fcf1']),
+  skin('scar20', 'Crimson Carbon', 'restricted', 'carbon', ['#1a0607', '#561a1f', '#ff2a3a'], { metal: 0.5, rough: 0.35 }),
+  skin('g3sg1', 'Mint Aurora', 'restricted', 'aurora', ['#04121a', '#2cf5a1', '#4fd1ff']),
   // Mil-Spec
+  skin('ak47', 'Urban Pixel', 'milspec', 'digital', ['#d7d9dc', '#9aa0a8', '#5d636b', '#2c3036']),
+  skin('m4a4', 'Desert Storm', 'milspec', 'digital', ['#e3cf9e', '#c2a36b', '#8c6d3f', '#5a4526']),
+  skin('famas', 'Carbon Weave', 'milspec', 'carbon', ['#1d1f23', '#5c636e'], { metal: 0.45, rough: 0.35 }),
+  skin('p250', 'Sand Dune', 'milspec', 'topo', ['#e8d3a8', '#7a4a18']),
+  skin('mac10', 'Highland', 'milspec', 'tartan', ['#1e3a5f', '#b3202a', '#f2e6c9', '#0f1d30']),
+  skin('galil', 'Rally Chevron', 'milspec', 'chevron', ['#101820', '#fee715', '#101820']),
+  skin('ump', 'Leopard', 'milspec', 'leopard', ['#d9a55b', '#3b2412', '#f2d3a0']),
+  skin('scar20', 'Contour', 'milspec', 'topo', ['#2f3b2a', '#9bc36b']),
+  skin('g3sg1', 'Polar Pixel', 'milspec', 'digital', ['#f4f8fb', '#c9d8e6', '#8aa6c1', '#4c6a8a']),
+  skin('glock', 'Bubblegum Dots', 'milspec', 'halftone', ['#ffe3ef', '#ff3e8e']),
+  skin('mp9', 'Red Line Carbon', 'milspec', 'carbon', ['#1d0d0f', '#522529', '#e0202e'], { metal: 0.45, rough: 0.35 }),
+  skin('ssg08', 'Mint Chevron', 'milspec', 'chevron', ['#e9fff6', '#28c7a0', '#0c5c4a']),
+  skin('deagle', 'Midnight Topo', 'milspec', 'topo', ['#0b1026', '#4f7cff']),
+  skin('awp', 'Pit Viper', 'milspec', 'scales', ['#1c2b12', '#b8e06a', '#4e7a24']),
   skin('mac10', 'Candy Stripes', 'milspec', 'stripes', ['#ff4d6d', '#ffffff', '#4dc9ff', '#ffffff']),
   skin('ump', 'Arctic Camo', 'milspec', 'camo', ['#e9f5ff', '#9cc9ec', '#4f86c6', '#1e3a5f']),
   skin('ssg08', 'Sand Viper', 'milspec', 'scales', ['#3a2410', '#ffcf6b', '#b3561b']),
@@ -185,6 +285,7 @@ export const LEGACY_IDS = {
   knife_flip_blueGem: 'knife_flip_caseHardened',
   knife_huntsman_blueGem: 'knife_huntsman_caseHardened',
   m4a1s_howl: 'm4a4_howl',
+  deagle_water_lilies: 'usp_water_lilies',
 }
 
 /* Pattern-seeded finishes (Case Hardened). The catalog item is the finish;

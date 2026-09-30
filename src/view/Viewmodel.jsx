@@ -13,7 +13,7 @@ import { swoosh, clack } from '../lib/audio'
 import { VM, viewmodelVFov, applyViewmodel } from '../lib/viewmodel'
 import { Trail } from './Trail'
 import { buildGun } from './guns'
-import { buildKnifeModel, paintModelBlade } from '../skins/knives'
+import { buildKnifeModel, paintModelBlade, silverParts } from '../skins/knives'
 import { inventory } from '../skins/inventory'
 import { buildHand } from './HandRig'
 import { game, on, activeWeapon } from '../game/state'
@@ -149,6 +149,7 @@ function Knife({ cfg, envMap, api }) {
     const model = cloneSkeleton(gltf.scene)
     normalizeKnife(model, cfg)
     if (finish) paintModelBlade(model, finish)
+    silverParts(model, cfg.silver)
     const wings = rigButterfly(model, cfg.wings)
     dressMaterials(model, envMap, cfg.tint)
     const box = new THREE.Box3().setFromObject(model)

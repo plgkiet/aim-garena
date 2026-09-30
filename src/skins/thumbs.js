@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { buildGun } from '../view/guns'
-import { buildKnifeModel, paintModelBlade } from './knives'
+import { buildKnifeModel, paintModelBlade, silverParts } from './knives'
 import { KNIVES } from '../lib/knives'
 import { normalizeKnife, keepOnly } from '../lib/knifeSetup'
 import { skinReady } from './patterns'
@@ -67,6 +67,7 @@ function modelKnife(key, finish = null) {
     if (cfg.pick) keepOnly(m, cfg.pick)
     normalizeKnife(m, cfg)
     if (finish) paintModelBlade(m, finish)
+    silverParts(m, cfg.silver)
     return m
   })
 }

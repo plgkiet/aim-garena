@@ -141,3 +141,12 @@ export function paintModelBlade(model, finish) {
   })
   paintMeshes(model, blades, finish, 'y')
 }
+
+/** Swap the named parts of a model knife to polished silver (the Butterfly's
+    blade bolts ship tinted pink for its Crimson Web, which clashes with the rest). */
+const SILVER = new THREE.MeshStandardMaterial({ color: '#c9ced6', metalness: 1, roughness: 0.22 })
+export function silverParts(model, tokens) {
+  if (!tokens?.length) return
+  const want = tokens.map(t => t.toLowerCase())
+  model.traverse(o => { if (o.isMesh && want.some(t => o.name.toLowerCase().includes(t))) o.material = SILVER })
+}
