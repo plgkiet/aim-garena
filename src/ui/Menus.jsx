@@ -32,6 +32,10 @@ function savePrefs(p) {
     /* private mode */
   }
 }
+/** Merge a few fields into the saved prefs right away (name, sensitivity). */
+function patchPrefs(p) {
+  savePrefs({ ...loadPrefs(), ...p });
+}
 
 const KEYS = [
   [["WASD"], "di chuyển"],
@@ -316,7 +320,10 @@ export function MainMenu({ onStart, onCase, onInventory }) {
                   className="name"
                   value={name}
                   maxLength={16}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    patchPrefs({ name: e.target.value });
+                  }}
                 />
               </label>
               <label className="mm-label">
@@ -327,7 +334,10 @@ export function MainMenu({ onStart, onCase, onInventory }) {
                   max="6"
                   step="0.05"
                   value={sens}
-                  onChange={(e) => setSens(+e.target.value)}
+                  onChange={(e) => {
+                    setSens(+e.target.value);
+                    patchPrefs({ sensitivity: +e.target.value });
+                  }}
                 />
               </label>
             </div>
@@ -409,6 +419,7 @@ export function PauseMenu({ onResume }) {
             onChange={(e) => {
               setSens(+e.target.value);
               game.settings.sensitivity = +e.target.value;
+              patchPrefs({ sensitivity: +e.target.value });
             }}
           />
         </div>

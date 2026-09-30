@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { itemById, TIERS, tierBySlug } from '../skins/catalog'
+import { itemById, TIERS } from '../skins/catalog' // tierBySlug: only needed if the rarity tag comes back
 import { inventory } from '../skins/inventory'
 import { MiniItem, itemLabel } from './CaseOpen'
 
@@ -70,7 +70,9 @@ export function Inventory({ onBack, onCase }) {
               return (
                 <MiniItem key={drop.uid} item={item} active={on}
                   onClick={() => (on ? inventory.unequip(inventory.slotOf(item)) : inventory.equip(drop.uid))}>
-                  <em className="mini-item__tag" title={itemLabel(item)}>{on ? 'Đang dùng' : tierBySlug(item.tier).label}</em>
+                  {/* rarity tag hidden; only the equipped badge shows
+                  <em className="mini-item__tag" title={itemLabel(item)}>{on ? 'Đang dùng' : tierBySlug(item.tier).label}</em> */}
+                  {on && <em className="mini-item__tag" title={itemLabel(item)}>Đang dùng</em>}
                 </MiniItem>
               )
             })}
