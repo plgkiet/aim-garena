@@ -175,7 +175,13 @@ export const GUN_SKINS = [
     ],
   }),
   skin('ak47', 'Wild Lotus', 'covert', 'gem', ['#1f6b52'], { image: '/textures/lotus.jpg', fit: 'tile', tile: 0.45, metal: 0.2, rough: 0.5 }),
-  skin('awp', 'Gungnir', 'covert', 'gem', ['#2a7fd6'], { image: '/textures/gungnir.jpg', fit: 'tile', tile: 1.5, sat: 1.4, bright: 0.82, metal: 0.25, rough: 0.45 }),
+  // a side photo of the real skin laid on muzzle to butt (like Fire Serpent):
+  // magazine and thumbhole pinned to the model's, stretched upright a little
+  // so the photo's scope lands on the scope
+  skin('awp', 'Gungnir', 'covert', 'gem', ['#3b8ad9'], {
+    image: '/textures/gungnir.jpg', fit: 'decal', metal: 0.35, rough: 0.4,
+    decal: { left: 0, right: 1258, bottom: 233, sy: 1.28, pins: [[819, 0.59], [986, 0.77]] },
+  }),
   // Classified (the painted-in-code headliners moved down: Covert is for texture skins)
   skin('ak47', 'Dragon Fire', 'classified', 'flames', ['#140707', '#b3140f', '#ff6a00', '#ffd23f'], { metal: 0.3 }),
   skin('awp', 'Neo Dragon', 'classified', 'neon', ['#0b0616', '#ff2bd6', '#8a2bff', '#2be4ff']),

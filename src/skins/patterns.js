@@ -590,7 +590,9 @@ function paintDecal(g, skin, img) {
   const s = TEX_W / (D.right - D.left)
   g.fillStyle = skin.pal?.[0] || '#2a2c30'
   g.fillRect(0, 0, TEX_W, TEX_H)
-  const y = TEX_H - D.bottom * s + (D.dy ?? 0), h = img.height * s
+  // `sy` stretches it upright when the model stands taller than the photo's weapon
+  const sy = s * (D.sy ?? 1)
+  const y = TEX_H - D.bottom * sy + (D.dy ?? 0), h = img.height * sy
   // `pins`: [photo x, u] pairs that pull a landmark of the photo onto the same
   // landmark of the model; the photo is stretched piecewise between them
   const pins = [[D.left, 0], ...(D.pins ?? []), [D.right, 1]]
