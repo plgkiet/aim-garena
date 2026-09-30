@@ -621,6 +621,20 @@ function paintText(g, T) {
   g.restore()
 }
 
+/** Swap a picture's dark ground for `color`, fading by brightness so the
+    bright artwork (a flame's glow) keeps soft edges. */
+function keyDark(g, color) {
+  const [cr, cg, cb] = hex(color)
+  const im = g.getImageData(0, 0, TEX_W, TEX_H), d = im.data
+  for (let i = 0; i < d.length; i += 4) {
+    const m = Math.max(d[i], d[i + 1], d[i + 2]) / 255
+    const t = Math.min(1, Math.max(0, (m - 0.07) / 0.13))
+    const a = t * t * (3 - 2 * t)
+    d[i] = cr + (d[i] - cr) * a; d[i + 1] = cg + (d[i + 1] - cg) * a; d[i + 2] = cb + (d[i + 2] - cb) * a
+  }
+  g.putImageData(im, 0, 0)
+}
+
 function paintGem(g, skin, img) {
   // `overlay`: a pattern painted in code, with pieces of the picture stuck on
   // top as decals (the street racer's sponsor stickers)
@@ -636,6 +650,7 @@ function paintGem(g, skin, img) {
     g.filter = `saturate(${skin.sat ?? 1}) brightness(${skin.bright ?? 1})`
     paintTile(g, skin, img)
     g.filter = 'none'
+    if (skin.keyDark) keyDark(g, skin.keyDark)
     if (skin.emblem) paintEmblem(g, skin.emblem, img)
     return
   }

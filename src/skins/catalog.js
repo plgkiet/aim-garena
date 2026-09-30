@@ -153,6 +153,16 @@ export const GUN_SKINS = [
   skin('m4a1s', 'Blue Flames', 'covert', 'gem', ['#05070d'], {
     image: '/textures/blue_flames.jpg', fit: 'tile', tile: 0.53, tileCrop: [0, 0.03, 1, 1], metal: 0.4, rough: 0.4,
   }),
+  // the cherry-blossom wordmark on white, mid-gun, with sprigs of blossom off
+  // its edges on the handguard and stock
+  skin('m4a1s', 'Anti Social', 'covert', 'gem', ['#f4f3ef'], {
+    image: '/textures/assc.jpg', fit: 'overlay', base: 'solid', metal: 0.1, rough: 0.55,
+    emblems: [
+      { crop: [0.02, 0.2, 0.98, 0.73], at: [0.6, 0.27], h: 0.5, flip: true },    // wordmark
+      { crop: [0.0, 0.4, 0.2, 0.5], at: [0.3, 0.42], h: 0.1, flip: true },       // sprig, handguard
+      { crop: [0.78, 0.55, 0.98, 0.68], at: [0.92, 0.3], h: 0.18, flip: true },  // sprig, stock
+    ],
+  }),
   skin('ak47', 'Wild Lotus', 'covert', 'gem', ['#1f6b52'], { image: '/textures/lotus.jpg', fit: 'tile', tile: 0.45, metal: 0.2, rough: 0.5 }),
   skin('awp', 'Gungnir', 'covert', 'gem', ['#2a7fd6'], { image: '/textures/gungnir.jpg', fit: 'tile', tile: 1.5, sat: 1.4, bright: 0.82, metal: 0.25, rough: 0.45 }),
   // Classified (the painted-in-code headliners moved down: Covert is for texture skins)
