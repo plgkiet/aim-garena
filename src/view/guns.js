@@ -465,6 +465,49 @@ function ump(g, M) {
   }
 }
 
+/* The FN P90: a bullpup traced off a side photo. One polymer body with the
+   support-hand hook and two openings (trigger and thumbhole), the clear
+   magazine lying on top, and the sight housing arching over the front. */
+function p90(g, M) {
+  const k = 0.00052                                        // metres per photo pixel
+  const P = (x, y) => [(x - 430) * k, (262 - y) * k]      // photo -> [z, y]
+  const hole = (cx, cy, rx, ry) => {
+    const [z, y] = P(cx, cy)
+    const h = new THREE.Path(); h.absellipse(z, y, rx * k, ry * k, 0, Math.PI * 2, true)
+    return h
+  }
+  profile(g, M.polymer, [
+    P(125, 238), P(400, 238), P(412, 205), P(730, 205), P(746, 147), P(988, 145), P(1003, 168),
+    P(1001, 352), P(772, 356), P(700, 336), P(630, 350), P(600, 396), P(470, 404), P(335, 410),
+    P(262, 392), P(228, 350), P(210, 330), P(160, 332), P(128, 300),
+  ], 0.056, [hole(322, 302, 40, 38), hole(548, 300, 74, 44)])
+  box(g, M.dark, [0.057, 0.11, 0.009], [0, P(0, 250)[1], P(997, 0)[0]])  // butt plate
+  box(g, M.black, [0.004, 0.012, 0.02], [0, P(0, 318)[1], P(372, 0)[0]], [0.3, 0, 0])  // trigger
+  // the sight housing: an upright at the front and a bridge carrying the rail
+  const [zf] = P(162, 0), [zb] = P(420, 0)
+  box(g, M.black, [0.05, (240 - 45) * k, (195 - 130) * k], [0, P(0, 142)[1], zf])
+  box(g, M.black, [0.05, (100 - 45) * k, (470 - 130) * k], [0, P(0, 72)[1], (zf + zb) / 2 + 0.01])
+  for (let i = 0; i < 6; i++) box(g, M.dark, [0.03, 0.005, 0.012], [0, P(0, 44)[1], P(205 + i * 30, 0)[0]])
+  box(g, M.black, [0.046, (215 - 90) * k, 0.02], [0, P(0, 150)[1], P(425, 0)[0]], [-0.62, 0, 0])  // strut
+  // the clear magazine on top, cartridges showing through, and its latch
+  const clear = new THREE.MeshStandardMaterial({ color: '#4a3524', transparent: true, opacity: 0.72, metalness: 0.1, roughness: 0.12 })
+  box(g, clear, [0.046, (192 - 133) * k, (730 - 195) * k], [0, P(0, 162)[1], P(462, 0)[0]])
+  box(g, M.orange, [0.02, 0.012, (700 - 230) * k], [0, P(0, 165)[1], P(465, 0)[0]])
+  box(g, M.black, [0.03, 0.018, 0.028], [0, P(0, 170)[1], P(752, 0)[0]])
+  // barrel collar, flash hider, charging handle
+  const [zm, yb] = P(45, 213)
+  cyl(g, M.dark, 0.0095, (135 - 95) * k, [0, yb, P(115, 0)[0]])
+  cyl(g, M.black, 0.0068, (100 - 45) * k, [0, yb, P(72, 0)[0]])
+  cyl(g, M.steel, 0.006, 0.02, [0.03, P(0, 222)[1], P(190, 0)[0]], [0, Math.PI / 2, 0])
+  return {
+    gripR: { pos: V(0, P(0, 330)[1], P(425, 0)[0]), dir: V(0, Math.cos(0.22), -Math.sin(0.22)) },
+    gripL: { pos: V(0, P(0, 292)[1], P(232, 0)[0]), dir: V(0, 0, -1) },
+    muzzle: V(0, yb, zm), eject: V(0, -0.05, 0.12), mag: null, handguardR: 0.028,
+    // no iron sights to line up: look along the top of the rail
+    sight: { rear: V(0, P(0, 36)[1], P(470, 0)[0]), front: V(0, P(0, 36)[1], P(150, 0)[0]) },
+  }
+}
+
 /* ------------------------------------------------------------- pistols --- */
 
 function pistol(g, M, kind) {
@@ -534,7 +577,7 @@ const BUILDERS = {
   ssg08: (g, M) => sniper(g, M, false),
   g3sg1: (g, M) => sniper(g, M, false, 'g3'),
   scar20: (g, M) => sniper(g, M, false, 'scar'),
-  mac10, mp9, ump,
+  mac10, mp9, ump, p90,
   glock: (g, M) => pistol(g, M, 'glock'),
   usp: (g, M) => pistol(g, M, 'usp'),
   p250: (g, M) => pistol(g, M, 'p250'),
@@ -547,6 +590,32 @@ const BUILDERS = {
 
 /** Build a weapon model. Returns { group, ...anchors }. */
 /** Build a weapon model, optionally wearing a skin (see skins/catalog.js). */
+/* The eye goes on the line through `sight.rear` and `sight.front`. Hand-placed
+   points can sit a hair inside a sight block or under a gas tube, and then the
+   gun fills the screen when aiming. Raise the line until nothing on the gun
+   along it (within a narrow band either side of centre) pokes above it. */
+function clearSightLine(g, sight) {
+  g.updateMatrixWorld(true)
+  const { rear, front } = sight
+  const len = rear.z - front.z
+  if (!(len > 0)) return
+  let lift = 0
+  const v = new THREE.Vector3()
+  g.traverse(o => {
+    if (!o.isMesh) return
+    const pos = o.geometry.attributes.position
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld)
+      if (Math.abs(v.x) > 0.012 || v.z > rear.z + 0.03 || v.z < front.z - 0.01) continue
+      // the line's height here (held level past the rear sight, where the eye is)
+      const t = Math.min(1, Math.max(0, (rear.z - v.z) / len))
+      const y = rear.y + (front.y - rear.y) * t
+      lift = Math.max(lift, v.y - y)
+    }
+  })
+  if (lift > 0) { rear.y += lift + 0.002; front.y += lift + 0.002 }
+}
+
 export function buildGun(id, { shadows = false, skin = null } = {}) {
   const g = new THREE.Group()
   g.name = `gun_${id}`
@@ -569,6 +638,7 @@ export function buildGun(id, { shadows = false, skin = null } = {}) {
     g.traverse(o => { if (o.isMesh && paintable.has(o.material)) parts.push(o) })
     paintMeshes(g, parts, skin, 'z')
   }
+  if (info.sight) clearSightLine(g, info.sight)
   if (info.mag) info.magRest = { pos: info.mag.position.clone(), rot: info.mag.rotation.clone() }
   return { group: g, id, ...info }
 }

@@ -64,6 +64,13 @@ export const W = {
     inacc: { spread: 2.2, stand: 13, crouch: 10, move: 30, jump: 120, fire: 5.5, recover: 0.33 },
     pattern: 'smg', kick: 0.85, sound: 'ump', model: 'ump',
   },
+  p90: {
+    name: 'P90', slot: 1, type: 'smg', team: 'both', price: 2350, killAward: 300,
+    damage: 26, armorRatio: 1.38, rangeMod: 0.86, range: 3700, pen: 1,
+    cycle: 0.07, auto: true, clip: 50, reserve: 100, reload: 3.3, deploy: 1.0, speed: 230,
+    inacc: { spread: 2.3, stand: 14, crouch: 10, move: 28, jump: 120, fire: 4.5, recover: 0.33 },
+    pattern: 'smg', kick: 0.7, sound: 'p90', model: 'p90',
+  },
 
   galil: {
     name: 'Galil AR', slot: 1, type: 'rifle', team: 'T', price: 1800, killAward: 300,
@@ -162,14 +169,14 @@ export const GEAR = {
 export const BUY_MENU = {
   T: {
     pistols: ['glock', 'p250', 'deagle'],
-    smgs: ['mac10', 'ump'],
+    smgs: ['mac10', 'ump', 'p90'],
     rifles: ['galil', 'ak47', 'ssg08', 'awp', 'g3sg1'],
     gear: ['vest', 'vesthelm'],
     grenades: ['flash', 'smoke', 'he'],
   },
   CT: {
     pistols: ['usp', 'p250', 'deagle'],
-    smgs: ['mp9', 'ump'],
+    smgs: ['mp9', 'ump', 'p90'],
     rifles: ['famas', 'm4a4', 'm4a1s', 'ssg08', 'awp', 'scar20'],
     gear: ['vest', 'vesthelm', 'defuser'],
     grenades: ['flash', 'smoke', 'he'],

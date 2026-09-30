@@ -683,6 +683,10 @@ export function Viewmodel() {
     // (the position also carries viewmodel_offset_*, which has to go entirely
     // or the sights would sit off the crosshair)
     const ads = rig.current.ads || 0
+    // on the sights the back of the gun comes within the 12 cm the view camera
+    // normally cuts away, and would show sliced open: pull the near plane in
+    const near = 0.12 - ads * 0.11
+    if (Math.abs(viewCam.near - near) > 1e-4) { viewCam.near = near; viewCam.updateProjectionMatrix() }
     if (ads > 0) {
       const steady = 1 - ads * 0.85
       arm.position.multiplyScalar(1 - ads)

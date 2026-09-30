@@ -317,7 +317,13 @@ export const MODEL_KNIVES = [
   ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
 ]
 
-export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES]
+/* Guns added later go last, so every earlier item keeps its seed (and look). */
+const LATE_GUN_SKINS = [
+  skin('p90', 'Neon Grid', 'restricted', 'circuit', ['#07071a', '#ff2bd6', '#2bf0ff']),
+  skin('p90', 'Sand Spray', 'milspec', 'camo', ['#e3cf9e', '#b08a52', '#6e5431', '#3d2e1b']),
+]
+
+export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES, ...LATE_GUN_SKINS]
 export const itemById = id => ITEMS.find(i => i.id === id) || null
 
 /* Items renamed or merged since, so drops already in someone's inventory

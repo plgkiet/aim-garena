@@ -106,6 +106,7 @@ function botBuy(a) {
     else if (m() >= (T ? 2700 : 3100) + 650) buy(a, T ? 'ak47' : (Math.random() < 0.5 ? 'm4a4' : 'm4a1s'))
     else if (m() >= (T ? 1800 : 2050) + 650 && (game.lossStreak[a.team] >= 3 || Math.random() < 0.35)) buy(a, T ? 'galil' : 'famas')
     else if (m() >= 1700 + 650 && Math.random() < 0.15) buy(a, 'ssg08')
+    else if (m() >= 2350 + 650 && Math.random() < 0.2) buy(a, 'p90')
     else if (m() >= (T ? 1050 : 1250) + 650 && Math.random() < 0.3) buy(a, T ? 'mac10' : 'mp9')
     else if (m() >= 1500 && Math.random() < 0.3) buy(a, 'deagle')
   }

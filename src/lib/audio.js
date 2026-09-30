@@ -142,6 +142,7 @@ const GUN = {
   mac10: { body: 2100, low: 150, decay: 0.12, gain: 0.7, crack: 0.8 },
   mp9: { body: 2300, low: 160, decay: 0.11, gain: 0.65, crack: 0.8 },
   ump: { body: 1500, low: 120, decay: 0.16, gain: 0.8, crack: 0.8 },
+  p90: { body: 2000, low: 140, decay: 0.12, gain: 0.72, crack: 0.8 },
   ssg08: { body: 1200, low: 90, decay: 0.45, gain: 1.1, crack: 1.1 },
   awp: { body: 700, low: 60, decay: 0.8, gain: 1.5, crack: 1.2 },
   g3sg1: { body: 950, low: 85, decay: 0.42, gain: 1.2, crack: 1.1 },
