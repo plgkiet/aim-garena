@@ -13,6 +13,7 @@ import { BuyMenu } from './BuyMenu'
 import { Scoreboard } from './Scoreboard'
 import { MainMenu, PauseMenu, MatchEnd } from './Menus'
 import { CaseOpen } from './CaseOpen'
+import { useScreen } from '../lib/route'
 import { inventory } from '../skins/inventory'
 import { Inventory } from './Inventory'
 
@@ -43,16 +44,16 @@ const WEAPON_ICON = {
 
 export function Hud({ locked, onRequestLock }) {
   useTick(30)
-  const [screen, setScreen] = useState(null)      // null | 'case' | 'inventory' (from the main menu)
+  const [screen, go] = useScreen()      // 'menu' | 'case' | 'inventory', mirrored in the URL
   const me = game.local
   const phase = game.phase
 
   if (phase === 'menu' || !me) {
     return (
       <div className="hud">
-        {screen === 'case' ? <CaseOpen onBack={() => setScreen(null)} onInventory={() => setScreen('inventory')} />
-          : screen === 'inventory' ? <Inventory onBack={() => setScreen(null)} onCase={() => setScreen('case')} />
-          : <MainMenu onStart={onRequestLock} onCase={() => setScreen('case')} onInventory={() => setScreen('inventory')} />}
+        {screen === 'case' ? <CaseOpen onBack={() => go('menu')} onInventory={() => go('inventory')} />
+          : screen === 'inventory' ? <Inventory onBack={() => go('menu')} onCase={() => go('case')} />
+          : <MainMenu onStart={onRequestLock} onCase={() => go('case')} onInventory={() => go('inventory')} />}
       </div>
     )
   }
