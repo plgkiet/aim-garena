@@ -75,6 +75,8 @@ function resetLoadout(a) {
     if (W[id].slot === 1) a.inv[1] = newInstance(id)
     else a.inv[2] = newInstance(id)
     a.armor = 100; a.helmet = true
+    // you also get one of each grenade every round (4 again cycles them)
+    if (!a.isBot) a.inv[4] = ['he', 'smoke', 'flash', 'molotov'].map(id => ({ id }))
   }
 }
 

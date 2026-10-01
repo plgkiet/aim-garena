@@ -48,8 +48,7 @@ canvas { display: block; cursor: crosshair; }
 .scope-h { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #000; }
 .scope-v { position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: #000; }
 
-.flash { position: fixed; inset: 0; background: #fff; z-index: 50; pointer-events: none; }   /* over the whole HUD too */
-.smokefog { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(178,176,170,0.92), rgba(160,158,152,0.98)); }
+.flash { position: fixed; inset: 0; background: #fff; z-index: 9999; pointer-events: none; }
 
 .dmgdirs { position: absolute; left: 50%; top: 50%; }
 .dmgdirs i {

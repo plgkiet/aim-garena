@@ -180,10 +180,9 @@ function FlashOverlay() {
   let a = 0
   if (me?.alive && me.flashUntil > game.time) {
     const left = me.flashUntil - game.time
-    const total = me.flashUntil - (me.flashStart ?? game.time)
-    // full white, then fades over the last part like the game
-    // a real flash (not one caught facing away) turns the whole screen white
-    a = Math.min(1, left / Math.max(0.6, total * 0.55)) * Math.min(1, me.flashAmount * 2.5)
+    // solid white, nothing of the screen behind it, until the last 1.2 s
+    // when it clears; a side-on flash only ever gets part of the way
+    a = Math.min(1, left / 1.2) * Math.min(1, me.flashAmount * 1.6)
   }
   if (a <= 0.01) return null
   return <div className="flash" style={{ opacity: a }} />

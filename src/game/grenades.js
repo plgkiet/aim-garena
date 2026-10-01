@@ -137,10 +137,12 @@ function detonate(g) {
       viewDir(a.yaw, a.pitch, _dir)
       const to = p.clone().sub(_eye).normalize()
       const dot = _dir.dot(to)
-      // looking at it: full; side-on: partial; facing away: a short flash
-      let strength = dot > 0.6 ? 1 : dot > 0 ? 0.35 + dot : 0.2
+      // looking at it: full; side-on: partial; back turned: nothing at all
+      if (dot <= 0) continue
+      let strength = dot > 0.5 ? 1 : 0.3 + dot * 1.4
       strength *= THREE.MathUtils.clamp(1 - (dist - 8) / 30, 0.15, 1)
-      const dur = 4.9 * strength
+      // a full flash blinds for 7 s (longer than CS's 4.9: the screen stays white)
+      const dur = 7 * strength
       if (dur < 0.3) continue
       a.flashUntil = Math.max(a.flashUntil, game.time + dur)
       a.flashAmount = Math.max(a.flashAmount, strength)
