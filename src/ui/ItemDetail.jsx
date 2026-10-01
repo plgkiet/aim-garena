@@ -48,13 +48,16 @@ function Viewer({ item }) {
 
     buildItemModel(item).then((model) => {
       if (!alive) return;
-      // centre it and make its longest side one unit
+      // centre it and make its longest side one unit; a gun shorter than
+      // 0.55 m (the pistols) is scaled as if it were that long, so it stays
+      // pistol-sized next to the rifles instead of filling the screen
       const holder = new THREE.Group();
       holder.add(model);
       holder.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(holder);
       const size = box.getSize(new THREE.Vector3());
-      const s = 1 / Math.max(size.x, size.y, size.z);
+      const long = Math.max(size.x, size.y, size.z);
+      const s = 1 / (item.kind === "knife" ? long : Math.max(long, 0.55));
       model.position.sub(box.getCenter(new THREE.Vector3()));
       holder.scale.setScalar(s);
       pivot.add(holder);

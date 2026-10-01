@@ -83,6 +83,8 @@ function sign(text) {
 // once you are far off, so a big collection costs no more than a few pieces
 const LOAD_NEAR = 11, SHOW_NEAR = 16;
 
+const WHITE = new THREE.Color("#ffffff");
+
 export function Gallery({ onBack }) {
   const host = useRef(null);
   const [locked, setLocked] = useState(false);
@@ -104,7 +106,7 @@ export function Gallery({ onBack }) {
     renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.15;
     el.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
@@ -112,10 +114,11 @@ export function Gallery({ onBack }) {
     scene.fog = new THREE.Fog("#07090c", 9, 24);
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    // no point lights at all (they were the lag): sky, one key light and the
-    // room's reflections; the "lamps" are emissive strips
-    scene.add(new THREE.HemisphereLight("#cfd8e4", "#14171c", 0.9));
-    const key = new THREE.DirectionalLight("#ffffff", 1.4);
+    // no point light per piece (they were the lag): a dim sky, a soft key,
+    // the room's reflections, and a small fixed pool of spotlights that
+    // follows the pieces nearest you (see the loop); the "lamps" are emissive
+    scene.add(new THREE.HemisphereLight("#9fb0c4", "#0b0d10", 0.45));
+    const key = new THREE.DirectionalLight("#ffffff", 0.6);
     key.position.set(2, 6, 3);
     scene.add(key);
 
@@ -159,6 +162,33 @@ export function Gallery({ onBack }) {
     const plinthM = mat({ color: "#121519", roughness: 0.55, metalness: 0.35 });
     const glow = new Map();
     const glowM = (c) => { if (!glow.has(c)) glow.set(c, mat({ color: c, emissive: c, emissiveIntensity: 2.4 })); return glow.get(c); };
+    // soft additive light: a beam fading down from the lamp, a round pool
+    const fade = (draw) => {
+      const c = document.createElement("canvas"); c.width = c.height = 128;
+      draw(c.getContext("2d")); const t = new THREE.CanvasTexture(c); disposables.push(t); return t;
+    };
+    const beamTex = fade((g) => {
+      const gr = g.createLinearGradient(0, 0, 0, 128);
+      gr.addColorStop(0, "rgba(255,255,255,0.0)"); gr.addColorStop(0.06, "rgba(255,255,255,1)");
+      gr.addColorStop(0.55, "rgba(255,255,255,0.35)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    });
+    const poolTex = fade((g) => {
+      const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(0.45, "rgba(255,255,255,0.4)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    });
+    const additive = (map, color, opacity) => {
+      const m = new THREE.MeshBasicMaterial({ map, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
+      disposables.push(m); return m;
+    };
+    const beams = new Map(), pools = new Map();
+    const beamM = (c) => { if (!beams.has(c)) beams.set(c, additive(beamTex, c, 0.12)); return beams.get(c); };
+    const poolM = (c) => { if (!pools.has(c)) pools.set(c, additive(poolTex, c, 0.55)); return pools.get(c); };
+    const beamGeo = new THREE.CylinderGeometry(0.1, 0.62, H - 0.96, 28, 1, true);
+    const poolGeo = new THREE.PlaneGeometry(1.2, 1.0).rotateX(-Math.PI / 2);
+    const lampGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.02, 24);
+    disposables.push(beamGeo, poolGeo, lampGeo);
     const stands = [];
     items.forEach((x, i) => {
       const side = i % 2 === 0 ? -1 : 1;
@@ -168,6 +198,11 @@ export function Gallery({ onBack }) {
       add(box(1.25, 0.95, 1.0), plinthM, pos.x, 0.475, pos.z);
       add(box(0.02, 0.025, 1.0), glowM(color), pos.x - side * 0.635, 0.955, pos.z);
       add(box(0.02, 0.012, 1.0), glowM(color), pos.x - side * 0.635, 0.3, pos.z);
+      // a beam of the grade's colour from a lamp in the ceiling, and its pool
+      // on the plinth top
+      add(beamGeo, beamM(color), pos.x, (H + 0.96) / 2, pos.z);
+      add(poolGeo, poolM(color), pos.x, 0.957, pos.z);
+      add(lampGeo, glowM(color), pos.x, H - 0.012, pos.z);
       const turn = new THREE.Group();
       turn.position.set(pos.x, 1.42, pos.z);
       scene.add(turn);
@@ -175,6 +210,16 @@ export function Gallery({ onBack }) {
     });
     const plateGeo = new THREE.PlaneGeometry(1.12, 0.28);
     disposables.push(plateGeo);
+    // the spotlight pool: always the same few lights (so no shader rebuilds),
+    // moved each frame onto the pieces nearest you, tinted a touch by grade
+    const SPOTS = 3;
+    const spots = [];
+    for (let i = 0; i < SPOTS; i++) {
+      const l = new THREE.SpotLight("#ffffff", 0, 6, 0.42, 0.65, 1.2);
+      scene.add(l, l.target);
+      spots.push(l);
+    }
+    const tint = new THREE.Color();
 
     // build one stand's model and name plate (one at a time)
     let busy = false;
@@ -192,7 +237,10 @@ export function Gallery({ onBack }) {
         holder.updateMatrixWorld(true);
         const b = new THREE.Box3().setFromObject(holder);
         const size = b.getSize(new THREE.Vector3());
-        holder.scale.setScalar((s.item.kind === "knife" ? 0.55 : 0.95) / Math.max(size.x, size.y, size.z));
+        // guns to one length, except that the pistols (under 0.55 m) keep
+        // to scale, smaller than the rifles beside them
+        const long = Math.max(size.x, size.y, size.z);
+        holder.scale.setScalar(s.item.kind === "knife" ? 0.55 / long : 0.95 / Math.max(long, 0.55));
         model.position.sub(b.getCenter(new THREE.Vector3()));
         s.turn.add(holder);
       } catch { /* a model that fails just leaves its plinth empty */ }
@@ -258,6 +306,18 @@ export function Gallery({ onBack }) {
         if (s.state === "none" && d < nextD) { next = s; nextD = d; }
       }
       if (next && !busy) load(next);
+      // the spotlights onto the nearest pieces, overhead and a little in front
+      const near = stands.slice().sort((a, b) =>
+        Math.hypot(a.pos.x - me.x, a.pos.z - me.z) - Math.hypot(b.pos.x - me.x, b.pos.z - me.z));
+      spots.forEach((l, i) => {
+        const s = near[i];
+        if (!s) { l.intensity = 0; return; }
+        l.position.set(s.pos.x - s.side * 0.5, H - 0.1, s.pos.z + 0.3);
+        l.target.position.set(s.pos.x, 1.3, s.pos.z);
+        l.target.updateMatrixWorld();
+        l.color.copy(tint.set(tierBySlug(s.item.tier).color)).lerp(WHITE, 0.6);
+        l.intensity = 14;
+      });
       // what is under the crosshair (nearest plinth in front, within reach)
       camera.getWorldDirection(fwd);
       let best = null, bestD = 4.5;
