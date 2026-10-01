@@ -152,6 +152,15 @@ export const W = {
     name: 'Smoke Grenade', slot: 4, type: 'grenade', team: 'both', price: 300, killAward: 300,
     deploy: 0.6, speed: 245, max: 1, model: 'smoke',
   },
+  // fire on the ground for 7 s: the Molotov for T, the Incendiary for CT
+  molotov: {
+    name: 'Molotov', slot: 4, type: 'grenade', team: 'T', price: 400, killAward: 300,
+    deploy: 0.6, speed: 245, max: 1, model: 'molotov', fire: true,
+  },
+  incgrenade: {
+    name: 'Incendiary Grenade', slot: 4, type: 'grenade', team: 'CT', price: 600, killAward: 300,
+    deploy: 0.6, speed: 245, max: 1, model: 'incgrenade', fire: true,
+  },
   c4: {
     name: 'C4 Explosive', slot: 5, type: 'c4', team: 'T', price: 0, killAward: 0,
     deploy: 0.8, speed: 250, model: 'c4',
@@ -172,14 +181,14 @@ export const BUY_MENU = {
     smgs: ['mac10', 'ump', 'p90'],
     rifles: ['galil', 'ak47', 'ssg08', 'awp', 'g3sg1'],
     gear: ['vest', 'vesthelm'],
-    grenades: ['flash', 'smoke', 'he'],
+    grenades: ['flash', 'smoke', 'he', 'molotov'],
   },
   CT: {
     pistols: ['usp', 'p250', 'deagle'],
     smgs: ['mp9', 'ump', 'p90'],
     rifles: ['famas', 'm4a4', 'm4a1s', 'ssg08', 'awp', 'scar20'],
     gear: ['vest', 'vesthelm', 'defuser'],
-    grenades: ['flash', 'smoke', 'he'],
+    grenades: ['flash', 'smoke', 'he', 'incgrenade'],
   },
 }
 

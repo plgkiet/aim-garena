@@ -41,7 +41,7 @@ const fmt = s => {
 }
 
 const WEAPON_ICON = {
-  knife: '🔪', he: '●', flash: '◐', smoke: '◍', c4: '▣',
+  knife: '🔪', he: '●', flash: '◐', smoke: '◍', molotov: '♨', incgrenade: '♨', c4: '▣',
 }
 
 export function Hud({ locked, onRequestLock }) {
@@ -179,7 +179,8 @@ function FlashOverlay() {
     const left = me.flashUntil - game.time
     const total = me.flashUntil - (me.flashStart ?? game.time)
     // full white, then fades over the last part like the game
-    a = Math.min(1, left / Math.max(0.6, total * 0.55)) * Math.min(1, me.flashAmount * 1.2)
+    // a real flash (not one caught facing away) turns the whole screen white
+    a = Math.min(1, left / Math.max(0.6, total * 0.55)) * Math.min(1, me.flashAmount * 2.5)
   }
   if (a <= 0.01) return null
   return <div className="flash" style={{ opacity: a }} />

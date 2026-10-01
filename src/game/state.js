@@ -23,6 +23,7 @@ export const game = {
   drops: [],              // weapons lying on the ground
   grenades: [],           // in flight
   smokes: [],             // active smoke volumes
+  fires: [],              // burning molotov / incendiary patches
   fires: [],
   killfeed: [],
   center: null,           // { text, until } — big centre-screen message

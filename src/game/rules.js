@@ -40,6 +40,7 @@ export function startMatch(settings) {
   game.drops = []
   game.grenades = []
   game.smokes = []
+  game.fires = []
   game.center = null
   game.hitConfirm = -10
   game.damageDirs = []
@@ -83,6 +84,7 @@ export function startRound(fresh = false) {
   game.drops = []
   game.grenades = []
   game.smokes = []
+  game.fires = []
   game.roundWinner = null
   game.spectate = null
 

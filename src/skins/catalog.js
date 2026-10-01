@@ -318,6 +318,7 @@ export const MODEL_KNIVES = [
   ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
   ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
   // the special one: a Bearbrick in the Jiangshi (cương thi) livery, held as a knife
+  { id: 'knife_racket', kind: 'knife', knife: 'racket', tier: 'gold', weaponName: '★ Badminton Racket', name: 'Vợt Cầu Lông', model: true },
   { id: 'knife_bearbrick_jiangshi', kind: 'knife', knife: 'bearbrick', tier: 'gold', weaponName: '★ Bearbrick', name: 'Cương Thi', model: true },
 ]
 
@@ -425,6 +426,15 @@ const LATE_GUN_SKINS = [
       image: '/textures/weeknd_idol.jpg', pal: ['#dfe8f2'],
       layout: { plain: true, u0: 0.15, u1: 0.85, v0: 0, v1: 0.61, crop: [0.16, 0.8], cropV: [0.37, 0.648], flip: false, fill: [0.165, 0.3, 0.29, 0.66] },
     },
+  }),
+  // CR7 x Man Utd: one strip of the poster over the M4A4, through the big
+  // CRISTIANO RONALDO lettering and the red slashes either side of it
+  skin('m4a4', 'CR7 x Man Utd', 'covert', 'gem', ['#120f10'], {
+    id: 'm4a4_cr7_manutd',
+    image: '/textures/cr7_manutd.jpg', fit: 'band', metal: 0.2, rough: 0.5,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.61, crop: [0.04, 0.96], cropV: [0.35, 0.64], flip: true },   // mirrored to read right on your side
+    // the stock takes a higher cut of the poster: Ronaldo's red No. 7 shirt
+    emblems: [{ crop: [0.04, 0.27, 0.2424, 0.56], at: [0.89, 0.305], h: 0.61, w: 0.22, flip: true }],
   }),
   // Pollock's drip painting, tiled over the P90 without its white margin
   skin('p90', 'Number 5', 'covert', 'gem', ['#6b4a2c'], {

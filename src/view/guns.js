@@ -546,7 +546,20 @@ function pistol(g, M, kind) {
 /* ------------------------------------------------------------ utility ---- */
 
 function grenade(g, M, kind) {
-  if (kind === 'he') {
+  if (kind === 'molotov') {
+    // a bottle with a burning rag in the neck
+    const glass = new THREE.MeshStandardMaterial({ color: '#6b8f3a', transparent: true, opacity: 0.8, roughness: 0.1, metalness: 0.1 })
+    cylY(g, glass, 0.028, 0.1, [0, -0.01, 0])
+    cylY(g, glass, 0.011, 0.05, [0, 0.065, 0])
+    cylY(g, M.tan, 0.009, 0.04, [0, 0.1, 0])
+    ball(g, M.orange, 0.012, [0, 0.12, 0], [1, 1.4, 1])
+  } else if (kind === 'incgrenade') {
+    cylY(g, M.red, 0.026, 0.11, [0, 0.0, 0])
+    cylY(g, M.dark, 0.014, 0.03, [0, 0.07, 0])
+    box(g, M.steel, [0.01, 0.08, 0.004], [0.024, 0.02, 0], [0, 0, 0.12])
+    ball(g, M.steel, 0.012, [0, 0.09, 0.01], [1, 1, 0.2])
+    cylY(g, M.black, 0.027, 0.012, [0, 0.02, 0])
+  } else if (kind === 'he') {
     ball(g, M.olive, 0.034, [0, 0.0, 0], [1, 1.12, 1])
     cylY(g, M.dark, 0.012, 0.03, [0, 0.045, 0])
     box(g, M.steel, [0.012, 0.07, 0.004], [0.028, 0.02, 0], [0, 0, 0.2])
@@ -589,6 +602,8 @@ const BUILDERS = {
   he: (g, M) => grenade(g, M, 'he'),
   flash: (g, M) => grenade(g, M, 'flash'),
   smoke: (g, M) => grenade(g, M, 'smoke'),
+  molotov: (g, M) => grenade(g, M, 'molotov'),
+  incgrenade: (g, M) => grenade(g, M, 'incgrenade'),
   c4,
 }
 

@@ -249,6 +249,13 @@ export function explosion(pos, kind = 'he') {
     burst(c, d, now, { type: 'lowpass', freq: 2500, peak: 0.6, attack: 0.001, decay: 0.3 })
     return
   }
+  if (kind === 'fire' || kind === 'fizzle') {
+    // glass breaking, then the whoomp of the fuel catching
+    burst(c, d, now, { type: 'highpass', freq: 3500, peak: 0.7, attack: 0.001, decay: 0.15 })
+    if (kind === 'fire') burst(c, d, now + 0.03, { type: 'lowpass', freq: 900, peak: 0.9, attack: 0.04, decay: 1.1, sweepTo: 300 })
+    else burst(c, d, now + 0.03, { type: 'bandpass', freq: 2500, q: 0.6, peak: 0.3, attack: 0.02, decay: 0.6 })
+    return
+  }
   if (kind === 'smoke') {
     burst(c, d, now, { type: 'bandpass', freq: 3000, q: 0.6, peak: 0.25, attack: 0.05, decay: 2.2, sweepTo: 1200 })
     return

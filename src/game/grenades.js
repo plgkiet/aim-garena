@@ -11,6 +11,10 @@ const R = 0.06
 const GRAVITY = MOVE.sv_gravity * 0.4
 const HE_DAMAGE = 98, HE_RADIUS = 350 * U
 const SMOKE_RADIUS = 144 * U, SMOKE_TIME = 18
+// fire: CS:GO's inferno spreads to about 120 u around the landing point and
+// burns 7 s, hurting anyone standing in it; a smoke puts it out
+const FIRE_RADIUS = 120 * U, FIRE_TIME = 7, FIRE_DPS = 40
+const isFire = t => t === 'molotov' || t === 'incgrenade'
 
 export function throwGrenade(a, type, eye, dir, strength = 1) {
   // the game lifts the throw by up to 10 degrees, less the more you look up
@@ -47,6 +51,8 @@ export function updateGrenades(dt) {
         g.pos[axis] += g.vel[axis] * h
         if (inside(g.pos.x, g.pos.y, g.pos.z)) {
           g.pos[axis] = prev
+          // a fire grenade bursts the moment it comes down on something
+          if (axis === 'y' && g.vel.y < 0 && isFire(g.type)) g.landed = true
           const speed = Math.abs(g.vel[axis])
           g.vel[axis] *= -0.45
           // skid along the surface it hit
@@ -65,6 +71,7 @@ export function updateGrenades(dt) {
     let boom = false
     if (g.type === 'he' || g.type === 'flash') boom = age >= 1.6
     else if (g.type === 'smoke') boom = (age >= 1.5 && g.still > 0.3) || age > 8
+    else if (isFire(g.type)) boom = g.landed || age >= 2
     if (!boom) continue
     list.splice(i, 1)
     detonate(g)
@@ -73,6 +80,33 @@ export function updateGrenades(dt) {
   // smokes fade out
   for (let i = game.smokes.length - 1; i >= 0; i--) {
     if (game.time > game.smokes[i].end + 2) game.smokes.splice(i, 1)
+  }
+  updateFires(dt)
+}
+
+function updateFires(dt) {
+  const fires = game.fires || (game.fires = [])
+  for (let i = fires.length - 1; i >= 0; i--) {
+    const f = fires[i]
+    if (game.time > f.end + 1) { fires.splice(i, 1); continue }
+    if (game.time > f.end) continue
+    // a smoke over it chokes it
+    if (game.smokes.some(s => game.time < s.end && Math.hypot(s.pos.x - f.pos.x, s.pos.z - f.pos.z) < SMOKE_RADIUS + f.r * 0.5)) {
+      f.end = game.time; emit('fireOut', { pos: f.pos.clone() }); continue
+    }
+    const grow = Math.min(1, (game.time - f.start) / 0.6)
+    for (const a of game.agents) {
+      if (!a.alive) continue
+      if (Math.hypot(a.pos.x - f.pos.x, a.pos.z - f.pos.z) > f.r * grow) continue
+      if (Math.abs(a.pos.y - f.pos.y) > 1.2) continue
+      a.burn = (a.burn || 0) + FIRE_DPS * dt
+      a.inFireAt = game.time
+      if (a.burn >= 1) {
+        const dmg = Math.floor(a.burn)
+        a.burn -= dmg
+        applyDamage(a, f.thrower, dmg, 0, { weapon: f.type, group: 'legs', noKnockback: true })
+      }
+    }
   }
 }
 
@@ -113,7 +147,15 @@ function detonate(g) {
       a.flashStart = game.time
       if (a === game.local) emit('flashed', { amount: strength, dur })
     }
+  } else if (isFire(g.type)) {
+    // a fire grenade that bursts in a smoke just fizzles
+    const smothered = game.smokes.some(s => game.time < s.end && s.pos.distanceTo(p) < SMOKE_RADIUS)
+    emit('explode', { pos: p.clone(), type: smothered ? 'fizzle' : 'fire' })
+    if (!smothered) {
+      ;(game.fires || (game.fires = [])).push({ id: Math.random(), type: g.type, pos: p.clone(), r: FIRE_RADIUS, start: game.time, end: game.time + FIRE_TIME, thrower: g.thrower })
+    }
   } else if (g.type === 'smoke') {
+    for (const f of game.fires || []) if (f.pos.distanceTo(p) < SMOKE_RADIUS + f.r * 0.5) f.end = Math.min(f.end, game.time)
     game.smokes.push({ id: Math.random(), pos: p.clone(), start: game.time, end: game.time + SMOKE_TIME })
     emit('explode', { pos: p.clone(), type: 'smoke' })
   }

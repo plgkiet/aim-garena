@@ -164,7 +164,7 @@ function botBuy(a) {
     else if (m() >= 650 && a.armor < 50) buy(a, 'vest')
   }
   if (!T && !a.defuser && m() >= 400 && Math.random() < 0.65) buy(a, 'defuser')
-  const nades = ['smoke', 'flash', 'he', 'flash']
+  const nades = ['smoke', 'flash', T ? 'molotov' : 'incgrenade', 'he', 'flash']
   for (const n of nades) if (m() >= 900 && Math.random() < 0.55) buy(a, n)
   switchTo(a, bestSlot(a), { quiet: true })
 }
@@ -311,6 +311,18 @@ function tickBot(a, dt) {
     return
   }
   if (game.phase === 'matchEnd') { cmd.fwd = 0; cmd.side = 0; return }
+
+  // standing in fire: get out of it first, whatever else is going on
+  if (game.time - (a.inFireAt ?? -9) < 0.25) {
+    const f = (game.fires || []).find(f => game.time < f.end && Math.hypot(a.pos.x - f.pos.x, a.pos.z - f.pos.z) < f.r + 0.3)
+    if (f) {
+      let dx = a.pos.x - f.pos.x, dz = a.pos.z - f.pos.z
+      if (Math.hypot(dx, dz) < 0.1) { dx = Math.sin(a.yaw); dz = Math.cos(a.yaw) }
+      if (b.target && b.visible) fight(a, dt)   // keep shooting, but the feet go out of the fire
+      steer(a, dx, dz)
+      return
+    }
+  }
 
   keepGunOut(a)
 
@@ -582,7 +594,7 @@ function objective(a, dt) {
     // execute: flash/smoke onto the site once, then take a post on it
     if (!b.threwExec) {
       b.threwExec = true
-      const gr = a.inv[4].find(x => x.id === 'flash' || x.id === 'smoke')
+      const gr = a.inv[4].find(x => ['flash', 'smoke', 'molotov'].includes(x.id))
       const c = SITES[site].center
       if (gr && Math.random() < b.d.nades) { b.throwPlan = { type: gr.id, target: new THREE.Vector3(c[0], 1, c[1]), t: 0 }; return }
     }

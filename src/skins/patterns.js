@@ -682,7 +682,12 @@ function paintGem(g, skin, img, extra = {}) {
     for (const t of skin.texts ?? []) paintText(g, t)
     return
   }
-  if (skin.fit === 'band') return paintBand(g, skin, img)
+  if (skin.fit === 'band') {
+    paintBand(g, skin, img)
+    // a band can carry patches of the picture too (a different cut on the stock)
+    for (const e of skin.emblems ?? []) { const src = e.image ? extra[e.image] : img; if (src) paintEmblem(g, e, src) }
+    return
+  }
   if (skin.fit === 'decal') return paintDecal(g, skin, img)
   if (skin.fit === 'tile') {
     g.filter = `saturate(${skin.sat ?? 1}) brightness(${skin.bright ?? 1})`

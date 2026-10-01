@@ -159,6 +159,10 @@ Object.assign(KNIVES, {
   huntsman: glbKnife("huntsman", "/models/huntsman.glb", "Huntsman Knife", ["blade_split"], { bladeSplit: 0.045, roll: 0 }),
   bowie: glbKnife("bowie", "/models/bowie.glb", "Bowie Knife", ["blade_split"], { bladeSplit: 0.045, roll: 0 }),
   skeleton: glbKnife("skeleton", "/models/skeleton.glb", "Skeleton Knife", ["pcube15_knife_main"]),
+  // not a knife either: a badminton racket, held by its grip, the head up
+  racket: glbKnife("racket", "/models/racket.glb", "Badminton Racket", [], {
+    length: 0.52, gripAt: 0.12, roll: 0,
+  }),
   // not a knife at all: a Bearbrick figure held by its legs, the Jiangshi
   // (hopping vampire) photo projected onto it from the front
   bearbrick: glbKnife("bearbrick", "/models/bearbrick.glb", "Bearbrick", [], {
@@ -175,7 +179,7 @@ Object.assign(KNIVES, {
     },
   }),
 });
-export const GLB_KNIVES = ["karambit", "huntsman", "bowie", "skeleton", "bearbrick"];
+export const GLB_KNIVES = ["karambit", "huntsman", "bowie", "skeleton", "bearbrick", "racket"];
 
 /* The case knives built in code (skins/knives.js): one entry per knife + finish,
    held in the same stance as the model knives. */

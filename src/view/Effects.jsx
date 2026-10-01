@@ -27,6 +27,28 @@ function softTexture(inner = 'rgba(255,255,255,1)', outer = 'rgba(255,255,255,0)
   return new THREE.CanvasTexture(c)
 }
 
+/* A tongue of flame: a teardrop, white-yellow at the base fading through
+   orange to a ragged red tip, so a few of them read as fire and not as glow. */
+function flameTexture() {
+  const W = 64, H = 128
+  const c = document.createElement('canvas'); c.width = W; c.height = H
+  const g = c.getContext('2d')
+  const img = g.createImageData(W, H), d = img.data
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const v = 1 - y / H                                     // 0 at the base, 1 at the tip
+    const half = 0.48 * Math.pow(Math.sin(Math.PI * Math.min(1, (1 - v) * 1.15)), 0.7) * (1 - v * 0.55)
+    const dx = Math.abs(x / W - 0.5) / Math.max(half, 1e-3)
+    let a = Math.max(0, 1 - dx * dx) * Math.min(1, (1 - v) * 5)
+    a *= 1 - Math.pow(v, 3)
+    const i = (y * W + x) * 4
+    d[i] = 255; d[i + 1] = Math.round(240 - 190 * v - 60 * dx); d[i + 2] = Math.round(Math.max(0, 140 - 260 * v - 120 * dx))
+    d[i + 3] = Math.round(255 * Math.max(0, a))
+  }
+  g.putImageData(img, 0, 0)
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace
+  return t
+}
+
 /* A puff of smoke: fractal noise under a soft round falloff, so overlapping
    sprites read as one billowing volume instead of a pile of discs. */
 function cloudTexture(seed = 1) {
@@ -75,6 +97,8 @@ function localMuzzle(a, out) {
 export function Effects() {
   const tracerGroup = useRef()
   const smokeGroup = useRef()
+  const fireGroup = useRef()
+  const fireState = useRef(new Map())
   const dropGroup = useRef()
   const nadeGroup = useRef()
   const bombRef = useRef()
@@ -86,6 +110,8 @@ export function Effects() {
   const tracerMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ffe3a0', transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), [])
   const tracers = useMemo(() => Array.from({ length: TRACERS }, () => ({ mesh: new THREE.Mesh(tracerGeo, tracerMat), a: new THREE.Vector3(), b: new THREE.Vector3(), t: 0, len: 0, live: false })), [tracerGeo, tracerMat])
   const flashTex = useMemo(() => softTexture('rgba(255,235,180,1)', 'rgba(255,140,30,0)'), [])
+  const fireTex = useMemo(() => softTexture('rgba(255,170,60,1)', 'rgba(255,70,0,0)'), [])
+  const flameTex = useMemo(() => flameTexture(), [])
   const cloudTex = useMemo(() => [cloudTexture(1), cloudTexture(2), cloudTexture(3)], [])
   const bombModel = useMemo(() => buildGun('c4', { shadows: true }), [])
   const smokeState = useRef(new Map())
@@ -262,6 +288,55 @@ export function Effects() {
       fog = Math.max(fog, Math.min(1, inside * 2.2) * fade)
     }
     game.smokeFog = fog
+
+    // fires: a carpet of flickering flame sprites over the burning patch, a
+    // warm light that pulses with it, all dying down at the end
+    const fg = fireGroup.current
+    const liveF = new Set()
+    for (const f of game.fires || []) {
+      liveF.add(f.id)
+      let st = fireState.current.get(f.id)
+      if (!st) {
+        const flames = []
+        for (let i = 0; i < 44; i++) {
+          const m = new THREE.SpriteMaterial({ map: flameTex, transparent: true, depthWrite: false, toneMapped: false, color: i % 4 ? '#ffffff' : '#ffd080' })
+          const sp = new THREE.Sprite(m)
+          const ang = Math.random() * Math.PI * 2, rad = Math.sqrt(Math.random()) * f.r
+          sp.userData = { x: Math.cos(ang) * rad, z: Math.sin(ang) * rad, ph: Math.random() * 10, h: 0.8 + Math.random() * 0.9 }
+          fg.add(sp); flames.push(sp)
+        }
+        const light = new THREE.PointLight('#ff7a2a', 0, f.r * 3, 1.5)
+        fg.add(light)
+        // the burning ground under the flames
+        const glow = new THREE.Mesh(new THREE.CircleGeometry(f.r, 32).rotateX(-Math.PI / 2),
+          new THREE.MeshBasicMaterial({ map: fireTex, color: '#ff5a10', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }))
+        fg.add(glow)
+        st = { flames, light, glow }
+        fireState.current.set(f.id, st)
+      }
+      const now = game.time
+      const grow = THREE.MathUtils.clamp((now - f.start) / 0.6, 0, 1)
+      const fade = THREE.MathUtils.clamp((f.end - now) / 1, 0, 1)
+      const k = grow * fade
+      for (const sp of st.flames) {
+        const u = sp.userData
+        const flick = 0.75 + 0.25 * Math.sin(now * 13 + u.ph) * Math.sin(now * 7.3 + u.ph * 2)
+        const h = u.h * flick * k
+        sp.position.set(f.pos.x + u.x * grow, f.pos.y + h * 0.5, f.pos.z + u.z * grow)
+        sp.scale.set(h * 0.6, h, 1)
+        sp.material.opacity = k
+        sp.visible = k > 0.02
+      }
+      st.light.position.set(f.pos.x, f.pos.y + 0.6, f.pos.z)
+      st.light.intensity = 14 * k * (0.8 + 0.2 * Math.sin(now * 17))
+      if (!st.glow) continue
+      st.glow.position.set(f.pos.x, f.pos.y + 0.03, f.pos.z)
+      st.glow.scale.setScalar(Math.max(0.01, grow))
+      st.glow.material.opacity = 0.9 * k
+    }
+    for (const [id, st] of fireState.current) {
+      if (!liveF.has(id)) { for (const sp of st.flames) { fg.remove(sp); sp.material.dispose() } fg.remove(st.light); if (st.glow) { fg.remove(st.glow); st.glow.geometry.dispose(); st.glow.material.dispose() } fireState.current.delete(id) }
+    }
     for (const [id, st] of smokeState.current) {
       if (!live.has(id)) { for (const sp of st.puffs) { sg.remove(sp); sp.material.dispose() } smokeState.current.delete(id) }
     }
@@ -315,6 +390,7 @@ export function Effects() {
     <group>
       <group ref={tracerGroup} />
       <group ref={smokeGroup} />
+      <group ref={fireGroup} />
       <group ref={dropGroup} />
       <group ref={nadeGroup} />
       <group ref={bombRef} visible={false}>
