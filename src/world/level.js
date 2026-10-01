@@ -106,8 +106,8 @@ function loadDust2() {
 
 /* Warehouse (Arena, from Standoff 2): an ordinary textured model (no baked light), so
    it is drawn lit like the Aim Garena boxes. The export's units are scaled
-   to metres by ARENA_SCALE, and its see-through decal layers (grime, the
-   anniversary logo) are drawn but kept out of the collision. */
+   to metres by ARENA_SCALE, and its see-through decal layers (grime) are
+   drawn but kept out of the collision; the anniversary posters are dropped. */
 export const ARENA_FILE = '/models/arena_standoff.glb'
 export const ARENA_SCALE = 82
 
@@ -134,6 +134,8 @@ function loadArena() {
       g.applyMatrix4(scale)
       g.computeVertexNormals()
       const src = o.material
+      // the game's anniversary posters and big painted "2"s: left out
+      if (/2yearDecal/i.test(src.name || '')) return
       const decal = src.transparent || src.alphaTest > 0
       const mat = new THREE.MeshStandardMaterial({
         map: src.map, roughness: 0.92, metalness: 0, side: THREE.DoubleSide,
