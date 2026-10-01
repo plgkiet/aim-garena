@@ -470,7 +470,7 @@ const LATE_GUN_SKINS = [
     id: 'famas_starbucks_vn',
     image: '/textures/starbucks_farm.jpg', fit: 'band', metal: 0.1, rough: 0.5,
     layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 1, flip: true },
-    emblems: [{ image: '/textures/starbucks_logo.png', crop: [0, 0, 1, 1], at: [0.687, 0.342], h: 0.12, disc: '#ffffff', flip: true }],
+    emblems: [{ image: '/textures/starbucks_logo.png', crop: [0, 0, 1, 1], at: [0.665, 0.342], h: 0.12, disc: '#ffffff', flip: true }],
   }),
   // a red 911 in thick abstract paint: the painting at its own aspect with
   // the car along the receiver, its red and gold strokes round the rest
@@ -491,6 +491,28 @@ const LATE_GUN_SKINS = [
       plain: true, u0: 0.068, u1: 0.715, v0: 0.275, v1: 1.248,
       fill: [0, 0.75, 1, 0.9], fillRows: true, flip: true,
     },
+  }),
+  // Đông Hồ woodblock prints, two-sided, each at its own aspect over the
+  // receiver (its top row of figures there, the rest down the magazine and
+  // grips): the Rat's Wedding on your side, the Rats' Dragon Procession on
+  // the other (left unmirrored so it reads right from there)
+  skin('ump', 'Tranh Đông Hồ', 'covert', 'gem', ['#efe2c2'], {
+    id: 'ump_dong_ho',
+    image: '/textures/dongho_wedding.jpg', fit: 'band', metal: 0.05, rough: 0.7,
+    layout: { plain: true, u0: 0.092, u1: 0.668, v0: -0.005, v1: 0.867, fill: [0.02, 0.6, 0.35, 0.97], fillH: 0.5, fillRows: true, flip: true },
+    back: {
+      image: '/textures/dongho_dragon.jpg', pal: ['#e6c98f'],
+      layout: { plain: true, u0: 0.02, u1: 0.668, v0: -0.005, v1: 0.867, fill: [0.02, 0.52, 0.3, 0.97], fillH: 0.5, fillRows: true, flip: false },
+    },
+  }),
+  // Dalí's The Persistence of Memory at its own aspect along the M4A1-S: the
+  // clock draped on the table over the stock, the sleeping figure with its
+  // clock on the receiver, the cliffs toward the suppressor; the sea and sky
+  // beyond
+  skin('m4a1s', 'The Persistence of Memory', 'covert', 'gem', ['#5a3a1c'], {
+    id: 'm4a1s_persistence_of_memory',
+    image: '/textures/dali_memory.jpg', fit: 'band', metal: 0.15, rough: 0.5,
+    layout: { plain: true, u0: 0.23, u1: 1, v0: 0.072, v1: 0.937, fill: [0.6, 0.12, 1, 0.33], fillH: 0.3, fillRows: true, flip: true },
   }),
   // Charizard over the lava field, mid-gun at its own aspect: the head and
   // the fire it breathes along the receiver (the flame toward the muzzle),
