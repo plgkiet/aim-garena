@@ -522,21 +522,63 @@ function mp9(g, M) {
   }
 }
 
+/* The UMP-45: a long slab-sided polymer receiver with a rail along the top,
+   the hooded front sight and the cocking tube at the front, short rails on
+   the handguard with a vertical foregrip under it, a long straight 25-round
+   box ahead of the trigger group, and the skeleton stock folded out. */
 function ump(g, M) {
   const gripR = pistolGrip(g, M.polymer)
   triggerGuard(g, M.black)
-  box(g, M.polymer, [0.05, 0.08, 0.36], [0, 0.05, -0.1])
-  box(g, M.dark, [0.02, 0.012, 0.3], [0, 0.095, -0.1])
-  box(g, M.polymer, [0.02, 0.08, 0.2], [0.026, 0.03, 0.14])                 // folded stock
-  cyl(g, M.steel, 0.011, 0.08, [0, 0.06, -0.31])
+  // receiver: one slab from the stock hinge to the front, stepped under the handguard
+  profile(g, M.polymer, [
+    [0.06, 0.004], [0.06, 0.1], [-0.35, 0.1], [-0.37, 0.088], [-0.37, 0.03],
+    [-0.2, 0.018], [-0.16, 0.0], [-0.08, 0.0],
+  ], 0.05)
+  // trigger group and magwell
+  box(g, M.polymer, [0.046, 0.026, 0.13], [0, -0.004, 0.0])
+  box(g, M.polymer, [0.046, 0.028, 0.07], [0, -0.006, -0.12])
+  cyl(g, M.black, 0.005, 0.05, [0, 0.03, 0.035], [0, Math.PI / 2, 0])        // selector
+  cyl(g, M.black, 0.004, 0.052, [0, 0.012, -0.07], [0, Math.PI / 2, 0])      // pin
+  // top rail with its slots, rear sight, hooded front sight
+  box(g, M.black, [0.026, 0.008, 0.3], [0, 0.104, -0.13])
+  for (let i = 0; i < 13; i++) box(g, M.black, [0.028, 0.005, 0.01], [0, 0.11, 0.0 - i * 0.022])
+  box(g, M.black, [0.03, 0.022, 0.022], [0, 0.115, 0.035])
+  box(g, M.black, [0.034, 0.035, 0.026], [0, 0.11, -0.355])
+  // handguard side and bottom rails
+  for (const s2 of [-1, 1]) {
+    box(g, M.black, [0.006, 0.02, 0.11], [s2 * 0.027, 0.06, -0.29])
+    for (let i = 0; i < 5; i++) box(g, M.black, [0.008, 0.022, 0.008], [s2 * 0.028, 0.06, -0.245 - i * 0.022])
+  }
+  // cocking tube and handle (left, at the front)
+  cyl(g, M.black, 0.01, 0.06, [-0.02, 0.085, -0.33])
+  box(g, M.black, [0.02, 0.01, 0.012], [-0.034, 0.085, -0.3])
+  // vertical foregrip
+  cylY(g, M.black, 0.014, 0.09, [0, -0.025, -0.28])
+  for (let i = 0; i < 4; i++) cylY(g, M.dark, 0.0155, 0.006, [0, -0.005 - i * 0.02, -0.28])
+  box(g, M.black, [0.022, 0.012, 0.04], [0, 0.022, -0.28])
+  // barrel stub and muzzle
+  cyl(g, M.steel, 0.011, 0.05, [0, 0.066, -0.395])
+  cyl(g, M.black, 0.014, 0.02, [0, 0.066, -0.42])
+  // skeleton stock, folded out
+  const hole = new THREE.Path()
+  hole.moveTo(0.14, 0.05); hole.lineTo(0.26, 0.045); hole.lineTo(0.27, -0.025); hole.lineTo(0.2, 0.0)
+  hole.closePath()
+  box(g, M.black, [0.05, 0.05, 0.02], [0, 0.07, 0.07])
+  profile(g, M.polymer, [
+    [0.08, 0.06], [0.08, 0.095], [0.29, 0.075], [0.3, -0.045], [0.28, -0.055],
+    [0.26, -0.045], [0.16, 0.025], [0.08, 0.035],
+  ], 0.03, [hole])
+  box(g, M.rubber, [0.034, 0.13, 0.012], [0, 0.015, 0.302])
+  // straight 25-round box
   const mag = new THREE.Group()
-  mag.position.set(0, 0.012, -0.12)
-  box(mag, M.dark, [0.028, 0.15, 0.05], [0, -0.07, -0.01], [0.08, 0, 0])
+  mag.position.set(0, -0.01, -0.12)
+  box(mag, M.dark, [0.026, 0.19, 0.05], [0, -0.095, -0.004], [0.05, 0, 0])
+  box(mag, M.black, [0.03, 0.012, 0.056], [0, -0.19, -0.009], [0.05, 0, 0])
   g.add(mag)
   return {
-    gripR, gripL: { pos: V(0, 0.018, -0.24), dir: V(0, 0, -1) },
-    muzzle: V(0, 0.06, -0.36), eject: V(0.026, 0.07, -0.05), mag, handguardR: 0.028,
-    sight: { rear: V(0, 0.102, 0), front: V(0, 0.102, -0.25) },
+    gripR, gripL: { pos: V(0, 0.018, -0.26), dir: V(0, 0, -1) },
+    muzzle: V(0, 0.066, -0.43), eject: V(0.026, 0.075, -0.05), mag, handguardR: 0.028,
+    sight: { rear: V(0, 0.126, 0.035), front: V(0, 0.128, -0.355) },
   }
 }
 

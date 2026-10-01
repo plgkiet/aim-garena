@@ -503,6 +503,8 @@ function loadImage(src) {
    part rather than being stretched. */
 function paintBand(g, skin, img) {
   const L = skin.layout
+  // `ink` darkens and thickens fine line art so it still reads on the gun
+  if (L?.ink) img = inked(img, L.ink)
   if (!L) {
     const h = TEX_H * (skin.band ?? 0.4)
     for (let y = TEX_H - h; y > -h; y -= h) g.drawImage(img, 0, y, TEX_W, h)
@@ -519,7 +521,8 @@ function paintBand(g, skin, img) {
   if (L.fill) {
     const [f0, g0, f1, g1] = L.fill
     const fx = img.width * f0, fy = img.height * g0, fw = img.width * (f1 - f0), fh = img.height * (g1 - g0)
-    const th = (L.v1 - L.v0) * TEX_H, tw = th * fw / fh * (L.fillStretch ?? 1)
+    // `fillH` sets the strip's height (in v) when it should be finer than the art
+    const th = (L.fillH ?? L.v1 - L.v0) * TEX_H, tw = th * fw / fh * (L.fillStretch ?? 1)
     // `fillRows` repeats the strip down the rest of the side too (grip,
     // magazine), every other row upside down so the rows meet
     const top = (1 - L.v1) * TEX_H
@@ -583,6 +586,26 @@ function paintTile(g, skin, img) {
    weapon at `at` [u, v], `h` of the artwork tall, keeping its own aspect
    (the artwork is square in weapon units, so pixels scale alike both ways).
    `flip` mirrors it so it reads right on the side you look at. */
+/* Line art inked heavier: each dark stroke spread by `bold` source pixels
+   (the darkest of the shifted copies wins), then the contrast raised by
+   `contrast`, so hairlines on a light ground survive being scaled down. */
+function inked(img, { bold = 1, contrast = 1.6 } = {}) {
+  const c = document.createElement('canvas')
+  c.width = img.width; c.height = img.height
+  const x = c.getContext('2d')
+  x.drawImage(img, 0, 0)
+  x.globalCompositeOperation = 'darken'
+  for (let dy = -bold; dy <= bold; dy++)
+    for (let dx = -bold; dx <= bold; dx++) if (dx || dy) x.drawImage(img, dx, dy)
+  x.globalCompositeOperation = 'source-over'
+  const out = document.createElement('canvas')
+  out.width = img.width; out.height = img.height
+  const o = out.getContext('2d')
+  o.filter = `contrast(${contrast})`
+  o.drawImage(c, 0, 0)
+  return out
+}
+
 function tinted(img, sx, sy, sw, sh, color, bold) {
   const c = document.createElement('canvas')
   c.width = Math.ceil(sw); c.height = Math.ceil(sh)
@@ -609,6 +632,8 @@ function paintEmblem(g, E, img) {
   g.translate(cx, cy)
   // `pad`: a clear field of `padColor` around it, so the tiled pattern doesn't crowd it
   if (E.pad) { g.fillStyle = E.padColor; g.fillRect(-w / 2 - E.pad * h, -h / 2 - E.pad * h, w + 2 * E.pad * h, h + 2 * E.pad * h) }
+  // `disc`: a round field behind a round logo cut out of its own ground
+  if (E.disc) { g.fillStyle = E.disc; g.beginPath(); g.arc(0, 0, Math.min(w, h) / 2 * 0.98, 0, Math.PI * 2); g.fill() }
   // `rot` (radians) turns a piece that sits sideways on the sheet
   if (E.rot) g.rotate(E.rot)
   // `flipY`: texture sheets taken off a model are often stored upside down

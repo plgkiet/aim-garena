@@ -463,6 +463,35 @@ const LATE_GUN_SKINS = [
     // mirrored, cover the butt and the muzzle end
     layout: { plain: true, u0: 0.086, u1: 0.616, v0: 0, v1: 0.76, crop: [0, 1], cropV: [0.02, 0.52], fill: [0, 0.55, 1, 1], flip: true },
   }),
+  // a coffee farm in watercolour (banana palms, terraced rows, the hacienda
+  // under the mountains): the whole painting end to end at its own aspect,
+  // a small siren logo in the middle of the body
+  skin('famas', 'Starbucks', 'covert', 'gem', ['#2f6b45'], {
+    id: 'famas_starbucks_vn',
+    image: '/textures/starbucks_farm.jpg', fit: 'band', metal: 0.1, rough: 0.5,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 1, flip: true },
+    emblems: [{ image: '/textures/starbucks_logo.png', crop: [0, 0, 1, 1], at: [0.687, 0.342], h: 0.12, disc: '#ffffff', flip: true }],
+  }),
+  // a red 911 in thick abstract paint: the painting at its own aspect with
+  // the car along the receiver, its red and gold strokes round the rest
+  skin('scar20', '911', 'covert', 'gem', ['#1a0d0b'], {
+    id: 'scar20_911',
+    image: '/textures/porsche_911.jpg', fit: 'band', metal: 0.25, rough: 0.45,
+    layout: {
+      plain: true, u0: 0.401, u1: 0.745, v0: 0.073, v1: 0.761,
+      fill: [0, 0.05, 0.45, 0.45], fillRows: true, flip: true,
+    },
+  }),
+  // a red F40 down a dirt road under a summer sky: the painting at its own
+  // aspect with the whole car on the body, the dirt road round the rest
+  skin('ump', 'F40', 'covert', 'gem', ['#b8864f'], {
+    id: 'ump_f40',
+    image: '/textures/ferrari_f40.jpg', fit: 'band', metal: 0.2, rough: 0.5,
+    layout: {
+      plain: true, u0: 0.068, u1: 0.715, v0: 0.275, v1: 1.248,
+      fill: [0, 0.75, 1, 0.9], fillRows: true, flip: true,
+    },
+  }),
   // Charizard over the lava field, mid-gun at its own aspect: the head and
   // the fire it breathes along the receiver (the flame toward the muzzle),
   // the glowing belly down the magazine; the lava field round the rest
