@@ -13,6 +13,7 @@ import { BuyMenu } from './BuyMenu'
 import { Scoreboard } from './Scoreboard'
 import { MainMenu, PauseMenu, MatchEnd } from './Menus'
 import { CaseOpen } from './CaseOpen'
+import { Gallery } from './Gallery'
 import { useScreen } from '../lib/route'
 import { inventory } from '../skins/inventory'
 import { Inventory } from './Inventory'
@@ -54,8 +55,9 @@ export function Hud({ locked, onRequestLock }) {
     return (
       <div className="hud">
         {screen === 'case' ? <CaseOpen onBack={() => go('menu')} onInventory={() => go('inventory')} />
-          : screen === 'inventory' ? <Inventory onBack={() => go('menu')} onCase={() => go('case')} onTradeUp={() => go('tradeup')} onOpen={uid => go('item', uid)} />
+          : screen === 'inventory' ? <Inventory onBack={() => go('menu')} onCase={() => go('case')} onTradeUp={() => go('tradeup')} onGallery={() => go('gallery')} onOpen={uid => go('item', uid)} />
           : screen === 'item' ? <ItemDetail uid={param} onBack={() => go('inventory')} />
+          : screen === 'gallery' ? <Gallery onBack={() => go('inventory')} />
           : screen === 'tradeup' ? <TradeUp onBack={() => go('menu')} onInventory={() => go('inventory')} onCase={() => go('case')} />
           : <MainMenu onStart={onRequestLock} onCase={() => go('case')} onInventory={() => go('inventory')} onTradeUp={() => go('tradeup')} />}
       </div>

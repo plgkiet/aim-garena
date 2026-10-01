@@ -12,7 +12,7 @@ function useInventory() {
   return s;
 }
 
-export function Inventory({ onBack, onCase, onTradeUp, onOpen }) {
+export function Inventory({ onBack, onCase, onTradeUp, onGallery, onOpen }) {
   const inv = useInventory();
   const [filter, setFilter] = useState("all");
   const [tier, setTier] = useState("all");
@@ -66,6 +66,13 @@ export function Inventory({ onBack, onCase, onTradeUp, onOpen }) {
               Dọn full skin
             </button>
             {/* END TEST ONLY */}
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm btn--led"
+              onClick={onGallery}
+            >
+              Phòng trưng bày
+            </button>
             <button
               type="button"
               className="btn btn--ghost btn--sm"

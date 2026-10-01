@@ -435,6 +435,23 @@ const LATE_GUN_SKINS = [
     layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.61, crop: [0.04, 0.96], cropV: [0.35, 0.64], flip: true },   // mirrored to read right on your side
     // the stock takes a higher cut of the poster: Ronaldo's red No. 7 shirt
     emblems: [{ crop: [0.04, 0.27, 0.2424, 0.56], at: [0.89, 0.305], h: 0.61, w: 0.22, flip: true }],
+    // the other side: the poster's bottom row (Berbatov 9, Ronaldo 7, Rooney
+    // 10, Sir Alex), left unmirrored so it reads right from that side
+    back: {
+      layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.61, crop: [0, 1], cropV: [0.72, 1], flip: false },
+      emblems: [],
+    },
+  }),
+  // MixiGaming: white like the logo's ground, the face in the middle of the
+  // gun and the long wordmark on the stock (mirrored to read right)
+  skin('m4a4', 'MixiGaming', 'covert', 'gem', ['#f7f7f5'], {
+    id: 'm4a4_mixigaming',
+    image: '/textures/mixi_face.jpg', fit: 'overlay', base: 'solid', metal: 0.15, rough: 0.5,
+    emblems: [
+      { crop: [0.02, 0.02, 0.98, 0.98], at: [0.565, 0.45], h: 0.26, flip: true },   // the face mid-gun
+      // the long wordmark (face, MIXIGAMING, cog) along the stock
+      { image: '/textures/mixi_wordmark.jpg', crop: [0.12, 0.2, 0.97, 0.8], at: [0.892, 0.415], h: 0.095, flip: true },
+    ],
   }),
   // Pollock's drip painting, tiled over the P90 without its white margin
   skin('p90', 'Number 5', 'covert', 'gem', ['#6b4a2c'], {

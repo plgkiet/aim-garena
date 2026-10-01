@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
    /item/<drop> for inspecting one drop — so a screen can be linked, reloaded
    and left with the browser's back button. Plain History API; no router. */
 
-const PATHS = { menu: '/', case: '/spin', inventory: '/inventory', tradeup: '/tradeup' }
+const PATHS = { menu: '/', case: '/spin', inventory: '/inventory', tradeup: '/tradeup', gallery: '/gallery' }
 const SCREEN_OF = Object.fromEntries(Object.entries(PATHS).map(([k, v]) => [v, k]))
 const ITEM = '/item/'
 
