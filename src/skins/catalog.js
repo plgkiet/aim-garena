@@ -327,6 +327,7 @@ export const MODEL_KNIVES = [
   ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
   // the special one: a Bearbrick in the Jiangshi (cương thi) livery, held as a knife
   { id: 'knife_racket', kind: 'knife', knife: 'racket', tier: 'gold', weaponName: '★ Badminton Racket', name: 'Vợt Cầu Lông', model: true },
+  { id: 'knife_iphone', kind: 'knife', knife: 'iphone', tier: 'gold', weaponName: '★ iPhone', name: 'Burgundy Red', model: true },
   { id: 'knife_bearbrick_jiangshi', kind: 'knife', knife: 'bearbrick', tier: 'gold', weaponName: '★ Bearbrick', name: 'Cương Thi', model: true },
 ]
 

@@ -178,8 +178,15 @@ Object.assign(KNIVES, {
       details: [[312, 66, 362, 190], [335, 262, 44]],   // the talisman, the shou medallion and its beads
     },
   }),
+  // not a knife at all: an iPhone (burgundy red), held at its bottom end
+  iphone: glbKnife("iphone", "/models/iphone.glb", "iPhone", [], {
+    // flip: the camera end is the top, so the hand holds the bottom
+    length: 0.16, gripAt: 0.3, roll: 0, flip: true,
+    // stands upright in its picture, camera at the top
+    upright: true,
+  }),
 });
-export const GLB_KNIVES = ["karambit", "huntsman", "bowie", "skeleton", "bearbrick", "racket"];
+export const GLB_KNIVES = ["karambit", "huntsman", "bowie", "skeleton", "bearbrick", "racket", "iphone"];
 
 /* The case knives built in code (skins/knives.js): one entry per knife + finish,
    held in the same stance as the model knives. */
