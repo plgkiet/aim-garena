@@ -212,19 +212,19 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
             <div className="mm-modes">
               <button
                 type="button"
-                className={`mm-mode ${!aim ? "on" : ""}`}
-                onClick={() => setMode("comp")}
-              >
-                <b>Competitive</b>
-                <span>Dust · đặt / gỡ bom · 5v5</span>
-              </button>
-              <button
-                type="button"
                 className={`mm-mode ${aim ? "on" : ""}`}
                 onClick={() => setMode("aim")}
               >
                 <b>Solo aim</b>
                 <span>Warehouse / Aim Garena · 1 vs bot · round nhanh</span>
+              </button>
+              <button
+                type="button"
+                className={`mm-mode ${!aim ? "on" : ""}`}
+                onClick={() => setMode("comp")}
+              >
+                <b>Competitive</b>
+                <span>Dust · đặt / gỡ bom · 5v5</span>
               </button>
             </div>
 
