@@ -98,6 +98,7 @@ export function Hud({ locked, onRequestLock }) {
       </div>
 
       <KillFeed />
+      <Radio me={me} />
       {game.time - (game.spinToast ?? -10) < 1.6 && (
         <div className="spin-toast" key={game.spinToast}>+1 lượt quay hòm</div>
       )}
@@ -283,12 +284,23 @@ function HeadshotIcon() {
   )
 }
 
+/* The team radio: the bots' calls for your side (the tactic, the entry, rotations). */
+function Radio({ me }) {
+  const lines = (game.radio || []).filter(r => r.side === me.team && game.time - r.t < 7)
+  if (!lines.length) return null
+  return (
+    <div className="radio">
+      {lines.map((r, i) => <div key={i} style={{ opacity: Math.min(1, (7 - (game.time - r.t)) / 1.5) }}><b>RADIO</b>{r.text}</div>)}
+    </div>
+  )
+}
+
 function KnifeTricks() {
   return (
     <div className="tricks">
       <div className="tricks-title">MÚA DAO</div>
       {BINDINGS.map(b => (
-        <div key={b.key} className={knife.move === b.move ? 'on' : ''}><kbd>{b.label}</kbd>{b.name}</div>
+        <div key={b.key} className={(b.move === 'next' ? knife.move && !/inspect|deploy|stab|slash/i.test(knife.move) : /inspect/i.test(knife.move || '')) ? 'on' : ''}><kbd>{b.label}</kbd>{b.name}</div>
       ))}
     </div>
   )

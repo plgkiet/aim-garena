@@ -42,6 +42,9 @@ const DUST2_SPOTS = {
   tunnelsIn: p(-1980, 1700, 32),
   midTop: p(-400, 300, 0),
   midMid: p(-380, 1000, -58),
+  // mid to B through CT: the mid doors from the CT side, then outside B doors
+  ctMid: p(-400, 2050, -128),
+  bDoors: p(-1150, 2380, 0),
   // CT holds
   holdA: [
     hold(p(1200, 2750, 96), p(1450, 1500, 0)),     // site, watching long

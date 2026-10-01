@@ -237,7 +237,10 @@ function fire(a, inst, w) {
   const sx = Math.cos(t1) * r1 + Math.cos(t2) * r2
   const sy = Math.sin(t1) * r1 + Math.sin(t2) * r2
 
-  const k = RECOIL.weapon_recoil_scale
+  // leaning: the shoulder is braced on the cover, so the spray stays near the
+  // sights the view shows (it is rolled, which made the full climb land off
+  // to the side of where the crosshair sat)
+  const k = ws.leanAim ? RECOIL.view_recoil_tracking + 0.3 : RECOIL.weapon_recoil_scale
   const yaw = a.yaw - ws.punch.x * k * D2R
   const pitch = a.pitch + ws.punch.y * k * D2R
   viewDir(yaw, pitch, _dir)
@@ -251,8 +254,9 @@ function fire(a, inst, w) {
   // aim punch for the next bullet
   const kick = w.kicks[Math.min(Math.floor(ws.shots), w.kicks.length - 1)]
   const jitter = w.pattern === 'pistol' ? (Math.random() - 0.5) * 0.6 * w.kick : (Math.random() - 0.5) * 0.08
-  ws.punch.x += (kick[0] + jitter) * RECOIL.kick_scale
-  ws.punch.y += kick[1] * RECOIL.kick_scale
+  const brace = ws.leanAim ? 0.7 : 1
+  ws.punch.x += (kick[0] + jitter) * RECOIL.kick_scale * brace
+  ws.punch.y += kick[1] * RECOIL.kick_scale * brace
   ws.shots++
   ws.penalty += w.inacc.fire
 

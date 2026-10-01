@@ -159,8 +159,23 @@ Object.assign(KNIVES, {
   huntsman: glbKnife("huntsman", "/models/huntsman.glb", "Huntsman Knife", ["blade_split"], { bladeSplit: 0.045, roll: 0 }),
   bowie: glbKnife("bowie", "/models/bowie.glb", "Bowie Knife", ["blade_split"], { bladeSplit: 0.045, roll: 0 }),
   skeleton: glbKnife("skeleton", "/models/skeleton.glb", "Skeleton Knife", ["pcube15_knife_main"]),
+  // not a knife at all: a Bearbrick figure held by its legs, the Jiangshi
+  // (hopping vampire) photo projected onto it from the front
+  bearbrick: glbKnife("bearbrick", "/models/bearbrick.glb", "Bearbrick", [], {
+    // the big head reads as the "handle" to normalizeKnife: flip it so the
+    // feet are the handle and the head stands up like a blade
+    length: 0.2, gripAt: 0.22, roll: 0, flip: true,   // roll 0: the painted front faces you
+    // stands upright in its thumbnail, face to the camera
+    upright: true,
+    photo: {
+      src: "/textures/bearbrick_jiangshi.jpg", size: [640, 480], rect: [228, 31, 436, 473], key: [236, 170, 74],
+      // the back in flat colour: black, face blue, collar/cuff blue, trouser red
+      palette: [[14, 14, 16], [186, 223, 233], [8, 62, 190], [200, 10, 10]],
+      details: [[312, 66, 362, 190], [335, 262, 44]],   // the talisman, the shou medallion and its beads
+    },
+  }),
 });
-export const GLB_KNIVES = ["karambit", "huntsman", "bowie", "skeleton"];
+export const GLB_KNIVES = ["karambit", "huntsman", "bowie", "skeleton", "bearbrick"];
 
 /* The case knives built in code (skins/knives.js): one entry per knife + finish,
    held in the same stance as the model knives. */

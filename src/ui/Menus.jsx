@@ -55,7 +55,7 @@ const KEYS = [
   [["G"], "vứt súng"],
   [["F"], "nhặt / gỡ bom"],
   [["V"], "inspect"],
-  [["6", "7", "0", "T", "Y", "U", "H"], "múa dao"],
+  [["R"], "múa dao (khi cầm dao)"],
   [["B"], "mua đồ"],
   [["Tab"], "bảng điểm"],
   [["M"], "tắt tiếng"],

@@ -317,6 +317,8 @@ export const MODEL_KNIVES = [
   { id: 'knife_bfly', kind: 'knife', knife: 'bfly', tier: 'gold', weaponName: '★ Butterfly Knife', name: 'Crimson Web', model: true },
   ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
   ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
+  // the special one: a Bearbrick in the Jiangshi (cương thi) livery, held as a knife
+  { id: 'knife_bearbrick_jiangshi', kind: 'knife', knife: 'bearbrick', tier: 'gold', weaponName: '★ Bearbrick', name: 'Cương Thi', model: true },
 ]
 
 /* Guns added later go last, so every earlier item keeps its seed (and look). */
@@ -391,6 +393,38 @@ const LATE_GUN_SKINS = [
       { crop: [0, 0, 1, 1], at: [0.84, 0.3], h: 0.56, flip: true },
       { image: '/textures/bbc_logo.jpg', crop: [0.05, 0.28, 0.97, 0.76], at: [0.42, 0.8], h: 0.36, flip: true },
     ],
+  }),
+  // Travis Scott (Cactus Jack): one strip of the poster laid over the whole
+  // P90, cut to its 2.6:1 side through the three glowing blue eyes
+  skin('p90', 'Cactus Jack V1', 'covert', 'gem', ['#1a1a1a'], {
+    id: 'p90_cactus_jack',   // its id from before it was V1, so drops keep it
+    image: '/textures/travis_scott.jpg', fit: 'band', metal: 0.2, rough: 0.5,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.76, cropV: [0.33, 0.645], flip: true },
+  }),
+  // V2: the Takashi Murakami x Cactus Jack poster, the same way: one strip
+  // through the sepia monster's eyes and teeth over the whole gun
+  skin('p90', 'Cactus Jack V2', 'covert', 'gem', ['#5a3a26'], {
+    id: 'p90_cactus_jack_v2',
+    image: '/textures/travis_scott_v2.jpg', fit: 'band', metal: 0.2, rough: 0.5,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.76, cropV: [0.36, 0.664], flip: true },
+  }),
+  // KAWS on the Glock: the half-dissected Companion over its graffiti wall, a
+  // square around the head and torso (the Glock's side is about square once
+  // squeezed with vSpan, as for the Lucky Cat)
+  skin('glock', 'KAWS', 'covert', 'gem', ['#1c1c1c'], {
+    image: '/textures/kaws.jpg', fit: 'band', metal: 0.15, rough: 0.5, vSpan: 2,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.97, crop: [0.17, 0.83], cropV: [0.05, 0.52], flip: true },
+  }),
+  // The Weeknd, two-sided: After Hours on the right side (the one you see in
+  // hand), The Idol on the left, each a strip through the face cut to the
+  // M4A4's 3.3:1 side (the back is left unmirrored, so it reads right from there)
+  skin('m4a4', 'The Weeknd', 'covert', 'gem', ['#2a2230'], {
+    image: '/textures/weeknd_after_hours.jpg', fit: 'band', metal: 0.2, rough: 0.5,
+    layout: { plain: true, u0: 0.15, u1: 0.85, v0: 0, v1: 0.61, cropV: [0.28, 0.715], flip: true, fill: [0, 0.3, 0.26, 0.72] },   // the whole face, eyes on the receiver; flowers and serpents beyond
+    back: {
+      image: '/textures/weeknd_idol.jpg', pal: ['#dfe8f2'],
+      layout: { plain: true, u0: 0.15, u1: 0.85, v0: 0, v1: 0.61, crop: [0.16, 0.8], cropV: [0.37, 0.648], flip: false, fill: [0.165, 0.3, 0.29, 0.66] },
+    },
   }),
   // Pollock's drip painting, tiled over the P90 without its white margin
   skin('p90', 'Number 5', 'covert', 'gem', ['#6b4a2c'], {

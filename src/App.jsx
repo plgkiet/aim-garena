@@ -41,7 +41,7 @@ export default function App() {
 
   useEffect(() => {
     if (import.meta.env.DEV) {
-      window.KNIVES = KNIVES; window.MOVES = MOVES
+      window.KNIVES = KNIVES; window.MOVES = MOVES; window.__game = game
       // step the render loop by hand (a hidden tab gets no animation frames)
       let t = performance.now()
       window.__step = (n = 1, dt = 1 / 60) => { for (let i = 0; i < n; i++) { t += dt * 1000; advance(t) } }

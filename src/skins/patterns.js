@@ -513,6 +513,20 @@ function paintBand(g, skin, img) {
   // or just the base colour for a plain layout
   if (L.plain) { g.fillStyle = skin.pal?.[0] || '#222'; g.fillRect(0, 0, TEX_W, TEX_H) }
   else harlequin(g, L.cell ?? 22)
+  // `fill`: a patch of the same picture (its background) tiled over the whole
+  // side first, mirrored every other tile so the seams meet, so the stock and
+  // muzzle beyond the main art are not left bare
+  if (L.fill) {
+    const [f0, g0, f1, g1] = L.fill
+    const fx = img.width * f0, fy = img.height * g0, fw = img.width * (f1 - f0), fh = img.height * (g1 - g0)
+    const ty = (1 - L.v1) * TEX_H, th = (L.v1 - L.v0) * TEX_H, tw = th * fw / fh
+    for (let x = 0, k = 0; x < TEX_W; x += tw, k++) {
+      g.save()
+      if (k % 2) { g.translate(x + tw, 0); g.scale(-1, 1); g.drawImage(img, fx, fy, fw, fh, 0, ty, tw, th) }
+      else g.drawImage(img, fx, fy, fw, fh, x, ty, tw, th)
+      g.restore()
+    }
+  }
   const [c0, c1] = L.crop ?? [0, 1]
   const [r0, r1] = L.cropV ?? [0, 1]
   const sx = img.width * c0, sw = img.width * (c1 - c0)
@@ -775,6 +789,21 @@ export function paintSkin(skin) {
   const c = document.createElement('canvas')
   c.width = TEX_W; c.height = TEX_H
   const g = c.getContext('2d')
+  // `back`: a two-sided finish. The artwork is twice as tall: the gun's right
+  // side (the one in the thumbnails and in your hands) on the top half, its
+  // left side painted from `back` on the bottom; paintMeshes picks the half
+  // by which way each face looks
+  if (skin.back) {
+    c.height = TEX_H * 2
+    const front = { ...skin, id: `${skin.id}:front`, back: null }
+    const back = { ...skin, ...skin.back, id: `${skin.id}:back`, back: null }
+    ready.set(skin.id, Promise.all([skinReady(front), skinReady(back)]).then(([a, b]) => {
+      g.drawImage(a, 0, 0); g.drawImage(b, 0, TEX_H)
+      return c
+    }))
+    cache.set(skin.id, c)
+    return c
+  }
   if (skin.image) {
     g.fillStyle = skin.pal?.[0] || '#555'; g.fillRect(0, 0, TEX_W, TEX_H)
     const more = [...new Set((skin.emblems ?? []).map(e => e.image).filter(Boolean))]

@@ -16,11 +16,16 @@ import { maxSpeed } from './movement'
    fights the way the weapon wants: taps and bursts at range, sprays close,
    stops to shoot, scopes the AWP. Out of a fight they play the objective. */
 
+/* The four levels step up evenly in every respect: how fast a bot reacts and
+   turns, how far its first shot is off and how fast that settles, how often
+   it goes for the head, how well it pulls a spray, how wide it sees, how
+   cleanly it stops to shoot and strafes, and how well it plays as a team
+   (grenades before an entry, groups waiting for each other, CT rotations). */
 const DIFF = {
-  easy: { reaction: 0.6, turn: 260, err: 3.4, settle: 1.6, head: 0.12, spray: 0.3, fov: 110, stop: 0.4, strafe: 0.1 },
-  normal: { reaction: 0.4, turn: 420, err: 2.1, settle: 2.4, head: 0.3, spray: 0.55, fov: 120, stop: 0.7, strafe: 0.3 },
-  hard: { reaction: 0.26, turn: 620, err: 1.2, settle: 3.4, head: 0.55, spray: 0.8, fov: 130, stop: 0.9, strafe: 0.55 },
-  expert: { reaction: 0.17, turn: 900, err: 0.6, settle: 5, head: 0.8, spray: 0.95, fov: 140, stop: 1, strafe: 0.7 },
+  easy: { reaction: 0.7, turn: 220, err: 4.5, settle: 1.2, head: 0.03, spray: 0.2, fov: 100, stop: 0.3, strafe: 0.1, nades: 0.2, sync: false, rotate: false },
+  normal: { reaction: 0.48, turn: 340, err: 3.0, settle: 1.7, head: 0.1, spray: 0.4, fov: 115, stop: 0.55, strafe: 0.3, nades: 0.5, sync: true, rotate: true },
+  hard: { reaction: 0.32, turn: 520, err: 1.8, settle: 2.6, head: 0.3, spray: 0.65, fov: 125, stop: 0.8, strafe: 0.5, nades: 0.7, sync: true, rotate: true },
+  expert: { reaction: 0.2, turn: 780, err: 0.9, settle: 3.8, head: 0.55, spray: 0.9, fov: 135, stop: 0.95, strafe: 0.65, nades: 0.9, sync: true, rotate: true },
 }
 
 export function initBot(a, difficulty = 'normal') {
@@ -50,24 +55,67 @@ function emptyCmd() {
 
 /* ------------------------------------------------------------ round plan --- */
 
+
+/* T tactics, after the Dust II playbook (dust2_bot_tactics.txt): each splits
+   the team into groups that take their own route, gather at the end of it,
+   wait for each other and hit the site together. The bomb goes with the main
+   group, a step behind its entry. `fake` groups make noise on the other site
+   first, then rotate in. Rush B and Split A come up most. */
+const TACTICS = [
+  { id: 'rushB', w: 3, site: 'B', rush: true, groups: [{ n: 5, bomb: true, route: ['tunnelsOut', 'tunnelsIn'] }] },
+  { id: 'splitA', w: 3, site: 'A', groups: [
+    { n: 3, bomb: true, route: ['longDoors', 'longCorner'] },
+    { n: 2, route: ['midTop', 'catBottom', 'shortTop'] }] },
+  { id: 'splitB', w: 2, site: 'B', groups: [
+    { n: 3, bomb: true, route: ['tunnelsOut', 'tunnelsIn'] },
+    { n: 2, route: ['midTop', 'midMid', 'ctMid', 'bDoors'] }] },
+  { id: 'longA', w: 2, site: 'A', groups: [
+    { n: 3, route: ['longDoors', 'longCorner'] },
+    { n: 1, route: ['midTop', 'catBottom', 'shortTop'] },
+    { n: 1, bomb: true, route: ['longDoors'] }] },
+  { id: 'midShortA', w: 2, site: 'A', groups: [
+    { n: 3, bomb: true, route: ['midTop', 'catBottom', 'shortTop'] },
+    { n: 2, route: ['longDoors', 'longCorner'] }] },
+  { id: 'fakeAB', w: 2, site: 'B', fake: 'A', groups: [
+    { n: 3, bomb: true, route: ['tunnelsOut', 'tunnelsIn'] },
+    { n: 2, fake: true, route: ['longDoors', 'longCorner'] }] },
+]
+function pickTactic() {
+  let r = Math.random() * TACTICS.reduce((s, t) => s + t.w, 0)
+  for (const t of TACTICS) if ((r -= t.w) < 0) return t
+  return TACTICS[0]
+}
+
 const team = { T: null, CT: null }
 
-export function botsRoundStart() {
-  const site = Math.random() < 0.5 ? 'A' : 'B'
-  const route = site === 'A' ? (Math.random() < 0.55 ? 'long' : 'short') : 'tunnels'
-  const rush = Math.random() < 0.25
-  team.T = {
-    site, route, rush,
-    execAt: rush ? 0 : 18 + Math.random() * 30,
-    lurker: null,
+/** A line in the team radio feed (shown to the human on that side). */
+function radio(side, text) {
+  if (game.mode === 'aim') return
+  game.radio = (game.radio || []).filter(r => game.time - r.t < 8)
+  game.radio.push({ side, text, t: game.time })
+}
+
+function newTPlan() {
+  const tac = pickTactic()
+  return {
+    tac, site: tac.site, rush: !!tac.rush,
+    execAt: tac.rush ? 4 : 14 + Math.random() * 18,
+    assigned: false, groups: [],
   }
-  const ts = game.agents.filter(a => a.team === 'T' && a.isBot)
-  if (ts.length >= 3 && Math.random() < 0.5) team.T.lurker = ts[Math.floor(Math.random() * ts.length)]
+}
+
+export function botsRoundStart() {
+  team.T = newTPlan()
+  team.CT = { rotateTo: null, rotateUntil: 0, checkAt: 0 }
 
   // CT roles: two on each site, one mid, shuffled
   const cts = game.agents.filter(a => a.team === 'CT' && a.isBot).sort(() => Math.random() - 0.5)
   const roles = ['A', 'B', 'A', 'B', 'mid', 'A', 'B']
   cts.forEach((a, i) => { a.bot.role = roles[i] })
+  if (cts.length && game.mode !== 'aim') {
+    const n = r => cts.filter(a => a.bot.role === r).length
+    radio('CT', 'Đội hình: ' + ['A', 'mid', 'B'].filter(r => n(r)).map(r => `${n(r)} ${r === 'mid' ? 'Mid' : r}`).join(' · '))
+  }
   const counts = { A: 0, B: 0, mid: 0 }
   for (const a of cts) a.bot.holdIdx = counts[a.bot.role]++
 
@@ -83,6 +131,7 @@ export function botsRoundStart() {
     b.stuckN = 0
     b.postIdx = a.team === 'T' ? ti++ : 0
     b.threwExec = false
+    b.group = null; b.route = null; b.routeI = 0; b.holdShuffleAt = game.time + 20 + Math.random() * 15
     a.cmd = emptyCmd()
   }
 }
@@ -324,7 +373,8 @@ function fight(a, dt) {
   b.errX *= k; b.errY *= k
 
   // aim point, with the error expressed as an angle
-  if (b.aimHead || dist < 4) headOf(t, _tgt); else chestOf(t, _tgt)
+  // point-blank head clicks are for the good bots only
+  if (b.aimHead || (dist < 4 && b.d.head >= 0.5)) headOf(t, _tgt); else chestOf(t, _tgt)
   if (b.visKind === 'head' && !b.aimHead) headOf(t, _tgt).y -= 0.15   // only the head is showing
   const reacted = game.time >= b.reactAt
   const errScale = reacted ? 1 : 2.2
@@ -343,14 +393,21 @@ function fight(a, dt) {
   const moving = Math.hypot(a.vel.x, a.vel.z)
   const accurateSpeed = maxSpeed(a) * 0.34
   let wantStop = false
+  // decide stop-or-move a few times a second, not every frame (no jitter)
+  if (game.time > (b.stanceUntil ?? 0)) {
+    b.stanceUntil = game.time + 0.5 + Math.random() * 0.5
+    b.stopShoot = w?.type === 'sniper' || (dist > 12 && Math.random() < b.d.stop + 0.1)
+    b.strafing = Math.random() < b.d.strafe + (dist < 12 ? 0.35 : 0.15)
+  }
   if (w?.type === 'knife') {
     moveTo(a, t.pos.x, t.pos.z, dt, 'knife', false, t.pos.y)
-  } else if (w?.type === 'sniper' || (dist > 12 && Math.random() < b.d.stop + 0.1)) {
+  } else if (b.stopShoot && !(game.time < b.burstPause && b.strafing)) {
     wantStop = true
-  } else if (dist < 12 && Math.random() < 0.9) {
-    // ADAD strafe
+  } else {
+    // ADAD: strafe between bursts and up close, so a fight is never a
+    // statue duel
     if (game.time > b.strafeUntil) { b.strafeDir = -b.strafeDir; b.strafeUntil = game.time + 0.3 + Math.random() * 0.5 }
-    if (Math.random() < b.d.strafe) { cmd.fwd = 0; cmd.side = b.strafeDir } else { cmd.fwd = 0; cmd.side = 0 }
+    cmd.fwd = 0; cmd.side = b.strafing ? b.strafeDir : 0
   }
   // peek-lean while holding still to shoot, toward whichever side has room
   if (wantStop && dist > 8 && w?.type !== 'knife') {
@@ -475,45 +532,63 @@ function objective(a, dt) {
       const s = posts[b.postIdx % posts.length]
       return hold(a, s, dt)
     }
-    const plan = team.T
-    const site = plan.site
+    const plan = team.T || (team.T = newTPlan())
+    if (!plan.assigned) assignGroups(plan)
+    const g = plan.groups[b.group]
+    if (!g) return hold(a, { p: SPOTS.midTop, look: SPOTS.midMid }, dt)
+    const elapsed = game.time - game.roundStart
+    const site = g.fake && !plan.fakeDone ? plan.tac.fake : plan.site
+    // the groups are in place: everyone alive in each has reached its stage
+    const ready = plan.groups.every(gr => gr.members.every(m => !m.alive || m.bot.routeI >= m.bot.route.length))
+    if (!plan.goAt && (plan.rush || roundLeft < 40 || (elapsed > plan.execAt && (ready || !b.d.sync || elapsed > plan.execAt + 8)))) {
+      plan.goAt = game.time
+      radio('T', `Vào site ${plan.site}!`)
+    }
+    // a fake hits early to pull the CTs over, then rotates to the real site
+    if (g.fake && !plan.fakeAt && elapsed > plan.execAt - 8) plan.fakeAt = game.time
+    if (g.fake && plan.goAt && game.time > plan.goAt + 6) plan.fakeDone = true
+    const go = g.fake ? (plan.fakeAt && !plan.fakeDone) || plan.fakeDone : plan.goAt
+    // the bomb goes in a beat after its group
+    const goNow = go && (!a.inv[5] || game.time > plan.goAt + 1.5)
+
+    if (!goNow) {
+      // walk the route, each bot on its own line through it, then wait
+      if (game.time < b.departAt) { a.cmd.fwd = 0; a.cmd.side = 0; idleScan(a, dt); return }
+      if (b.routeI < b.route.length) {
+        const [x, z, y] = b.route[b.routeI]
+        if (Math.hypot(a.pos.x - x, a.pos.z - z) < 1.1) b.routeI++
+        else { moveTo(a, x, z, dt, 'route', false, y); lookAlongPath(a, dt); return }
+      }
+      a.cmd.fwd = 0; a.cmd.side = 0
+      const c = SITES[site].center
+      aimAt(a, c[0], (c[2] ?? 0) + 1.6, c[1], dt, 0.3)
+      return
+    }
     if (a.inv[5]) {
       const here = siteAt(a.pos.x, a.pos.z)
       const spots = site === 'A' ? SPOTS.plantA : SPOTS.plantB
       const spot = spots[a.id % spots.length]
-      const execute = plan.rush || game.time - game.roundStart > plan.execAt || roundLeft < 40
-      if (!execute && !here) return goStage(a, plan, dt)
-      if (here && (Math.hypot(a.pos.x - spot[0], a.pos.z - spot[1]) < 1.2 || here === site)) {
-        // plant
-        if (canPlant(a)) {
-          if (a.active !== 5) switchTo(a, 5)
-          a.cmd.fwd = 0; a.cmd.side = 0
-          a.wantPlant = true
-          a.pitch += (-0.9 - a.pitch) * Math.min(1, dt * 5)
-          return
-        }
+      if (here === site && Math.hypot(a.pos.x - spot[0], a.pos.z - spot[1]) < 1.4 && canPlant(a)) {
+        if (a.active !== 5) switchTo(a, 5)
+        a.cmd.fwd = 0; a.cmd.side = 0
+        a.wantPlant = true
+        a.pitch += (-0.9 - a.pitch) * Math.min(1, dt * 5)
+        return
       }
       moveTo(a, spot[0], spot[1], dt, 'plant', false, spot[2])
       lookAlongPath(a, dt)
       return
     }
-    if (plan.lurker === a && roundLeft > 30) {
-      // hang in mid and wait for a pick
-      return hold(a, { p: SPOTS.midMid, look: SPOTS.midTop }, dt)
-    }
-    const execute = plan.rush || game.time - game.roundStart > plan.execAt || roundLeft < 40
-    if (!execute) return goStage(a, plan, dt)
-    // execute: flash/smoke onto the site once, then go
+    // execute: flash/smoke onto the site once, then take a post on it
     if (!b.threwExec) {
       b.threwExec = true
-      const g = a.inv[4].find(x => x.id === 'flash' || x.id === 'smoke')
+      const gr = a.inv[4].find(x => x.id === 'flash' || x.id === 'smoke')
       const c = SITES[site].center
-      if (g && Math.random() < 0.7) { b.throwPlan = { type: g.id, target: new THREE.Vector3(c[0], 1, c[1]), t: 0 }; return }
+      if (gr && Math.random() < b.d.nades) { b.throwPlan = { type: gr.id, target: new THREE.Vector3(c[0], 1, c[1]), t: 0 }; return }
     }
     const posts = site === 'A' ? SPOTS.postA : SPOTS.postB
-    const s = posts[b.postIdx % posts.length]
-    moveTo(a, s.p[0], s.p[1], dt, 'exec', false, s.p[2])
-    lookAlongPath(a, dt)
+    const ps = posts[b.postIdx % posts.length]
+    hold(a, ps, dt)
     return
   }
 
@@ -546,8 +621,82 @@ function objective(a, dt) {
     aimAt(a, b.heard.pos.x, b.heard.pos.y + 1.5, b.heard.pos.z, dt, 0.8)
     return
   }
-  const holds = b.role === 'A' ? SPOTS.holdA : b.role === 'B' ? SPOTS.holdB : SPOTS.holdMid
+  ctRead()
+  // rotate: when Ts show up in force on one site, the mid bot and all but
+  // one anchor of the other site go there
+  let role = b.role
+  const rot = team.CT?.rotateTo
+  if (rot && game.time < team.CT.rotateUntil && role !== rot) {
+    const anchors = game.agents.filter(x => x.alive && x.isBot && x.team === 'CT' && x.bot.role === role)
+    if (role === 'mid' || anchors.indexOf(a) > 0) role = rot
+  }
+  // swap angles now and then, as players do, instead of standing on one spot
+  if (game.time > b.holdShuffleAt) { b.holdShuffleAt = game.time + 18 + Math.random() * 18; b.holdIdx++ }
+  const holds = role === 'A' ? SPOTS.holdA : role === 'B' ? SPOTS.holdB : SPOTS.holdMid
   hold(a, holds[b.holdIdx % holds.length], dt)
+}
+
+/* Split the T bots over the tactic's groups: the bomb carrier into the
+   group that brings it, the rest in turn; each bot gets its own copy of the
+   route, every point nudged a little so a group spreads out rather than
+   walking single file, and leaves spawn at its own moment. */
+function assignGroups(plan) {
+  plan.assigned = true
+  const ts = game.agents.filter(x => x.alive && x.team === 'T' && x.isBot).sort(() => Math.random() - 0.5)
+  const carrier = ts.find(x => x.inv[5])
+  const order = carrier ? [carrier, ...ts.filter(x => x !== carrier)] : ts
+  const groups = plan.tac.groups.map(gr => ({ ...gr, members: [] }))
+  const bombG = Math.max(0, groups.findIndex(gr => gr.bomb))
+  let gi = 0
+  for (const a of order) {
+    let k
+    if (a === carrier) k = bombG
+    else {
+      // fill groups to size in order, the rest join the biggest
+      while (gi < groups.length && groups[gi].members.length >= groups[gi].n) gi++
+      k = gi < groups.length ? gi : 0
+    }
+    groups[k].members.push(a)
+    const b = a.bot
+    b.group = k
+    b.route = groups[k].route.map(n => SPOTS[n]).filter(Boolean).map(pt => randomNear(pt[0], pt[1], 1.8, pt[2]))
+    b.routeI = 0
+    b.departAt = game.roundStart + Math.random() * 3
+  }
+  plan.groups = groups
+  // tell the T side the call, and suggest a group to a human on it
+  const where = { tunnelsOut: 'Tunnel', tunnelsIn: 'Tunnel', longDoors: 'Long', longCorner: 'Long', midTop: 'Mid', midMid: 'Mid', catBottom: 'Short', shortTop: 'Short', ctMid: 'Mid → CT', bDoors: 'cửa B' }
+  const label = gr => where[gr.route[gr.route.length - 1]] || gr.route[gr.route.length - 1]
+  radio('T', `Chiến thuật: ${TAC_NAME[plan.tac.id]} — ` + groups.map(gr => `${gr.members.length} ${label(gr)}${gr.fake ? ' (giả)' : ''}`).join(' · '))
+  const me = game.local
+  if (me?.alive && me.team === 'T' && groups.length) {
+    const need = groups.map(gr => gr.n - gr.members.length)
+    const k = need.indexOf(Math.max(...need))
+    radio('T', me.inv[5] ? `Bạn cầm bom: đi cùng nhóm ${label(groups[bombG])}, đặt ở ${plan.site}` : `Bạn: đi cùng nhóm ${label(groups[k])}`)
+  }
+}
+const TAC_NAME = { rushB: 'Rush B', splitA: 'Split A', splitB: 'Split B', longA: 'Long → A', midShortA: 'Mid → Short → A', fakeAB: 'Fake A → B' }
+
+/* What the CTs know: every half second, count the Ts spotted near each site
+   (or on its approaches) and call a rotation when two or more show at one. */
+function ctRead() {
+  const ct = team.CT || (team.CT = { rotateTo: null, rotateUntil: 0, checkAt: 0 })
+  if (game.time < ct.checkAt) return
+  ct.checkAt = game.time + 0.5
+  const near = { A: 0, B: 0 }
+  for (const t of game.agents) {
+    if (!t.alive || t.team !== 'T' || !(t.spottedUntil > game.time)) continue
+    for (const k of ['A', 'B']) {
+      const c = SITES[k].center
+      if (Math.hypot(t.pos.x - c[0], t.pos.z - c[1]) < 32) near[k]++
+    }
+  }
+  const hot = near.A >= 2 && near.A >= near.B ? 'A' : near.B >= 2 ? 'B' : null
+  const canRotate = game.agents.some(x => x.isBot && x.team === 'CT' && x.bot.d.rotate)
+  if (hot && canRotate) {
+    if (ct.rotateTo !== hot || game.time > ct.rotateUntil) radio('CT', `Địch dồn về ${hot} — xoay về ${hot}!`)
+    ct.rotateTo = hot; ct.rotateUntil = game.time + 25
+  }
 }
 
 /* Solo aim: go find the enemy. The bot knows roughly where you are — a guess
@@ -566,18 +715,6 @@ function hunt(a, dt) {
   if (Math.hypot(a.pos.x - x, a.pos.z - z) < 1.2) { b.huntUntil = 0; idleScan(a, dt); a.cmd.fwd = 0; a.cmd.side = 0; return }
   moveTo(a, x, z, dt, 'hunt', false, y)
   lookAlongPath(a, dt)
-}
-
-/** T default: gather at the route's staging point. */
-function goStage(a, plan, dt) {
-  const stage = plan.route === 'long' ? SPOTS.longDoors : plan.route === 'short' ? SPOTS.catBottom : SPOTS.tunnelsIn
-  const [sx, sz, sy] = a.bot.stageSpot && a.bot.stageFor === plan.route ? a.bot.stageSpot : (a.bot.stageSpot = randomNear(stage[0], stage[1], 1.6, stage[2]))
-  a.bot.stageFor = plan.route
-  const d = Math.hypot(a.pos.x - sx, a.pos.z - sz)
-  if (d > 0.8) { moveTo(a, sx, sz, dt, 'stage', false, sy); lookAlongPath(a, dt); return }
-  a.cmd.fwd = 0; a.cmd.side = 0
-  const site = SITES[plan.site].center
-  aimAt(a, site[0], site[2] + 1.6, site[1], dt, 0.3)
 }
 
 function hold(a, spot, dt) {

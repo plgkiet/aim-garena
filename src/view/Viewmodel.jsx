@@ -4,7 +4,7 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { KNIVES, KNIFE_ORDER } from '../lib/knives'
-import { normalizeKnife, rigButterfly, dressMaterials } from '../lib/knifeSetup'
+import { normalizeKnife, rigButterfly, dressMaterials, applyPhoto } from '../lib/knifeSetup'
 import { MOVES, CUES } from '../lib/moves'
 import { sample, EMPTY } from '../lib/anim'
 import { knife, notify } from '../lib/knifeController'
@@ -156,6 +156,7 @@ function Knife({ cfg, envMap, api }) {
   useEffect(() => knife.subscribe(() => setFinish(cfg.finish)), [cfg])
   const built = useMemo(() => {
     const model = cloneSkeleton(gltf.scene)
+    if (cfg.photo) applyPhoto(model, cfg.photo)
     normalizeKnife(model, cfg)
     // a finish paints the blade and its accents; without one the file's own look stays, bolts in steel
     if (finish) paintModelBlade(model, finish, cfg.blade, cfg.roll, cfg.accent)
@@ -499,7 +500,9 @@ export function Viewmodel() {
       }
     }
     if (cur?.wings?.length) {
-      for (const w of cur.wings) w.group.rotation.z = w.rest + c.open * WING_ANGLE * w.sign
+      // the hand keeps hold of one handle (as in CS2): only the other swings out
+      const held = cfg.wings?.held ?? 0
+      cur.wings.forEach((w, i) => { w.group.rotation.z = w.rest + (i === held ? 0 : c.open * WING_ANGLE * w.sign) })
     }
     trailStrength.current = THREE.MathUtils.clamp(
       (c.blur ?? 0) * 0.9 + Math.min(1, Math.abs(c.rz) + Math.abs(c.rx) + Math.abs(c.ry)) * 0.03, 0, 1)

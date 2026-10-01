@@ -1,4 +1,4 @@
-import { MOVES } from './moves'
+import { FLOURISHES, MOVES } from './moves'
 import { KNIFE_ORDER } from './knives'
 
 /* Tiny event bus so the HUD, the input layer and the viewmodel agree on
@@ -11,12 +11,18 @@ export const knife = {
   seq: 0,          // bumped on every playback start — replaying the *same* move
                    // still has to re-arm its sound cues and its hit trace
   knifeKey: KNIFE_ORDER[0],
+  flourish: 0,     // which of FLOURISHES R plays next
   play(name, { force = false } = {}) {
+    // R: the next flourish in turn
+    if (name === 'next') name = FLOURISHES[knife.flourish % FLOURISHES.length]
+    // a knife can have its own inspect (the Butterfly's fan-open)
+    if (name === 'inspect' && MOVES[`${knife.knifeKey}Inspect`]) name = `${knife.knifeKey}Inspect`
     if (!MOVES[name]) return false
     // light actions can interrupt long flourishes, tricks cannot cut each other off
     const heavy = knife.move && MOVES[knife.move].duration - knife.t > 0.12
     const interruptible = ['stab', 'slash'].includes(name)
     if (heavy && !force && !interruptible) return false
+    if (FLOURISHES.includes(name)) knife.flourish = FLOURISHES.indexOf(name) + 1
     knife.move = name
     knife.t = 0
     knife.seq++

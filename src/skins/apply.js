@@ -32,6 +32,8 @@ export function skinMaterial(skin) {
 const _p = new THREE.Vector3()
 const _inv = new THREE.Matrix4()
 const _m = new THREE.Matrix4()
+const _n = new THREE.Vector3()
+const _nm = new THREE.Matrix3()
 
 /**
  * @param {THREE.Object3D} root   the weapon's own frame
@@ -61,16 +63,24 @@ export function paintMeshes(root, meshes, skin, long = 'z', frame = null) {
   }
   const len = Math.max(0.05, hi - lo)
   const mat = skinMaterial(skin)
+  // a two-sided finish: faces looking out to the right take the top half of
+  // the artwork, faces looking left the bottom half
+  const two = !!skin.back
+  const side = long === 'z' ? 'x' : 'z'
   for (const m of meshes) {
     const g = m.geometry.clone()
     const pos = g.attributes.position
+    const nrm = g.attributes.normal
     const uv = new Float32Array(pos.count * 2)
     _m.copy(rel.get(m))
+    if (two) _nm.getNormalMatrix(_m)
     for (let i = 0; i < pos.count; i++) {
       _p.fromBufferAttribute(pos, i).applyMatrix4(_m)
       uv[i * 2] = (_p[long] - lo) / len
       // `vSpan` squeezes a tall, short weapon (a pistol) to fit the artwork's height
-      uv[i * 2 + 1] = (_p[across] - lo2) / (len * 0.5 * (skin.vSpan ?? 1))
+      let v = (_p[across] - lo2) / (len * 0.5 * (skin.vSpan ?? 1))
+      if (two && nrm) v = _n.fromBufferAttribute(nrm, i).applyMatrix3(_nm)[side] >= 0 ? 0.5 + v * 0.5 : v * 0.5
+      uv[i * 2 + 1] = v
     }
     g.setAttribute('uv', new THREE.BufferAttribute(uv, 2))
     m.geometry = g

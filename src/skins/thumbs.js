@@ -6,7 +6,7 @@ import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.j
 import { buildGun } from '../view/guns'
 import { buildKnifeModel, paintModelBlade, silverParts } from './knives'
 import { KNIVES } from '../lib/knives'
-import { normalizeKnife, keepOnly } from '../lib/knifeSetup'
+import { normalizeKnife, keepOnly, applyPhoto } from '../lib/knifeSetup'
 import { skinReady } from './patterns'
 
 /* Item pictures, rendered from the real models rather than drawn: one small
@@ -64,9 +64,10 @@ function shoot(model) {
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
 function modelKnife(key, finish = null) {
   const cfg = KNIVES[key]
-  return loader.loadAsync(cfg.file).then(gltf => {
+  return loader.loadAsync(cfg.file).then(async gltf => {
     const m = cloneSkeleton(gltf.scene)
     if (cfg.pick) keepOnly(m, cfg.pick)
+    if (cfg.photo) await applyPhoto(m, cfg.photo)
     normalizeKnife(m, cfg)
     // a finish paints the blade and its accents; without one the file's own look stays, bolts in steel
     if (finish) paintModelBlade(m, finish, cfg.blade, cfg.roll, cfg.accent)
@@ -86,6 +87,14 @@ export async function buildItemModel(item) {
   // then lay the blade across the picture, tip up and to the right
   // (a model knife carries its alignment in its own matrix: turn a holder
   // around it instead, taking the in-hand roll back out)
+  const cfg = item.model ? KNIVES[item.knife] : null
+  // a figure (the Bearbrick) stands upright, face to the camera
+  if (cfg?.upright) {
+    const stand = new THREE.Group(); stand.add(model)
+    stand.rotation.y = Math.PI / 2 - (cfg.roll || 0) + (cfg.face ?? 0)
+    const wrap = new THREE.Group(); wrap.add(stand)
+    return wrap
+  }
   const turn = new THREE.Group()
   // a knife held reversed (Karambit: its ring is the stance's "tip") is turned
   // end over end, so the picture still shows the blade up

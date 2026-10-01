@@ -11,7 +11,6 @@ import { updateBots, canSee } from './bots'
 import { D2R, RECOIL, BASE_FOV, hfovToVfov } from './constants'
 import { raycast } from '../world/collision'
 import { W, ADS_FOV, canAds } from './weapons'
-import { BINDINGS } from '../lib/moves'
 import { level } from '../world/level'
 import { killAgent } from './combat'
 import { player } from '../lib/playerState'
@@ -94,7 +93,9 @@ export function GameLoop({ onLockChange }) {
     localCmd.attack2 = canAct && input.mouse[2]
     localCmd.attack2Pressed = canAct && consume('Mouse2')
     localCmd.reload = canAct && consume('KeyR')
-    consume('Mouse0')
+    // read the click before it is thrown away: dead, it changes who you watch
+    const clicked = consume('Mouse0')
+    const rightClicked = !me.alive && localCmd.attack2Pressed
 
     if (me.alive && canAct) {
       for (let s = 1; s <= 5; s++) if (consume('Digit' + s)) switchTo(me, s)
@@ -109,12 +110,15 @@ export function GameLoop({ onLockChange }) {
         if (next) switchTo(me, next)
         input.wheel = 0
       }
-    } else if (!me.alive && consume('Mouse0')) nextSpectate(1)
+    } else if (!me.alive) {
+      // dead: left click / Space for the next teammate, right click for the previous
+      if (clicked || consume('Space')) nextSpectate(1)
+      else if (rightClicked) nextSpectate(-1)
+    }
     input.wheel = 0
     // knife tricks: only while the knife is out (1-5 stay weapon slots)
-    if (me.alive && me.active === 3 && canAct) {
-      for (const b of BINDINGS) if (b.key !== 'KeyV' && consume(b.key)) emit('knifeTrick', { move: b.move })
-    }
+    // (R was read as reload above; with the knife out it plays a flourish instead)
+    if (me.alive && me.active === 3 && canAct && localCmd.reload) emit('knifeTrick', { move: 'next' })
     me.wantUse = canAct && !!k.KeyF
     leanAim(me, localCmd.lean)
     me.wantPlant = canAct && input.mouse[0] && me.active === 5

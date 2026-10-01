@@ -44,6 +44,25 @@ export const MOVES = {
     ],
   }),
 
+  /* V on the Butterfly, after the CS2 inspect: the hand comes up to the
+     middle of the screen, the handles fan wide open into a V with the blade
+     standing up out of them, it is held there swaying a little, then the
+     handles snap shut with a flick and it drops back to the hold. */
+  bflyInspect: compile({
+    label: 'Inspect',
+    keepOff: true,
+    keys: [
+      { t: 0, px: 0, py: 0, pz: 0, rx: 0, ry: 0, rz: 0, open: 0, off: 0 },
+      { t: 0.22, px: -0.02, py: 0.03, pz: -0.01, rz: -0.25, ry: 0.15, open: 0.25, off: 0.6, e: 'outCubic' },
+      { t: 0.55, px: -0.05, py: 0.075, pz: -0.03, rz: -0.62, ry: 0.35, rx: -0.1, open: 1, off: 1, e: 'outBack' },
+      { t: 1.15, px: -0.055, py: 0.085, pz: -0.035, rz: -0.7, ry: 0.5, rx: -0.14, open: 1, off: 1, e: 'inOut' },
+      { t: 1.75, px: -0.045, py: 0.08, pz: -0.03, rz: -0.55, ry: 0.25, rx: -0.06, open: 1, off: 1, e: 'inOut' },
+      { t: 2.05, px: -0.02, py: 0.05, pz: -0.01, rz: -0.3, ry: 0.1, rx: TAU * 0.5, open: 0.4, blur: 0.8, off: 1, e: 'inCubic' },
+      { t: 2.3, px: 0.005, py: 0.0, pz: 0.01, rz: 0.05, ry: 0, rx: TAU, open: 0, blur: 0, off: 0.5, e: 'outCubic' },
+      { t: 2.6, px: 0, py: 0, pz: 0, rz: 0, ry: 0, rx: TAU, open: 0, off: 0, e: 'outBack' },
+    ],
+  }),
+
   /* LMB — quick jab. */
   stab: compile({
     label: 'Stab',
@@ -170,21 +189,18 @@ export const MOVES = {
   }),
 }
 
-/* Held knife only. 1-5 switch weapons, so the tricks live on the free keys. */
+/* Held knife only, two keys as in CS: V looks the knife over, R plays the
+   next flourish in turn (the knife has nothing to reload). */
+export const FLOURISHES = ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow']
 export const BINDINGS = [
   { key: 'KeyV', move: 'inspect', label: 'V', name: 'Inspect' },
-  { key: 'Digit6', move: 'twirl', label: '6', name: 'Helicopter' },
-  { key: 'Digit7', move: 'flip', label: '7', name: 'Butterfly Flip' },
-  { key: 'Digit0', move: 'fingerRoll', label: '0', name: 'Finger Roll' },
-  { key: 'KeyT', move: 'palmSpin', label: 'T', name: 'Palm Spin' },
-  { key: 'KeyY', move: 'reverseFlick', label: 'Y', name: 'Reverse Flick' },
-  { key: 'KeyU', move: 'juggle', label: 'U', name: 'Juggle' },
-  { key: 'KeyH', move: 'flow', label: 'H', name: 'Figure Eight' },
+  { key: 'KeyR', move: 'next', label: 'R', name: 'Múa (đổi kiểu mỗi lần bấm)' },
 ]
 
 /* Sound cues: fired once when playback crosses `t`. */
 export const CUES = {
   deploy: [{ t: 0.05, s: 'swoosh', v: 0.6 }, { t: 0.44, s: 'clack', v: 1 }],
+  bflyInspect: [{ t: 0.2, s: 'clack', v: 0.7 }, { t: 0.5, s: 'clack', v: 0.9 }, { t: 2.0, s: 'swoosh', v: 0.8 }, { t: 2.28, s: 'clack', v: 1.1 }],
   inspect: [{ t: 0.12, s: 'swoosh', v: 0.45 }, { t: 0.78, s: 'clack', v: 0.35 }, { t: 1.32, s: 'clack', v: 0.45 }, { t: 2.3, s: 'clack', v: 0.7 }],
   // no thud here: the impact sound only fires when the trace actually lands
   stab: [{ t: 0.1, s: 'swoosh', v: 1 }],

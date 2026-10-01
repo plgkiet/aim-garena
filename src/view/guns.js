@@ -139,7 +139,8 @@ function awp(g, M) {
   box(g, body, [0.03, 0.012, 0.13], [0, 0.098, 0.24])                      // cheek riser
   triggerGuard(g, M.black)
   // receiver and bolt
-  cyl(g, M.steel, 0.02, 0.26, [0, 0.07, -0.05])
+  cyl(g, M.steel, 0.02, 0.3, [0, 0.07, -0.07])            // runs on into the barrel, no gap
+  cyl(g, M.steel, 0.0175, 0.04, [0, 0.07, -0.225])        // barrel shank
   box(g, M.black, [0.022, 0.008, 0.24], [0, 0.093, -0.06])                 // scope rail
   cyl(g, M.steel, 0.007, 0.06, [0.035, 0.07, 0.035], [0, Math.PI / 2, 0])
   ball(g, M.black, 0.013, [0.068, 0.068, 0.035])
@@ -488,9 +489,12 @@ function p90(g, M) {
   box(g, M.black, [0.05, (240 - 45) * k, (195 - 130) * k], [0, P(0, 142)[1], zf])
   box(g, M.black, [0.05, (100 - 45) * k, (470 - 130) * k], [0, P(0, 72)[1], (zf + zb) / 2 + 0.01])
   for (let i = 0; i < 6; i++) box(g, M.dark, [0.03, 0.005, 0.012], [0, P(0, 44)[1], P(205 + i * 30, 0)[0]])
-  box(g, M.black, [0.046, (215 - 90) * k, 0.02], [0, P(0, 150)[1], P(425, 0)[0]], [-0.62, 0, 0])  // strut
+  // the housing's rear legs: thin plates either side of the magazine, not
+  // a block through it (the clear magazine would show it inside)
+  // long enough to sink into the bridge above and the body below, so no gap shows
+  for (const sx of [-1, 1]) box(g, M.black, [0.005, 0.088, 0.02], [sx * 0.0265, P(0, 150)[1], P(425, 0)[0]], [-0.62, 0, 0])
   // the clear magazine on top, cartridges showing through, and its latch
-  const clear = new THREE.MeshStandardMaterial({ color: '#4a3524', transparent: true, opacity: 0.72, metalness: 0.1, roughness: 0.12 })
+  const clear = new THREE.MeshStandardMaterial({ color: '#4a3524', transparent: true, opacity: 0.72, metalness: 0.1, roughness: 0.12, depthWrite: false })
   box(g, clear, [0.046, (192 - 133) * k, (730 - 195) * k], [0, P(0, 162)[1], P(462, 0)[0]])
   box(g, M.orange, [0.02, 0.012, (700 - 230) * k], [0, P(0, 165)[1], P(465, 0)[0]])
   box(g, M.black, [0.03, 0.018, 0.028], [0, P(0, 170)[1], P(752, 0)[0]])
