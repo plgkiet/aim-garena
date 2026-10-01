@@ -343,65 +343,169 @@ function m4(g, M, silenced) {
   }
 }
 
+/* The FAMAS: a bullpup, its whole length one polymer body (handguard out
+   front with finger grooves, the action and magazine behind the grip, the
+   butt at the back), the tall carry handle arching over it end to end with
+   the sights in it, a full-hand trigger guard, a long barrel with a slotted
+   flash hider, and a curved magazine behind the pistol grip. */
 function famas(g, M) {
   const gripR = pistolGrip(g, M.polymer)
-  triggerGuard(g, M.black)
-  box(g, M.polymer, [0.05, 0.1, 0.56], [0, 0.058, 0.04])                   // bullpup body
-  box(g, M.black, [0.03, 0.03, 0.44], [0, 0.155, -0.02])                   // carry handle
-  box(g, M.black, [0.02, 0.05, 0.03], [0, 0.125, -0.22])
-  box(g, M.black, [0.02, 0.05, 0.03], [0, 0.125, 0.18])
-  box(g, M.polymer, [0.044, 0.05, 0.16], [0, 0.04, -0.3])                  // fore
-  cyl(g, M.steel, 0.01, 0.2, [0, 0.06, -0.44])
-  cyl(g, M.black, 0.014, 0.05, [0, 0.06, -0.55])
+  box(g, M.black, [0.004, 0.018, 0.004], [0, -0.012, -0.04], [0.3, 0, 0])      // trigger (the big guard is below)
+  // the body, nose to butt
+  profile(g, M.polymer, [
+    [0.335, -0.035], [0.335, 0.118], [0.2, 0.122], [-0.3, 0.114], [-0.352, 0.094],
+    [-0.36, 0.045], [-0.34, 0.01], [-0.06, 0.008], [0.04, 0.008], [0.12, -0.012], [0.3, -0.035],
+  ], 0.056)
+  // finger grooves along the handguard
+  for (let i = 0; i < 4; i++) for (const s2 of [-1, 1]) box(g, M.black, [0.004, 0.022, 0.03], [s2 * 0.0285, 0.028, -0.12 - i * 0.055])
+  // the carry handle: front post, the long top bar, rear post
+  box(g, M.polymer, [0.032, 0.085, 0.036], [0, 0.145, -0.22])
+  box(g, M.polymer, [0.032, 0.026, 0.43], [0, 0.192, -0.02])
+  box(g, M.polymer, [0.032, 0.07, 0.045], [0, 0.152, 0.175])
+  // charging handle inside the arch, sights in the handle
+  box(g, M.black, [0.012, 0.014, 0.04], [0, 0.124, -0.06])
+  box(g, M.black, [0.012, 0.016, 0.014], [0, 0.212, 0.15])
+  box(g, M.black, [0.006, 0.016, 0.01], [0, 0.212, -0.2])
+  // full-hand trigger guard from the grip's foot to the handguard
+  box(g, M.polymer, [0.014, 0.012, 0.12], [0, -0.084, -0.058])
+  box(g, M.polymer, [0.014, 0.096, 0.014], [0, -0.038, -0.112])
+  // barrel and flash hider
+  cyl(g, M.steel, 0.0105, 0.22, [0, 0.06, -0.46])
+  cyl(g, M.black, 0.0145, 0.055, [0, 0.06, -0.595])
+  for (let i = 0; i < 3; i++) box(g, M.dark, [0.032, 0.004, 0.04], [0, 0.06, -0.6], [0, 0, i * Math.PI / 3])
+  // butt pad
+  box(g, M.rubber, [0.058, 0.155, 0.014], [0, 0.04, 0.342])
+  // curved magazine behind the grip
   const mag = new THREE.Group()
-  mag.position.set(0, 0.01, 0.14)
-  box(mag, M.dark, [0.026, 0.1, 0.06], [0, -0.05, 0], [0.12, 0, 0])
+  mag.position.set(0, -0.005, 0.15)
+  box(mag, M.dark, [0.026, 0.13, 0.06], [0, -0.06, 0.006], [0.12, 0, 0])
   g.add(mag)
   return {
     gripR, gripL: { pos: V(0, 0.02, -0.3), dir: V(0, 0, -1) },
-    muzzle: V(0, 0.06, -0.58), eject: V(0.028, 0.08, 0.12), mag, handguardR: 0.026,
-    sight: { rear: V(0, 0.172, 0.15), front: V(0, 0.172, -0.2) },
+    muzzle: V(0, 0.06, -0.625), eject: V(0.028, 0.08, 0.12), mag, handguardR: 0.026,
+    sight: { rear: V(0, 0.224, 0.15), front: V(0, 0.224, -0.2) },
   }
 }
 
-function sniper(g, M, awp, auto = null) {
-  const body = awp ? M.green : auto === 'scar' ? M.tan : auto === 'g3' ? M.olive : M.dark
-  const gripR = pistolGrip(g, body, { rake: 0.45 })
+
+/* The SSG 08: a bolt-action in a dark skeleton chassis. A long slotted
+   handguard with a rail on top, a thin free-floated barrel with a stubby
+   brake, the bipod folded forward under the handguard, a short box
+   magazine, the bolt handle out to the right, and a skeleton stock with a
+   raised cheek piece and a monopod spike under the butt. */
+function ssg08(g, M) {
+  const body = M.polymer
+  const gripR = pistolGrip(g, body, { rake: 0.32 })
   triggerGuard(g, M.black)
-  box(g, M.steel, [0.042, 0.05, 0.24], [0, 0.06, -0.05])                    // action
-  box(g, body, [0.056, 0.06, awp ? 0.52 : 0.4], [0, 0.03, awp ? -0.2 : -0.15])   // chassis
-  // thumbhole stock
-  box(g, body, [0.05, 0.05, 0.28], [0, 0.07, 0.2])
-  box(g, body, [0.052, 0.15, 0.06], [0, 0.0, 0.32])
-  box(g, body, [0.05, 0.03, 0.18], [0, -0.06, 0.24], [-0.12, 0, 0])
-  // bolt
-  cyl(g, M.steel, 0.008, 0.06, [0.035, 0.07, 0.03], [0, Math.PI / 2, 0])
-  ball(g, M.black, 0.013, [0.07, 0.07, 0.03])
-  // barrel
-  const blen = awp ? 0.55 : 0.46
-  cyl(g, M.dark, awp ? 0.014 : 0.011, blen, [0, 0.07, -0.2 - blen / 2])
-  if (awp) cyl(g, M.black, 0.021, 0.07, [0, 0.07, -0.2 - blen - 0.03])
-  // scope
-  const sy = awp ? 0.135 : 0.125
-  cyl(g, M.black, awp ? 0.022 : 0.018, 0.2, [0, sy, -0.06])
-  cyl(g, M.black, awp ? 0.03 : 0.024, 0.07, [0, sy, -0.2])
-  cyl(g, M.glass, awp ? 0.026 : 0.02, 0.005, [0, sy, -0.236])
-  cyl(g, M.black, awp ? 0.026 : 0.021, 0.05, [0, sy, 0.06])
-  box(g, M.black, [0.02, 0.05, 0.02], [0, sy - 0.035, -0.12])
-  box(g, M.black, [0.02, 0.05, 0.02], [0, sy - 0.035, 0.0])
-  cylY(g, M.black, 0.009, 0.02, [0, sy + 0.028, -0.06])
-  const mag = new THREE.Group()
-  mag.position.set(0, 0.0, -0.1)
-  // the autosnipers carry a 20-round box magazine
-  box(mag, M.dark, auto ? [0.03, 0.13, 0.075] : [0.03, 0.06, 0.07], [0, auto ? -0.065 : -0.03, 0], [auto ? 0.1 : 0, 0, 0])
-  g.add(mag)
-  if (auto) {
-    box(g, M.black, [0.03, 0.012, 0.3], [0, 0.1, -0.12])                       // top rail
-    box(g, body, [0.05, 0.05, 0.2], [0, 0.03, -0.42])                          // long handguard
+  // action and chassis
+  cyl(g, M.dark, 0.018, 0.24, [0, 0.07, -0.05])
+  box(g, body, [0.05, 0.048, 0.28], [0, 0.034, -0.05])
+  box(g, M.black, [0.024, 0.008, 0.2], [0, 0.092, -0.06])               // scope rail
+  // bolt: body, handle out to the right, knob
+  cyl(g, M.steel, 0.0085, 0.07, [0, 0.07, 0.07])
+  cyl(g, M.steel, 0.005, 0.05, [0.03, 0.065, 0.035], [0, Math.PI / 2, 0.35])
+  ball(g, M.black, 0.011, [0.055, 0.056, 0.035])
+  // handguard: slotted sides, a rail along the top
+  box(g, body, [0.052, 0.054, 0.36], [0, 0.064, -0.37])
+  for (let i = 0; i < 5; i++) for (const s2 of [-1, 1]) box(g, M.black, [0.004, 0.014, 0.04], [s2 * 0.0265, 0.064, -0.24 - i * 0.065])
+  box(g, M.black, [0.024, 0.008, 0.34], [0, 0.095, -0.37])
+  for (let i = 0; i < 14; i++) box(g, M.black, [0.026, 0.005, 0.01], [0, 0.101, -0.21 - i * 0.024])
+  // barrel and brake
+  cyl(g, M.dark, 0.011, 0.38, [0, 0.07, -0.74])
+  cyl(g, M.black, 0.016, 0.065, [0, 0.07, -0.955])
+  for (let i = 0; i < 3; i++) box(g, M.dark, [0.036, 0.005, 0.009], [0, 0.07, -0.94 - i * 0.017])
+  // bipod folded forward under the handguard
+  box(g, M.black, [0.03, 0.016, 0.03], [0, 0.03, -0.5])
+  for (const s2 of [-1, 1]) {
+    cyl(g, M.black, 0.006, 0.24, [s2 * 0.013, 0.026, -0.62])
+    ball(g, M.rubber, 0.009, [s2 * 0.013, 0.026, -0.742])
   }
+  // skeleton stock: cheek riser on top, a cut-out below, butt plate
+  const hole = new THREE.Path()
+  hole.moveTo(0.12, 0.075); hole.lineTo(0.3, 0.075); hole.lineTo(0.31, -0.03); hole.lineTo(0.17, 0.035)
+  hole.closePath()
+  profile(g, body, [
+    [0.08, 0.04], [0.08, 0.1], [0.2, 0.1], [0.215, 0.128], [0.31, 0.128], [0.32, 0.1], [0.34, 0.1],
+    [0.35, -0.07], [0.33, -0.08], [0.3, -0.04], [0.2, 0.025], [0.12, 0.03],
+  ], 0.04, [hole])
+  box(g, M.rubber, [0.044, 0.18, 0.014], [0, 0.015, 0.355])
+  // monopod spike under the butt
+  cylY(g, M.black, 0.008, 0.05, [0, -0.095, 0.325])
+  ball(g, M.rubber, 0.011, [0, -0.122, 0.325])
+  // scope on two rings
+  const sy = 0.135
+  cyl(g, M.black, 0.017, 0.24, [0, sy, -0.06])
+  cyl(g, M.black, 0.028, 0.08, [0, sy, -0.21])
+  cyl(g, M.glass, 0.024, 0.005, [0, sy, -0.252])
+  cyl(g, M.black, 0.022, 0.06, [0, sy, 0.085])
+  for (const z of [-0.13, 0.01]) box(g, M.black, [0.022, 0.04, 0.018], [0, sy - 0.025, z])
+  cylY(g, M.black, 0.01, 0.024, [0, sy + 0.028, -0.06])
+  cyl(g, M.black, 0.01, 0.022, [0.028, sy, -0.06], [0, Math.PI / 2, 0])
+  // short box magazine
+  const mag = new THREE.Group()
+  mag.position.set(0, 0.008, -0.09)
+  box(mag, M.dark, [0.03, 0.065, 0.075], [0, -0.032, 0])
+  g.add(mag)
   return {
-    gripR, gripL: { pos: V(0, 0.0, -0.3), dir: V(0, 0, -1) },
-    muzzle: V(0, 0.07, -0.2 - blen - 0.07), eject: V(0.028, 0.07, -0.02), mag, handguardR: 0.03, scope: true,
+    gripR, gripL: { pos: V(0, 0.03, -0.32), dir: V(0, 0, -1) },
+    muzzle: V(0, 0.07, -0.99), eject: V(0.028, 0.075, -0.02), mag, handguardR: 0.03, scope: true,
+  }
+}
+
+/* The G3SG/1: HK's long stamped receiver in olive, a drum rear sight at the
+   back and the cocking tube running forward over the barrel, a slim
+   handguard, the hooded front sight and a pronged flash hider, a straight
+   20-round box, a fixed stock with a cheek pad, and the scope standing high
+   on its claw mount. */
+function g3sg1(g, M) {
+  const body = M.olive
+  const gripR = pistolGrip(g, body, { rake: 0.28 })
+  triggerGuard(g, M.black)
+  // receiver and trigger group
+  box(g, body, [0.048, 0.068, 0.42], [0, 0.062, -0.08])
+  box(g, M.black, [0.05, 0.008, 0.42], [0, 0.03, -0.08])                 // the receiver's seam
+  box(g, body, [0.044, 0.034, 0.13], [0, 0.012, 0.0])
+  cyl(g, M.black, 0.004, 0.05, [0, 0.03, 0.04], [0, Math.PI / 2, 0])    // selector
+  // drum rear sight
+  cyl(g, M.black, 0.017, 0.022, [0, 0.118, 0.11], [0, Math.PI / 2, 0])
+  box(g, M.black, [0.02, 0.022, 0.03], [0, 0.1, 0.11])
+  // cocking tube and handle
+  cyl(g, M.dark, 0.012, 0.24, [0, 0.086, -0.41])
+  box(g, M.black, [0.02, 0.01, 0.012], [-0.022, 0.086, -0.32])
+  // handguard, slimmer toward the front
+  box(g, body, [0.056, 0.05, 0.27], [0, 0.052, -0.43])
+  for (let i = 0; i < 4; i++) for (const s2 of [-1, 1]) box(g, M.black, [0.004, 0.012, 0.035], [s2 * 0.0285, 0.05, -0.34 - i * 0.06])
+  // barrel, hooded front sight, flash hider
+  cyl(g, M.dark, 0.011, 0.32, [0, 0.062, -0.72])
+  box(g, M.black, [0.03, 0.006, 0.026], [0, 0.124, -0.57])
+  for (const s2 of [-1, 1]) box(g, M.black, [0.005, 0.05, 0.026], [s2 * 0.013, 0.1, -0.57])
+  box(g, M.black, [0.004, 0.03, 0.006], [0, 0.1, -0.57])
+  cyl(g, M.black, 0.016, 0.08, [0, 0.062, -0.92])
+  for (let i = 0; i < 4; i++) box(g, M.dark, [0.036, 0.005, 0.06], [0, 0.062, -0.93], [0, 0, i * Math.PI / 4])
+  // fixed stock with a cheek pad
+  profile(g, body, [
+    [0.13, 0.03], [0.13, 0.098], [0.3, 0.102], [0.37, 0.094],
+    [0.385, -0.045], [0.34, -0.055], [0.22, -0.005], [0.13, 0.008],
+  ], 0.048)
+  box(g, M.black, [0.05, 0.02, 0.13], [0, 0.11, 0.26])
+  box(g, M.rubber, [0.05, 0.145, 0.014], [0, 0.025, 0.388])
+  // scope high on the claw mount
+  box(g, M.black, [0.03, 0.06, 0.13], [0, 0.125, -0.05])
+  const sy = 0.17
+  cyl(g, M.black, 0.018, 0.24, [0, sy, -0.06])
+  cyl(g, M.black, 0.027, 0.08, [0, sy, -0.21])
+  cyl(g, M.glass, 0.023, 0.005, [0, sy, -0.252])
+  cyl(g, M.black, 0.022, 0.06, [0, sy, 0.085])
+  cylY(g, M.black, 0.01, 0.022, [0, sy + 0.028, -0.06])
+  // magwell under the receiver, and the straight 20-round box seated in it
+  box(g, body, [0.046, 0.03, 0.085], [0, 0.02, -0.12])
+  const mag = new THREE.Group()
+  mag.position.set(0, 0.02, -0.12)
+  box(mag, M.dark, [0.03, 0.165, 0.072], [0, -0.07, 0], [0.04, 0, 0])
+  g.add(mag)
+  return {
+    gripR, gripL: { pos: V(0, 0.026, -0.43), dir: V(0, 0, -1) },
+    muzzle: V(0, 0.062, -0.965), eject: V(0.026, 0.075, -0.05), mag, handguardR: 0.03, scope: true,
   }
 }
 
@@ -481,44 +585,92 @@ function scar20(g, M) {
 
 /* ---------------------------------------------------------------- SMGs --- */
 
+/* The MAC-10: a boxy stamped receiver with a ridge down the top, loop
+   sights front and back, the cocking knob on top, a threaded barrel stub,
+   the magazine up through the grip, a sling hanging from the front, and the
+   wire stock folded short behind. */
 function mac10(g, M) {
-  // the magazine sits inside the grip
+  // grip, the magazine inside it
   box(g, M.black, [0.03, 0.12, 0.042], [0, -0.04, 0.0], [-0.12, 0, 0])
   const gripR = { pos: V(0, -0.028, 0.0), dir: V(0, Math.cos(0.12), -Math.sin(0.12)) }
   triggerGuard(g, M.black)
+  // receiver, its top ridge, the ejection port on the right
   box(g, M.dark, [0.05, 0.08, 0.24], [0, 0.055, -0.05])
-  box(g, M.black, [0.02, 0.02, 0.02], [0, 0.105, 0.04])
+  box(g, M.dark, [0.03, 0.01, 0.22], [0, 0.1, -0.05])
+  box(g, M.black, [0.003, 0.02, 0.06], [0.026, 0.07, -0.06])
+  for (const s2 of [-1, 1]) box(g, M.black, [0.002, 0.004, 0.2], [s2 * 0.0255, 0.035, -0.05])
+  // cocking knob on top
+  box(g, M.black, [0.014, 0.014, 0.02], [0, 0.112, -0.07])
+  // loop sights, rear and front
+  for (const z of [0.05, -0.15]) {
+    for (const s2 of [-1, 1]) box(g, M.black, [0.004, 0.02, 0.012], [s2 * 0.009, 0.115, z])
+    box(g, M.black, [0.022, 0.004, 0.012], [0, 0.126, z])
+  }
+  // threaded barrel stub and its cap
   cyl(g, M.steel, 0.012, 0.08, [0, 0.07, -0.21])
-  cyl(g, M.black, 0.015, 0.04, [0, 0.07, -0.26])
-  box(g, M.black, [0.03, 0.01, 0.2], [0.022, 0.02, 0.15])                   // folded wire stock
+  cyl(g, M.black, 0.015, 0.035, [0, 0.07, -0.265])
+  // sling loop at the front, the strap hanging from it
+  box(g, M.black, [0.03, 0.012, 0.022], [0, 0.012, -0.16])
+  // its top end at the loop, swinging back a little
+  box(g, M.black, [0.005, 0.09, 0.022], [0, -0.027, -0.1446], [-0.35, 0, 0])
+  // wire stock folded short behind: two rods and the butt plate
+  for (const y of [0.025, 0.085]) box(g, M.black, [0.008, 0.008, 0.14], [0.022, y, 0.135])
+  box(g, M.black, [0.05, 0.075, 0.01], [0, 0.055, 0.205])
   const mag = new THREE.Group()
   mag.position.set(0, -0.1, 0.015)
   box(mag, M.dark, [0.026, 0.11, 0.036], [0, -0.03, 0], [-0.12, 0, 0])
   g.add(mag)
   return {
     gripR, gripL: { pos: V(0, 0.01, -0.12), dir: V(0, 0, -1) },
-    muzzle: V(0, 0.07, -0.29), eject: V(0.028, 0.08, -0.04), mag, handguardR: 0.028,
-    sight: { rear: V(0, 0.115, 0.04), front: V(0, 0.115, -0.2) },
+    muzzle: V(0, 0.07, -0.285), eject: V(0.028, 0.08, -0.04), mag, handguardR: 0.028,
+    sight: { rear: V(0, 0.13, 0.05), front: V(0, 0.13, -0.15) },
   }
 }
 
+/* The MP9: a compact polymer receiver, ribbed down the sides with a rail on
+   top, the stubby barrel shroud out front, a ribbed vertical foregrip, the
+   long magazine running up through the pistol grip, and the thin folding
+   stock out behind with its narrow butt plate. */
 function mp9(g, M) {
-  box(g, M.polymer, [0.03, 0.12, 0.044], [0, -0.04, 0.0], [-0.2, 0, 0])
+  // pistol grip with grooves; the magazine runs up through it
+  box(g, M.polymer, [0.032, 0.12, 0.046], [0, -0.04, 0.0], [-0.2, 0, 0])
+  for (let i = 0; i < 4; i++) box(g, M.black, [0.034, 0.005, 0.048], [0, -0.012 - i * 0.022, 0.006 - i * 0.0045], [-0.2, 0, 0])
   const gripR = { pos: V(0, -0.028, 0.0), dir: V(0, Math.cos(0.2), -Math.sin(0.2)) }
-  triggerGuard(g, M.black)
-  box(g, M.polymer, [0.044, 0.07, 0.24], [0, 0.05, -0.07])
-  box(g, M.dark, [0.02, 0.012, 0.24], [0, 0.092, -0.07])
-  // vertical fore grip
-  box(g, M.polymer, [0.026, 0.07, 0.03], [0, -0.012, -0.15], [-0.1, 0, 0])
-  cyl(g, M.steel, 0.01, 0.07, [0, 0.055, -0.22])
+  // a big trigger guard joined to the foregrip
+  box(g, M.polymer, [0.01, 0.008, 0.11], [0, -0.025, -0.07])
+  box(g, M.polymer, [0.01, 0.034, 0.008], [0, -0.008, -0.03])
+  box(g, M.black, [0.004, 0.018, 0.004], [0, 0.005, -0.04], [0.3, 0, 0])
+  // receiver: one slab, its nose stepped down over the barrel shroud
+  profile(g, M.polymer, [
+    [0.07, 0.016], [0.07, 0.09], [0.055, 0.098], [-0.19, 0.098], [-0.2, 0.085],
+    [-0.2, 0.03], [-0.17, 0.016],
+  ], 0.046)
+  for (let i = 0; i < 4; i++) for (const s2 of [-1, 1]) box(g, M.black, [0.003, 0.004, 0.17], [s2 * 0.024, 0.04 + i * 0.012, -0.07])
+  // rail along the top
+  box(g, M.black, [0.022, 0.008, 0.24], [0, 0.103, -0.07])
+  for (let i = 0; i < 10; i++) box(g, M.black, [0.024, 0.005, 0.009], [0, 0.109, 0.04 - i * 0.022])
+  // cocking handle at the back
+  box(g, M.black, [0.03, 0.012, 0.02], [0, 0.1, 0.055])
+  // ribbed vertical foregrip
+  cylY(g, M.polymer, 0.016, 0.08, [0, -0.02, -0.15], [-0.1, 0, 0])
+  for (let i = 0; i < 4; i++) cylY(g, M.black, 0.0168, 0.004, [0, -0.002 - i * 0.017, -0.148 + i * 0.0017], [-0.1, 0, 0])
+  ball(g, M.polymer, 0.016, [0, -0.06, -0.146], [1, 0.5, 1])
+  // barrel shroud and muzzle
+  cyl(g, M.dark, 0.016, 0.05, [0, 0.055, -0.22])
+  cyl(g, M.black, 0.012, 0.03, [0, 0.055, -0.255])
+  // folding stock, extended: two thin bars back to a narrow butt plate
+  for (const yy of [0.085, 0.04]) box(g, M.black, [0.012, 0.01, 0.26], [0, yy, 0.2])
+  box(g, M.black, [0.02, 0.12, 0.014], [0, 0.04, 0.33], [-0.08, 0, 0])
+  // the long magazine
   const mag = new THREE.Group()
   mag.position.set(0, -0.1, 0.02)
   box(mag, M.dark, [0.024, 0.14, 0.034], [0, -0.04, 0], [-0.2, 0, 0])
+  for (let i = 0; i < 3; i++) box(mag, M.black, [0.026, 0.005, 0.036], [0, -0.02 - i * 0.03, 0.004 + i * 0.006], [-0.2, 0, 0])
   g.add(mag)
   return {
     gripR, gripL: { pos: V(0, -0.02, -0.15), dir: V(0, Math.cos(0.1), -Math.sin(0.1)) }, gripLVertical: true,
-    muzzle: V(0, 0.055, -0.26), eject: V(0.024, 0.07, -0.04), mag, handguardR: 0.02,
-    sight: { rear: V(0, 0.1, 0.03), front: V(0, 0.1, -0.17) },
+    muzzle: V(0, 0.055, -0.27), eject: V(0.024, 0.07, -0.04), mag, handguardR: 0.02,
+    sight: { rear: V(0, 0.115, 0.03), front: V(0, 0.115, -0.17) },
   }
 }
 
@@ -707,8 +859,8 @@ const BUILDERS = {
   m4a1s: (g, M) => m4(g, M, true),
   famas,
   awp,
-  ssg08: (g, M) => sniper(g, M, false),
-  g3sg1: (g, M) => sniper(g, M, false, 'g3'),
+  ssg08,
+  g3sg1,
   scar20,
   mac10, mp9, ump, p90,
   glock: (g, M) => pistol(g, M, 'glock'),

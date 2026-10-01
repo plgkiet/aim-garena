@@ -484,7 +484,7 @@ const LATE_GUN_SKINS = [
     id: 'famas_starbucks_vn',
     image: '/textures/starbucks_farm.jpg', fit: 'band', metal: 0.1, rough: 0.5,
     layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 1, flip: true },
-    emblems: [{ image: '/textures/starbucks_logo.png', crop: [0, 0, 1, 1], at: [0.665, 0.342], h: 0.12, disc: '#ffffff', flip: true }],
+    emblems: [{ image: '/textures/starbucks_logo.png', crop: [0, 0, 1, 1], at: [0.635, 0.43], h: 0.12, disc: '#ffffff', flip: true }],
   }),
   // a red 911 in thick abstract paint: the painting at its own aspect with
   // the car along the receiver, its red and gold strokes round the rest
@@ -544,10 +544,12 @@ const LATE_GUN_SKINS = [
   // flower meadow from the bottom of the picture runs down the grip
   skin('mac10', 'Pikachu 30th', 'covert', 'gem', ['#f2c419'], {
     id: 'mac10_pikachu',
-    image: '/textures/pikachu_30th.jpg', fit: 'band', metal: 0.15, rough: 0.5,
+    // vSpan: the MAC-10 is short and tall, so its sides run past the top of
+    // a texture spanned by half its length; spread v over 1.5x that
+    image: '/textures/pikachu_30th.jpg', fit: 'band', metal: 0.15, rough: 0.5, vSpan: 1.5,
     layout: {
-      plain: true, u0: 0.2, u1: 0.663, v0: 0.72, v1: 1.1, crop: [0.17, 0.9], cropV: [0.04, 0.61],
-      fill: [0, 0.62, 0.32, 1], fillStretch: 1.15, fillRows: true, flip: true,
+      plain: true, u0: 0.232, u1: 0.712, v0: 0.542, v1: 0.771, cropV: [0.03, 0.62],
+      fill: [0, 0.62, 0.32, 1], fillStretch: 1.72, fillRows: true, flip: true,
     },
   }),
   // Bulbasaur and a sleeping Snorlax in the forest: one strip of the picture
