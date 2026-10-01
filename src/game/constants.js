@@ -60,7 +60,7 @@ export const RULES = {
 /** Weapon feel cvars. */
 export const RECOIL = {
   weapon_recoil_scale: 2,
-  view_recoil_tracking: 0.45,
+  view_recoil_tracking: 0.55,     // stock 0.45: the screen climbs a little more with the spray
   /* The game's 8 / 18 act on its punch *velocity* model; applied straight to
      the angle, as here, they snap a spray back in ~0.1 s. These give the same
      ~0.3 s return you see in game. Deviation, named on purpose. */
@@ -68,8 +68,8 @@ export const RECOIL = {
   weapon_recoil_decay2_lin: 4,
   /* Everything kicks harder than stock CS:GO — asked for, so it is a named
      multiplier on the spray curves rather than edited patterns. 1 = stock. */
-  kick_scale: 1.6,
-  view_kick_scale: 1.5,          // how hard the viewmodel itself jumps per shot
+  kick_scale: 2.2,
+  view_kick_scale: 2,            // how hard the viewmodel itself jumps per shot
 }
 
 /** Horizontal FOV quoted at 4:3, as the game does, to a vertical FOV. */

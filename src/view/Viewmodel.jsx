@@ -18,7 +18,7 @@ import { inventory } from '../skins/inventory'
 import { buildHand } from './HandRig'
 import { game, on, activeWeapon } from '../game/state'
 import { W } from '../game/weapons'
-import { RECOIL } from '../game/constants'
+import { RECOIL, D2R } from '../game/constants'
 
 const SFX = { swoosh, clack }
 const WING_ANGLE = 2.35   // how far the balisong handles fan out at open = 1
@@ -582,11 +582,17 @@ export function Viewmodel() {
     const bx = H.p[0] + (S.p[0] - H.p[0]) * k, by = H.p[1] + (S.p[1] - H.p[1]) * k, bz = H.p[2] + (S.p[2] - H.p[2]) * k
     const rx = H.r[0] + (S.r[0] - H.r[0]) * k, ry = H.r[1] * (1 - k), rz = H.r[2] * (1 - k)
     const kick = 1 - k * 0.45                       // shouldered: the kick drives back, less up
+    // the spray climbs the gun itself: the view follows only part of the aim
+    // punch (view_recoil_tracking) while bullets go at the full
+    // weapon_recoil_scale, so the gun tips up and across by the difference and
+    // its muzzle points where the shots land
+    const follow = ((ws.leanAim ? RECOIL.view_recoil_tracking + 0.3 : RECOIL.weapon_recoil_scale) - RECOIL.view_recoil_tracking) * D2R
+    const climbX = ws.punch.y * follow, climbY = -ws.punch.x * follow
     const hold = gunHold.current
     hold.position.set(
-      bx + A.px, by + A.py + drawPy + extraPy, bz + A.pz + K.pz * 0.012 * (1 + k) + extraPz)
+      bx + A.px, by + A.py + drawPy + extraPy + climbX * 0.05, bz + A.pz + K.pz * 0.012 * (1 + k) + extraPz)
     hold.rotation.set(
-      rx + A.rx + drawRx + K.rx * 0.02 * kick + extraRx, ry + A.ry + K.ry * 0.02 * kick, rz + A.rz + drawRz + K.rz * 0.02 * kick, 'YXZ')
+      rx + A.rx + drawRx + K.rx * 0.02 * kick + extraRx + climbX, ry + A.ry + K.ry * 0.02 * kick + climbY, rz + A.rz + drawRz + K.rz * 0.02 * kick, 'YXZ')
 
     // magazine drops out along its own length
     const g = R.gun
