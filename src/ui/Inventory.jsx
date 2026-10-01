@@ -26,7 +26,7 @@ export function Inventory({ onBack, onCase, onTradeUp, onGallery, onOpen }) {
       (filter === "equipped"
         ? inventory.isEquipped(x.drop.uid)
         : filter === "knife"
-          ? x.item.kind === "knife"
+          ? x.item.kind === "knife" || x.item.kind === "glove"
           : x.item.kind === "gun"),
   );
   const drops = byKind
@@ -102,7 +102,7 @@ export function Inventory({ onBack, onCase, onTradeUp, onGallery, onOpen }) {
           {[
             ["all", "Tất cả"],
             ["gun", "Súng"],
-            ["knife", "★ Dao"],
+            ["knife", "★ Dao & Găng"],
             ["equipped", `Đang dùng · ${Object.keys(inv.equipped).length}`],
           ].map(([k, l]) => (
             <button

@@ -73,7 +73,7 @@ const ease = (p, friction) =>
 const stopFraction = () => (Math.floor(Math.random() * 81) + 10) / 100;
 
 export const itemTitle = (it) =>
-  it.kind === "knife" ? it.weaponName : W[it.weapon]?.name || it.weapon;
+  it.kind === "knife" || it.kind === "glove" ? it.weaponName : W[it.weapon]?.name || it.weapon;
 export const itemLabel = (it) => `${itemTitle(it)} | ${it.name}`;
 
 /** Thumbnail for an item, rendered on first use (queued; see skins/thumbs). */

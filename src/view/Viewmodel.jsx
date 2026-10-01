@@ -300,13 +300,16 @@ export function Viewmodel() {
   const knifeHandsTeam = useRef(null)
   // knife hands: the same procedural rig as the guns, closed on the haft / open
   function ensureKnifeHands(team) {
-    if (knifeHandsTeam.current === team || !knifeHandMount.current || !knifeRoot.current) return
+    // the equipped gloves are part of what the hands are built from
+    const glove = inventory.equippedItem('gloves')
+    const key = `${team}|${glove?.id ?? ''}`
+    if (knifeHandsTeam.current === key || !knifeHandMount.current || !knifeRoot.current) return
     handRef.current?.group.parent?.remove(handRef.current.group)
     offRef.current?.group.parent?.remove(offRef.current.group)
     // a straight wrist: the forearm carries on from the fist, no bend
-    const right = buildHand({ side: 'right', team, haft: 0.0125, size: 0.72, maxWrist: 0.12 })
+    const right = buildHand({ side: 'right', team, haft: 0.0125, size: 0.72, maxWrist: 0.12, glove })
     right.setPose('wrap')
-    const left = buildHand({ side: 'left', team, haft: 0.02, size: 0.72 })
+    const left = buildHand({ side: 'left', team, haft: 0.02, size: 0.72, glove })
     left.setPose('open')
     right.group.matrixAutoUpdate = false
     left.group.matrixAutoUpdate = false
@@ -314,7 +317,7 @@ export function Viewmodel() {
     knifeRoot.current.add(left.group)
     handRef.current = right
     offRef.current = left
-    knifeHandsTeam.current = team
+    knifeHandsTeam.current = key
   }
   const offTuck = useRef(0)
   const knives = useRef({})
@@ -333,15 +336,17 @@ export function Viewmodel() {
   // gun arms: procedural hands, rebuilt only when the sleeves change side
   const gunArms = useMemo(() => ({ team: null, right: null, left: null }), [])
   function ensureGunArms(team) {
-    if (gunArms.team === team) return
+    const glove = inventory.equippedItem('gloves')
+    const key = `${team}|${glove?.id ?? ''}`
+    if (gunArms.team === key) return
     for (const k of ['right', 'left']) gunArms[k]?.group.parent?.remove(gunArms[k].group)
-    gunArms.right = buildHand({ side: 'right', team, haft: 0.017 })
-    gunArms.left = buildHand({ side: 'left', team, haft: 0.02 })
+    gunArms.right = buildHand({ side: 'right', team, haft: 0.017, glove })
+    gunArms.left = buildHand({ side: 'left', team, haft: 0.02, glove })
     gunArms.right.setPose('trigger')
     gunArms.left.setPose('support')
     gunArms.right.group.matrixAutoUpdate = false
     gunArms.left.group.matrixAutoUpdate = false
-    gunArms.team = team
+    gunArms.team = key
     rig.current.key = '__remount'
   }
   const flashTex = useMemo(() => starTexture(), [])

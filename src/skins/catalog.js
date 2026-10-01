@@ -176,7 +176,15 @@ export const GUN_SKINS = [
       { crop: [0.22, 0.12, 0.78, 0.89], at: [0.77, 0.21], h: 0.9, w: 0.17, rot: -Math.PI / 2 }, // the snake
     ],
   }),
-  skin('ak47', 'Wild Lotus', 'covert', 'gem', ['#1f6b52'], { image: '/textures/lotus.jpg', fit: 'tile', tile: 0.45, metal: 0.2, rough: 0.5 }),
+  // a side photo of the real skin laid on muzzle to butt, like Fire Serpent,
+  // pinned landmark by landmark onto the model (measured off the photo's
+  // outline and the model's UVs): front sight, handguard front, the
+  // magazine's front and back, the grip, the stock; bled outward so parts
+  // standing proud of the photo's outline still wear its colours
+  skin('ak47', 'Wild Lotus', 'covert', 'gem', ['#1f8a80'], {
+    image: '/textures/wild_lotus.png', fit: 'decal', metal: 0.2, rough: 0.5,
+    decal: { left: 50, right: 1012, bottom: 284, sy: 1.05, bleed: 24, pins: [[82, 0.075], [195, 0.224], [440, 0.423], [580, 0.569], [690, 0.608], [740, 0.681], [748, 0.733]] },
+  }),
   // a side photo of the real skin laid on muzzle to butt (like Fire Serpent):
   // magazine and thumbhole pinned to the model's, stretched upright a little
   // so the photo's scope lands on the scope
@@ -549,7 +557,46 @@ const LATE_GUN_SKINS = [
   }),
 ]
 
-export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES, ...LATE_GUN_SKINS]
+/* Gloves: a ★ rare special like the knives, worn on both hands in first
+   person (see skins/gloves.js for how each cut is painted). */
+const GLOVE_TYPES = { sport: 'Sport Gloves', moto: 'Moto Gloves', specialist: 'Specialist Gloves', driver: 'Driver Gloves' }
+const glove = (type, name, spec) => ({
+  id: `glove_${type}_${name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+  kind: 'glove', tier: 'gold', weaponName: `★ ${GLOVE_TYPES[type]}`, name,
+  glove: { type, ...spec },
+})
+export const GLOVES = [
+  glove('sport', "Pandora's Box", {
+    finger: '#6a35ff', finger2: '#8a5bff', panel: '#2a1d4f', mesh: 'rgba(150,120,255,0.35)', dash: '#c9c4ff',
+    frame: '#1b1440', pad: '#24183f', cuff: '#5a2ee6', trim: '#1b1440',
+  }),
+  glove('sport', 'Hedge Maze', {
+    finger: '#78e01c', finger2: '#9cf03a', panel: '#1b2628', mesh: 'rgba(110,200,190,0.3)', dash: '#a8e8de',
+    frame: '#d9dde2', pad: '#c9ced4', cuff: '#e8ebee', trim: '#78e01c',
+  }),
+  glove('sport', 'Ultra Violent', {
+    finger: '#b03cff', finger2: '#3d8bff', panel: '#3f78e8', mesh: 'rgba(170,220,255,0.4)', dash: '#e6ff3a',
+    frame: '#e6ff3a', pad: '#8a3cff', cuff: '#7a46ff', trim: '#e6ff3a',
+  }),
+  glove('sport', 'Vice', {
+    finger: '#e8459a', finger2: '#f070b4', panel: '#5d6b62', tri: true, mesh: 'rgba(25,32,30,0.55)', dash: '#4fd6e0',
+    frame: '#e8459a', pad: '#4fd6e0', cuff: '#e8459a', trim: '#4fd6e0',
+  }),
+  glove('driver', 'King Snake', {
+    finger: '#d6cfbb', panel: '#8f8877', scales: ['#3e3a33', '#857e6d', '#d6d0bf'], pad: '#c9a85a',
+    cuff: '#d6cfbb', trim: '#a89f88', seed: 5,
+  }),
+  glove('moto', 'Spearmint', {
+    finger: '#eef1f3', panel: '#7fd6cf', camo: ['#3fb8b0', '#a9ece6', '#e8faf8', '#2c8f8a', '#5ccac2'], stroke: '#e0453a',
+    pad: '#1c1d20', cuff: '#2a2c30', trim: '#7fd6cf', seed: 11,
+  }),
+  glove('specialist', 'Crimson Kimono', {
+    finger: '#d4243c', finger2: '#e2334a', panel: '#c81f37', mesh: 'rgba(40,10,40,0.45)', dash: '#2a1f4a',
+    pad: '#2a1f4a', cuff: '#2a1f4a', trim: '#d4243c',
+  }),
+]
+
+export const ITEMS = [...GUN_SKINS, ...KNIFE_SKINS, ...MODEL_KNIVES, ...GLOVES, ...LATE_GUN_SKINS]
 export const itemById = id => ITEMS.find(i => i.id === id) || null
 
 /* Items renamed or merged since, so drops already in someone's inventory
@@ -618,4 +665,4 @@ export function drawFromTier(slug, items = CASE.items) {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
-export const fullName = it => it.kind === 'knife' ? `${it.weaponName} | ${it.name}` : null
+export const fullName = it => it.kind === 'knife' || it.kind === 'glove' ? `${it.weaponName} | ${it.name}` : null

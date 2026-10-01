@@ -57,7 +57,7 @@ function Viewer({ item }) {
       const box = new THREE.Box3().setFromObject(holder);
       const size = box.getSize(new THREE.Vector3());
       const long = Math.max(size.x, size.y, size.z);
-      const s = 1 / (item.kind === "knife" ? long : Math.max(long, 0.55));
+      const s = 1 / (item.kind === "gun" ? Math.max(long, 0.55) : long);
       model.position.sub(box.getCenter(new THREE.Vector3()));
       holder.scale.setScalar(s);
       pivot.add(holder);
@@ -183,7 +183,7 @@ export function ItemDetail({ uid, onBack }) {
       <div className="inspect-bg" aria-hidden="true" />
       <div className="inspect-head">
         <span className="inspect-badge" aria-hidden="true">
-          {item.kind === "knife" ? "★" : "✦"}
+          {item.kind === "gun" ? "✦" : "★"}
         </span>
         <div className="inspect-title">
           <h1>

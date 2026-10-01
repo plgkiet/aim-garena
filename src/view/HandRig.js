@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
+import { gloveMaterials } from '../skins/gloves'
 
 /* A procedural first-person arm: sleeve, fingerless glove, and fingers with
    three real joints each, built for the viewmodel rather than borrowed from a
@@ -12,7 +13,11 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
    index finger on top. That +Y line is `haftAxis`, the forearm leaves along +Z
    (`armAxis`), the back of the hand looks out along +X (`palmAxis`). These
    match what the viewmodel's placeArm() expects. The left hand is the same
-   build mirrored in X. */
+   build mirrored in X.
+
+   With a glove item equipped (`glove`) the same rig wears it: full fingers,
+   its back panel, pads and wrist strap. `bare` leaves the sleeve off, for
+   showing a pair of gloves on their own. */
 
 const SEG = {
   //        base y, base z, lengths (proximal, middle, distal), radius
@@ -40,7 +45,7 @@ function mats(team) {
       watch: std('#0e0f10', 0.35, 0.6),
     }
   }
-  return { ...MATS, sleeve: team === 'CT' ? MATS.sleeveCT : MATS.sleeveT }
+  return { ...MATS, tip: MATS.skin, sleeve: team === 'CT' ? MATS.sleeveCT : MATS.sleeveT }
 }
 
 function capsule(r, len, mat) {
@@ -57,8 +62,8 @@ function capsule(r, len, mat) {
  * @param {'T'|'CT'} o.team
  * @param {number} o.haft  radius of the handle this hand closes on
  */
-export function buildHand({ side = 'right', team = 'T', haft = 0.018, size = 0.88, maxWrist = MAX_WRIST } = {}) {
-  const M = mats(team)
+export function buildHand({ side = 'right', team = 'T', haft = 0.018, size = 0.88, maxWrist = MAX_WRIST, glove = null, bare = false } = {}) {
+  const M = glove ? { ...mats(team), ...gloveMaterials(glove) } : mats(team)
   const group = new THREE.Group()                    // placed by the viewmodel
   const mirror = new THREE.Group()                   // left = right reflected in X
   // `size` scales the whole arm; the grip solve below runs in unscaled hand units
@@ -80,7 +85,7 @@ export function buildHand({ side = 'right', team = 'T', haft = 0.018, size = 0.8
     }
     palmGeo.computeVertexNormals()
   }
-  const palm = new THREE.Mesh(palmGeo, M.glove)
+  const palm = new THREE.Mesh(palmGeo, M.panel ?? M.glove)
   palm.position.set(0, 0, -PALM.l / 2 + 0.004)
   mirror.add(palm)
   const pad = new THREE.Mesh(new RoundedBoxGeometry(0.006, PALM.h * 0.86, 0.026, 2, 0.003), M.pad)
@@ -105,7 +110,7 @@ export function buildHand({ side = 'right', team = 'T', haft = 0.018, size = 0.8
       else j.position.set(0, 0, -S.len[i - 1])
       parent.add(j)
       const r = S.r * (1 - i * 0.08)
-      j.add(capsule(r, S.len[i] + r * 0.4, i === 2 ? M.skin : M.glove))
+      j.add(capsule(r, S.len[i] + r * 0.4, i === 2 ? M.tip : M.glove))
       joints.push(j)
       parent = j
     }
@@ -124,7 +129,7 @@ export function buildHand({ side = 'right', team = 'T', haft = 0.018, size = 0.8
       const j = new THREE.Group()
       if (i > 0) j.position.set(0, 0, -lens[i - 1])
       parent.add(j)
-      j.add(capsule(0.0105 - i * 0.001, lens[i] + 0.004, i === 2 ? M.skin : M.glove))
+      j.add(capsule(0.0105 - i * 0.001, lens[i] + 0.004, i === 2 ? M.tip : M.glove))
       thumb.push(j)
       parent = j
     }
@@ -134,14 +139,17 @@ export function buildHand({ side = 'right', team = 'T', haft = 0.018, size = 0.8
   const forearm = new THREE.Group()
   mirror.add(forearm)
   {
-    const g = new THREE.CylinderGeometry(0.03, 0.041, FOREARM, 14, 1, true)
-    g.rotateX(Math.PI / 2); g.translate(0, 0, FOREARM / 2 + 0.03)
-    forearm.add(new THREE.Mesh(g, M.sleeve))
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.005, 14).rotateX(Math.PI / 2), M.sleeve)
-    cap.position.z = 0.03
-    forearm.add(cap)
-    const cuff = new THREE.CylinderGeometry(0.0255, 0.028, 0.034, 14)
-    cuff.rotateX(Math.PI / 2); cuff.translate(0, 0, 0.012)
+    if (!bare) {
+      const g = new THREE.CylinderGeometry(0.03, 0.041, FOREARM, 14, 1, true)
+      g.rotateX(Math.PI / 2); g.translate(0, 0, FOREARM / 2 + 0.03)
+      forearm.add(new THREE.Mesh(g, M.sleeve))
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.005, 14).rotateX(Math.PI / 2), M.sleeve)
+      cap.position.z = 0.03
+      forearm.add(cap)
+    }
+    // a glove's wrist strap is longer and stands a little proud of the sleeve
+    const cuff = glove ? new THREE.CylinderGeometry(0.029, 0.031, 0.05, 18) : new THREE.CylinderGeometry(0.0255, 0.028, 0.034, 14)
+    cuff.rotateX(Math.PI / 2); cuff.translate(0, 0, glove ? 0.02 : 0.012)
     forearm.add(new THREE.Mesh(cuff, M.cuff))
     const wristG = new THREE.SphereGeometry(0.024, 12, 10)
     wristG.scale(0.7, 1, 1)

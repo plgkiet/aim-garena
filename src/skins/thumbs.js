@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { buildGun } from '../view/guns'
+import { buildHand } from '../view/HandRig'
 import { buildKnifeModel, paintModelBlade, silverParts } from './knives'
 import { KNIVES } from '../lib/knives'
 import { normalizeKnife, keepOnly, applyPhoto } from '../lib/knifeSetup'
@@ -38,8 +39,10 @@ function setup() {
   camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 50)
 }
 
-/** Frame the model: side-on, filling the picture with a margin. */
-function shoot(model) {
+/** Frame the model: side-on, filling the picture with a margin. `minLen`
+    frames a short gun as if it were that long, so pistols come out smaller
+    than the rifles beside them. */
+function shoot(model, minLen = 0) {
   const holder = new THREE.Group()
   holder.add(model)
   scene.add(holder)
@@ -50,7 +53,7 @@ function shoot(model) {
   holder.updateMatrixWorld(true)
   const size = box.getSize(new THREE.Vector3())
   // looking from +X at the gun's right side: the muzzle points right
-  const half = Math.max(size.z / 2 / (W / H), size.y / 2) * 1.12
+  const half = Math.max(Math.max(size.z, minLen) / 2 / (W / H), size.y / 2) * 1.12
   camera.left = -half * (W / H); camera.right = half * (W / H); camera.top = half; camera.bottom = -half
   camera.position.set(5, 0.4, 0)
   camera.lookAt(0, 0, 0)
@@ -76,12 +79,39 @@ function modelKnife(key, finish = null) {
   })
 }
 
+/* A pair of gloves as in the CS:GO pictures: both hands relaxed, fingers up
+   and spread a little, side by side, backs to the camera. */
+function glovePair(item) {
+  const pair = new THREE.Group()
+  for (const side of ['left', 'right']) {
+    const h = buildHand({ side, glove: item, bare: true, size: 1 })
+    h.setPose('open', 0.6)
+    // hand space: fingers down -Z, back of the hand out along +X (the left
+    // hand's along -X, so it turns round to show its back too)
+    const turn = new THREE.Group()
+    turn.add(h.group)
+    turn.rotation.set(Math.PI / 2, side === 'right' ? Math.PI : 0, 0, 'YXZ')
+    const tilt = new THREE.Group()
+    tilt.add(turn)
+    tilt.rotation.x = side === 'left' ? -0.32 : 0.32
+    tilt.position.z = side === 'left' ? -0.075 : 0.075
+    pair.add(tilt)
+  }
+  // seen from the other side: the backs of both gloves with their knuckle
+  // pads, thumbs out, fingers fanning apart
+  const view = new THREE.Group()
+  view.add(pair)
+  view.rotation.y = Math.PI
+  return view
+}
+
 /** The item's model, lying on its side for a camera at +X: guns muzzle to
     the right, knives laid across tip up and to the right. Shared by the
     thumbnails and the inspect screen. */
 export async function buildItemModel(item) {
   if (item.image) await skinReady(item)   // don't show a photo finish before its picture has loaded
   if (item.kind === 'gun') return buildGun(item.weapon, { skin: item }).group
+  if (item.kind === 'glove') return glovePair(item)
   const model = item.model ? await modelKnife(item.knife, item.finish ? item : null) : buildKnifeModel(item.knife, item)
   // knives stand blade-up with the flat on Z: turn the flat to the camera,
   // then lay the blade across the picture, tip up and to the right
@@ -119,7 +149,7 @@ function pump() {
   ;(async () => {
     try {
       setup()
-      const url = shoot(await buildItemModel(job.item))
+      const url = shoot(await buildItemModel(job.item), job.item.kind === 'gun' ? 0.55 : 0)
       cache.set(job.item.id, url)
       job.resolve(url)
     } catch (e) {

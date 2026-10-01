@@ -22,7 +22,7 @@ const EYE = 1.62;
 function showcase(kind) {
   return inventory.get().items
     .map((d) => ({ uid: d.uid, item: inventory.itemOf(d) }))
-    .filter((x) => x.item && SHOWN.has(x.item.tier) && (kind === "knife" ? x.item.kind === "knife" : x.item.kind !== "knife"))
+    .filter((x) => x.item && SHOWN.has(x.item.tier) && (kind === "knife" ? x.item.kind !== "gun" : x.item.kind === "gun"))
     .sort((a, b) => ORDER[b.item.tier] - ORDER[a.item.tier]);
 }
 
@@ -46,7 +46,7 @@ function plate(item) {
   // a hairline frame and a top highlight
   g.strokeStyle = "rgba(255,255,255,0.12)"; g.lineWidth = 2; g.strokeRect(1, 1, W - 2, H - 2);
   g.fillStyle = "rgba(255,255,255,0.08)"; g.fillRect(14, 0, W - 14, 3);
-  const knife = item.kind === "knife";
+  const knife = item.kind !== "gun";
   g.fillStyle = "rgba(255,255,255,0.62)"; g.font = "600 30px 'Barlow Condensed', Arial, sans-serif";
   g.fillText((knife ? "★ " : "") + itemTitle(item).replace(/^★\s*/, "").toUpperCase(), 44, 62);
   g.fillStyle = "#ffffff"; g.font = "700 60px Barlow, Arial, sans-serif";
@@ -153,7 +153,7 @@ export function Gallery({ onBack }) {
         add(box(0.03, 0.05, GAP * 0.86), stripM, sd * (W / 2 - 0.07), 2.95, z);
       }
     }
-    const titleTex = sign(wing === "knife" ? "KHU DAO" : "KHU SÚNG");
+    const titleTex = sign(wing === "knife" ? "KHU DAO & GĂNG" : "KHU SÚNG");
     const titleM = new THREE.MeshBasicMaterial({ map: titleTex, transparent: true });
     disposables.push(titleTex, titleM);
     add(new THREE.PlaneGeometry(5, 0.78), titleM, 0, 3.1, -LEN + 0.02);
@@ -240,7 +240,7 @@ export function Gallery({ onBack }) {
         // guns to one length, except that the pistols (under 0.55 m) keep
         // to scale, smaller than the rifles beside them
         const long = Math.max(size.x, size.y, size.z);
-        holder.scale.setScalar(s.item.kind === "knife" ? 0.55 / long : 0.95 / Math.max(long, 0.55));
+        holder.scale.setScalar(s.item.kind === "gun" ? 0.95 / Math.max(long, 0.55) : 0.55 / long);
         model.position.sub(b.getCenter(new THREE.Vector3()));
         s.turn.add(holder);
       } catch { /* a model that fails just leaves its plinth empty */ }
@@ -364,13 +364,15 @@ export function Gallery({ onBack }) {
         </div>
       )}
       <header className="gallery__head">
-        <button type="button" className="btn btn--ghost" onClick={onBack}>← Kho đồ</button>
+        <span className="plgk gallery__back">
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onBack}>← Kho đồ</button>
+        </span>
         <div>
           <h2>Phòng trưng bày</h2>
           <p>{count} món từ bậc Covert trở lên</p>
         </div>
         <div className="gallery__wings">
-          {[["gun", "Khu súng"], ["knife", "Khu dao"]].map(([k, label]) => (
+          {[["gun", "Khu súng"], ["knife", "Khu dao & găng"]].map(([k, label]) => (
             <button key={k} type="button" className={wing === k ? "on" : ""} onClick={() => { setWing(k); setLooking(null); }}>
               {label} <b>{counts[k]}</b>
             </button>

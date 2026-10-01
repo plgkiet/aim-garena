@@ -662,10 +662,17 @@ function paintDecal(g, skin, img) {
   // `pins`: [photo x, u] pairs that pull a landmark of the photo onto the same
   // landmark of the model; the photo is stretched piecewise between them
   const pins = [[D.left, 0], ...(D.pins ?? []), [D.right, 1]]
-  for (let i = 0; i < pins.length - 1; i++) {
-    const [x0, u0] = pins[i], [x1, u1] = pins[i + 1]
-    g.drawImage(img, x0, 0, x1 - x0, img.height, u0 * TEX_W, y, (u1 - u0) * TEX_W, h)
+  const lay = dy => {
+    for (let i = 0; i < pins.length - 1; i++) {
+      const [x0, u0] = pins[i], [x1, u1] = pins[i + 1]
+      g.drawImage(img, x0, 0, x1 - x0, img.height, u0 * TEX_W, y + dy, (u1 - u0) * TEX_W, h)
+    }
   }
+  // `bleed`: copies nudged up and down underneath (px), so where a model part
+  // stands a little proud of the photo's outline it picks up the art's edge
+  // colour instead of the bare ground
+  if (D.bleed) for (let k = D.bleed; k > 0; k -= Math.max(2, D.bleed / 4)) { lay(-k); lay(k) }
+  lay(0)
 }
 
 /* A lettered sticker: `text` at `at` [u, v], `h` of the artwork tall, in

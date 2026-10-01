@@ -7,6 +7,9 @@ import { LEGACY_IDS, TRADE_COUNT, drawFromTier, itemById, nextTier, rollPattern,
    the drop you carry into matches. */
 
 const KEY = 'aimgarena.inventory.v1'
+
+/** The slot an item is equipped in: its weapon, or 'knife' / 'gloves'. */
+const slotFor = item => (item.kind === 'knife' ? 'knife' : item.kind === 'glove' ? 'gloves' : item.weapon)
 const listeners = new Set()
 
 function load() {
@@ -18,7 +21,7 @@ function load() {
       .filter(d => itemById(d.id))
     const uids = new Set(items.map(d => d.uid))
     // a drop stays equipped only in its own slot (an item may have moved weapon)
-    const slotOfDrop = uid => { const it = itemById(items.find(d => d.uid === uid)?.id); return it && (it.kind === 'knife' ? 'knife' : it.weapon) }
+    const slotOfDrop = uid => { const it = itemById(items.find(d => d.uid === uid)?.id); return it && slotFor(it) }
     const equipped = {}
     for (const [, uid] of Object.entries(raw.equipped || {})) if (uids.has(uid)) equipped[slotOfDrop(uid)] = uid
     return {
@@ -102,7 +105,7 @@ export const inventory = {
     save()
   },
 
-  slotOf(item) { return item.kind === 'knife' ? 'knife' : item.weapon },
+  slotOf: slotFor,
 
   equip(uid) {
     const drop = state.items.find(d => d.uid === uid)
