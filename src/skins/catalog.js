@@ -66,7 +66,7 @@ export const GUN_SKINS = [
     image: '/textures/starry_night.jpg', fit: 'band', metal: 0.2, rough: 0.5,
     layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.61, crop: [0.01, 0.99], cropV: [0.06, 0.44], flip: true },
   }),
-  skin('m4a4', 'Doraemon', 'covert', 'gem', ['#e9d9f0'], {
+  skin('m4a4', 'Doraemon Murakami', 'covert', 'gem', ['#e9d9f0'], {
     image: '/textures/doraemon.jpg', fit: 'band', metal: 0.15, rough: 0.5,
     layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.61, crop: [0.401, 0.801], cropV: [0.46, 0.708], flip: true },   // the big Doraemon by the door sits mid-gun
   }),
@@ -130,7 +130,7 @@ export const GUN_SKINS = [
   }),
   // the maneki-neko print: a square around the cat (the Glock's side is about
   // square once squeezed with vSpan), frame and wall cut away
-  skin('glock', 'Lucky Cat', 'covert', 'gem', ['#e9dcc2'], {
+  skin('glock', 'Maneki-neko', 'covert', 'gem', ['#e9dcc2'], {
     image: '/textures/lucky_cat.jpg', fit: 'band', metal: 0.15, rough: 0.5, vSpan: 2,
     layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.97, crop: [0.274, 0.733], cropV: [0.37, 0.851], flip: true },
   }),
@@ -155,7 +155,7 @@ export const GUN_SKINS = [
   }),
   // the cherry-blossom wordmark on white, mid-gun, with sprigs of blossom off
   // its edges on the handguard and stock
-  skin('m4a1s', 'Anti Social', 'covert', 'gem', ['#f4f3ef'], {
+  skin('m4a1s', 'Anti Social Social Club', 'covert', 'gem', ['#f4f3ef'], {
     image: '/textures/assc.jpg', fit: 'overlay', base: 'solid', metal: 0.1, rough: 0.55,
     emblems: [
       { crop: [0.02, 0.2, 0.98, 0.73], at: [0.58, 0.36], h: 0.3, flip: true },  // wordmark on the receiver
