@@ -405,6 +405,80 @@ function sniper(g, M, awp, auto = null) {
   }
 }
 
+/* The SCAR-20 (FN SCAR-H PR): flat-sided tan upper with a full-length top
+   rail, short black side rails on the handguard, a separate lower with a
+   flared magwell and a straight 20-round box, side-folding stock with a
+   raised cheek piece and a skeletonised lower, long free-floated barrel with
+   a slotted brake, and the scope on the rail. */
+function scar20(g, M) {
+  const body = M.tan
+  const gripR = pistolGrip(g, body, { rake: 0.38, h: 0.1 })
+  triggerGuard(g, M.black)
+  // upper receiver: one long slab from the stock hinge to past the gas block
+  profile(g, body, [
+    [0.085, 0.056], [0.085, 0.114], [-0.42, 0.114], [-0.44, 0.104], [-0.44, 0.05],
+    [-0.25, 0.046], [-0.15, 0.054],
+  ], 0.05)
+  // full-length top rail with its slots
+  box(g, M.black, [0.03, 0.008, 0.52], [0, 0.118, -0.17])
+  for (let i = 0; i < 22; i++) box(g, M.black, [0.032, 0.005, 0.01], [0, 0.124, 0.07 - i * 0.022])
+  // handguard side and bottom rails
+  for (const s of [-1, 1]) {
+    box(g, M.black, [0.008, 0.02, 0.12], [s * 0.027, 0.075, -0.33])
+    for (let i = 0; i < 5; i++) box(g, M.black, [0.01, 0.022, 0.008], [s * 0.028, 0.075, -0.28 - i * 0.024])
+  }
+  box(g, M.black, [0.022, 0.008, 0.13], [0, 0.044, -0.34])
+  // charging handle (left), ejection port and brass deflector (right)
+  box(g, M.black, [0.012, 0.014, 0.03], [-0.031, 0.094, -0.2])
+  box(g, M.dark, [0.004, 0.02, 0.07], [0.026, 0.088, -0.03])
+  box(g, body, [0.01, 0.018, 0.016], [0.03, 0.09, 0.015])
+  // folding iron sights on the rail
+  box(g, M.black, [0.022, 0.016, 0.02], [0, 0.13, 0.06])
+  box(g, M.black, [0.022, 0.018, 0.02], [0, 0.131, -0.4])
+  // lower receiver with the flared magwell
+  profile(g, body, [
+    [0.075, 0.057], [-0.16, 0.057], [-0.16, 0.004], [-0.13, -0.012], [-0.06, -0.012],
+    [-0.04, 0.004], [0.03, 0.004], [0.075, 0.03],
+  ], 0.048)
+  cyl(g, M.black, 0.004, 0.052, [0, 0.04, 0.05], [0, Math.PI / 2, 0])         // selector
+  cyl(g, M.black, 0.004, 0.052, [0, 0.03, -0.14], [0, Math.PI / 2, 0])        // takedown pin
+  // stock hinge and side-folding stock with a cheek riser
+  box(g, M.black, [0.05, 0.05, 0.02], [0, 0.085, 0.095])
+  const hole = new THREE.Path()
+  hole.moveTo(0.18, 0.05); hole.lineTo(0.3, 0.05); hole.lineTo(0.31, 0.002); hole.lineTo(0.22, 0.026)
+  hole.closePath()
+  profile(g, body, [
+    [0.1, 0.06], [0.1, 0.112], [0.19, 0.112], [0.22, 0.132], [0.33, 0.134], [0.36, 0.122],
+    [0.37, -0.022], [0.352, -0.036], [0.322, -0.032], [0.27, 0.012], [0.19, 0.04], [0.1, 0.048],
+  ], 0.046, [hole])
+  box(g, M.rubber, [0.048, 0.155, 0.014], [0, 0.05, 0.374])
+  // barrel, gas block and slotted muzzle brake
+  cyl(g, M.dark, 0.011, 0.3, [0, 0.08, -0.59])
+  cyl(g, M.black, 0.015, 0.03, [0, 0.08, -0.455])
+  cyl(g, M.black, 0.017, 0.075, [0, 0.08, -0.775])
+  for (let i = 0; i < 3; i++) box(g, M.dark, [0.036, 0.004, 0.008], [0, 0.08, -0.755 - i * 0.02])
+  // scope on two rings
+  const sy = 0.168
+  cyl(g, M.black, 0.018, 0.22, [0, sy, -0.08])
+  cyl(g, M.black, 0.025, 0.075, [0, sy, -0.225])
+  cyl(g, M.glass, 0.021, 0.005, [0, sy, -0.264])
+  cyl(g, M.black, 0.022, 0.055, [0, sy, 0.06])
+  for (const z of [-0.14, 0.0]) box(g, M.black, [0.024, 0.04, 0.018], [0, sy - 0.026, z])
+  cylY(g, M.black, 0.009, 0.022, [0, sy + 0.028, -0.07])
+  cyl(g, M.black, 0.009, 0.02, [0.028, sy, -0.07], [0, Math.PI / 2, 0])
+  // straight 20-round box, ribbed
+  const mag = new THREE.Group()
+  mag.position.set(0, 0.004, -0.1)
+  box(mag, body, [0.028, 0.125, 0.072], [0, -0.062, 0], [0.06, 0, 0])
+  for (let i = 0; i < 3; i++) box(mag, body, [0.031, 0.004, 0.074], [0, -0.03 - i * 0.03, 0.002 * i], [0.06, 0, 0])
+  box(mag, M.black, [0.032, 0.01, 0.078], [0, -0.128, -0.008], [0.06, 0, 0])
+  g.add(mag)
+  return {
+    gripR, gripL: { pos: V(0, 0.03, -0.32), dir: V(0, 0, -1) },
+    muzzle: V(0, 0.08, -0.815), eject: V(0.028, 0.088, -0.03), mag, handguardR: 0.03, scope: true,
+  }
+}
+
 /* ---------------------------------------------------------------- SMGs --- */
 
 function mac10(g, M) {
@@ -593,7 +667,7 @@ const BUILDERS = {
   awp,
   ssg08: (g, M) => sniper(g, M, false),
   g3sg1: (g, M) => sniper(g, M, false, 'g3'),
-  scar20: (g, M) => sniper(g, M, false, 'scar'),
+  scar20,
   mac10, mp9, ump, p90,
   glock: (g, M) => pistol(g, M, 'glock'),
   usp: (g, M) => pistol(g, M, 'usp'),

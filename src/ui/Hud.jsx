@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { game, activeWeapon, eyePos } from '../game/state'
 import { W } from '../game/weapons'
@@ -101,6 +101,7 @@ export function Hud({ locked, onRequestLock }) {
 
       <KillFeed />
       <Radio me={me} />
+      <FpsMeter />
       {game.time - (game.spinToast ?? -10) < 1.6 && (
         <div className="spin-toast" key={game.spinToast}>+1 lượt quay hòm</div>
       )}
@@ -285,6 +286,30 @@ function HeadshotIcon() {
       <circle cx="12.5" cy="10.5" r="2.4" fill="#141414" />
     </svg>
   )
+}
+
+/* Frames per second, small in the top-right corner. It counts its own
+   animation frames and writes the number straight into the DOM twice a
+   second, so showing it costs no React renders. Green from 60, amber from
+   30, red below. */
+function FpsMeter() {
+  const ref = useRef(null)
+  useEffect(() => {
+    let raf, n = 0, t0 = performance.now()
+    const tick = now => {
+      n++
+      if (now - t0 >= 500) {
+        const fps = Math.round((n * 1000) / (now - t0))
+        n = 0; t0 = now
+        const el = ref.current
+        if (el) { el.textContent = `${fps} FPS`; el.dataset.level = fps >= 60 ? 'good' : fps >= 30 ? 'ok' : 'bad' }
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+  return <div className="fps" ref={ref} data-level="good">-- FPS</div>
 }
 
 /* The team radio: the bots' calls for your side (the tactic, the entry, rotations). */

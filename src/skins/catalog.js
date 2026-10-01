@@ -453,6 +453,45 @@ const LATE_GUN_SKINS = [
       { image: '/textures/mixi_wordmark.jpg', crop: [0.12, 0.2, 0.97, 0.8], at: [0.892, 0.445], h: 0.095, flip: true },
     ],
   }),
+  // Magikarp leaping up the waterfall: one strip of the scratch-art card over
+  // the whole P90, the fish on the body with the falls and the night jungle
+  skin('p90', 'Magikarp', 'covert', 'gem', ['#0c0d10'], {
+    id: 'p90_magikarp',
+    image: '/textures/magikarp.jpg', fit: 'band', metal: 0.2, rough: 0.45,
+    // the picture at its own aspect (not stretched), placed so the fish sits
+    // mid-body between the thumbholes; the falls below it, tiled and
+    // mirrored, cover the butt and the muzzle end
+    layout: { plain: true, u0: 0.086, u1: 0.616, v0: 0, v1: 0.76, crop: [0, 1], cropV: [0.02, 0.52], fill: [0, 0.55, 1, 1], flip: true },
+  }),
+  // Charizard over the lava field, mid-gun at its own aspect: the head and
+  // the fire it breathes along the receiver (the flame toward the muzzle),
+  // the glowing belly down the magazine; the lava field round the rest
+  skin('ak47', 'Charizard', 'covert', 'gem', ['#2a1210'], {
+    id: 'ak47_charizard',
+    image: '/textures/charizard.jpg', fit: 'band', metal: 0.2, rough: 0.5,
+    layout: {
+      plain: true, u0: 0.408, u1: 0.721, v0: -0.338, v1: 0.617, crop: [0, 0.82],
+      fill: [0, 0.8, 1, 1], fillRows: true, flip: true,
+    },
+  }),
+  // the Pokémon 30th-celebration Pikachu (Shinji Kanda): Pikachu from the
+  // ears to the raised paws fills the receiver side at its own aspect, the
+  // flower meadow from the bottom of the picture runs down the grip
+  skin('mac10', 'Pikachu 30th', 'covert', 'gem', ['#f2c419'], {
+    id: 'mac10_pikachu',
+    image: '/textures/pikachu_30th.jpg', fit: 'band', metal: 0.15, rough: 0.5,
+    layout: {
+      plain: true, u0: 0.2, u1: 0.663, v0: 0.72, v1: 1.1, crop: [0.17, 0.9], cropV: [0.04, 0.61],
+      fill: [0, 0.62, 0.32, 1], fillStretch: 1.15, fillRows: true, flip: true,
+    },
+  }),
+  // Bulbasaur and a sleeping Snorlax in the forest: one strip of the picture
+  // over the SCAR-20, the two of them on the body
+  skin('scar20', 'Bulbasaur and Snorlax', 'covert', 'gem', ['#3f7a32'], {
+    id: 'scar20_forest_nap',
+    image: '/textures/pokemon_forest.jpg', fit: 'band', metal: 0.15, rough: 0.55,
+    layout: { plain: true, u0: 0.24, u1: 0.8, v0: 0, v1: 0.5, crop: [0.16, 0.92], cropV: [0.33, 0.84], fill: [0, 0.82, 1, 1], flip: true },
+  }),
   // Pollock's drip painting, tiled over the P90 without its white margin
   skin('p90', 'Number 5', 'covert', 'gem', ['#6b4a2c'], {
     image: '/textures/pollock.jpg', fit: 'tile', tile: 0.8, tileCrop: [0.04, 0.03, 0.96, 0.97], metal: 0.15, rough: 0.6,

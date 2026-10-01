@@ -519,12 +519,21 @@ function paintBand(g, skin, img) {
   if (L.fill) {
     const [f0, g0, f1, g1] = L.fill
     const fx = img.width * f0, fy = img.height * g0, fw = img.width * (f1 - f0), fh = img.height * (g1 - g0)
-    const ty = (1 - L.v1) * TEX_H, th = (L.v1 - L.v0) * TEX_H, tw = th * fw / fh
-    for (let x = 0, k = 0; x < TEX_W; x += tw, k++) {
-      g.save()
-      if (k % 2) { g.translate(x + tw, 0); g.scale(-1, 1); g.drawImage(img, fx, fy, fw, fh, 0, ty, tw, th) }
-      else g.drawImage(img, fx, fy, fw, fh, x, ty, tw, th)
-      g.restore()
+    const th = (L.v1 - L.v0) * TEX_H, tw = th * fw / fh * (L.fillStretch ?? 1)
+    // `fillRows` repeats the strip down the rest of the side too (grip,
+    // magazine), every other row upside down so the rows meet
+    const top = (1 - L.v1) * TEX_H
+    const rows = L.fillRows ? Math.ceil((TEX_H - top) / th) : 1
+    for (let r = L.fillRows ? -Math.ceil(top / th) : 0; r < rows; r++) {
+      const ty = top + r * th
+      for (let x = 0, k = 0; x < TEX_W; x += tw, k++) {
+        g.save()
+        const up = Math.abs(r) % 2
+        g.translate(k % 2 ? x + tw : x, up ? ty + th : ty)
+        g.scale(k % 2 ? -1 : 1, up ? -1 : 1)
+        g.drawImage(img, fx, fy, fw, fh, 0, 0, tw, th)
+        g.restore()
+      }
     }
   }
   const [c0, c1] = L.crop ?? [0, 1]
