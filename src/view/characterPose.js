@@ -236,18 +236,24 @@ export function pose(ch, a, dt) {
   // --- the gun, carried at the chest along the aim ---
   const inst = activeWeapon(a)
   const id = inst?.id
-  if (ch.gunId !== id) {
+  // `gunSkin`: the lobby agent shows the gun in the skin you have equipped
+  const key = `${id}|${a.gunSkin?.id || ''}`
+  if (ch.gunId !== key) {
     if (ch.gun) ch.aim.remove(ch.gun.group)
-    ch.gun = id && id !== 'knife' ? buildGun(id, { shadows: true }) : null
+    ch.gun = id && id !== 'knife' ? buildGun(id, { shadows: true, skin: a.gunSkin || null }) : null
     if (ch.gun) ch.aim.add(ch.gun.group)
-    ch.gunId = id
+    ch.gunId = key
   }
   ch.aim.visible = true
   const chestW = wpos(bones.spine[3], new THREE.Vector3())
   ch.aim.position.copy(chestW).sub(root.position)
   ch.aim.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -a.yaw)
   ch.aim.rotation.set(pitch, 0, 0, 'YXZ')
-  if (ch.gun) {
+  if (ch.gun && a.gunHold) {
+    // a set hold in the chest frame (the lobby agent carries the gun across its body)
+    ch.gun.group.position.copy(a.gunHold.pos)
+    ch.gun.group.quaternion.copy(a.gunHold.quat)
+  } else if (ch.gun) {
     const small = inst && /glock|usp|p250|deagle|he|flash|smoke|c4/.test(id)
     ch.gun.group.position.set(0.1, small ? -0.02 : -0.07, small ? -0.42 : -0.3)
     ch.gun.group.rotation.set(0, 0, 0)

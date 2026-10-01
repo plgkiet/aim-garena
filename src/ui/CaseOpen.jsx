@@ -443,7 +443,7 @@ export function WinnerModal({ item, drop, onClose, label = "Bạn nhận đượ
         <span className="winner-modal__label">{label}</span>
         <h2 className="winner-modal__title">{itemLabel(item)}</h2>
         <p className="winner-modal__desc">
-          {tierBySlug(item.tier).label} · {tierBySlug(item.tier).vi}
+          {tierBySlug(item.tier).label}
           {item.detail ? ` · ${item.detail}` : ""}
         </p>
         <div className="winner-modal__art">

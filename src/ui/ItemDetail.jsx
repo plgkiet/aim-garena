@@ -197,7 +197,7 @@ export function ItemDetail({ uid, onBack }) {
           <span>
             <small>Độ hiếm</small>
             <b style={{ color: "var(--tier)" }}>
-              {tier.label} · {tier.vi}
+              {tier.label}
             </b>
           </span>
           {item.patternNo && (

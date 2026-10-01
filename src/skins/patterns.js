@@ -560,6 +560,21 @@ function paintTile(g, skin, img) {
    weapon at `at` [u, v], `h` of the artwork tall, keeping its own aspect
    (the artwork is square in weapon units, so pixels scale alike both ways).
    `flip` mirrors it so it reads right on the side you look at. */
+function tinted(img, sx, sy, sw, sh, color, bold) {
+  const c = document.createElement('canvas')
+  c.width = Math.ceil(sw); c.height = Math.ceil(sh)
+  const t = c.getContext('2d')
+  const steps = bold > 0 ? 12 : 1
+  for (let i = 0; i < steps; i++) {
+    const a = (i / steps) * Math.PI * 2
+    t.drawImage(img, sx, sy, sw, sh, Math.cos(a) * bold, Math.sin(a) * bold, sw, sh)
+  }
+  t.globalCompositeOperation = 'source-in'
+  t.fillStyle = color
+  t.fillRect(0, 0, c.width, c.height)
+  return c
+}
+
 function paintEmblem(g, E, img) {
   const [x0, y0, x1, y1] = E.crop
   const sw = (x1 - x0) * img.width, sh = (y1 - y0) * img.height
@@ -575,7 +590,10 @@ function paintEmblem(g, E, img) {
   if (E.rot) g.rotate(E.rot)
   // `flipY`: texture sheets taken off a model are often stored upside down
   g.scale(E.flip ? -1 : 1, E.flipY ? -1 : 1)
-  g.drawImage(img, x0 * img.width, y0 * img.height, sw, sh, -w / 2, -h / 2, w, h)
+  // `tint` recolours a cut-out (a dark signature on a dark gun), thickened by
+  // `bold` source pixels first so a hairline survives being scaled down
+  if (E.tint) g.drawImage(tinted(img, x0 * img.width, y0 * img.height, sw, sh, E.tint, E.bold ?? 0), -w / 2, -h / 2, w, h)
+  else g.drawImage(img, x0 * img.width, y0 * img.height, sw, sh, -w / 2, -h / 2, w, h)
   g.restore()
 }
 

@@ -319,6 +319,7 @@ canvas { display: block; cursor: crosshair; }
   --tier-classified: #d32ce6;
   --tier-covert: #eb4b4b;
   --tier-gold: #e4ae39;
+  --tier-contraband: #ff8a00;
 
 
   --r-sm: 8px;
@@ -558,6 +559,7 @@ canvas { display: block; cursor: crosshair; }
 .spin-tile--classified { --tier: var(--tier-classified); }
 .spin-tile--covert { --tier: var(--tier-covert); }
 .spin-tile--gold { --tier: var(--tier-gold); }
+.spin-tile--contraband { --tier: var(--tier-contraband); }
 
 /* Vạch chọn ở giữa, hai đầu có mũi tên chỉ vào */
 .reel-marker {
@@ -1097,3 +1099,63 @@ canvas { display: block; cursor: crosshair; }
 }
 @keyframes thumb-wait { to { background-position: -150% 0; } }
 @media (prefers-reduced-motion: reduce) { .mini-item__ph { animation: none; } }
+
+/* Lobby: the menu on the left, the agent holding your gun on the right */
+.menu.plgk.lobby { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.menu.plgk.lobby .menu-main { flex: 0 1 1060px; min-width: 0; }
+.lobby-stage { position: relative; flex: 0 0 min(30vw, 500px); height: min(90vh, 880px); cursor: grab; touch-action: none; }
+.lobby-stage:active { cursor: grabbing; }
+.lobby-canvas { position: absolute !important; inset: 0; }
+.lobby-tag {
+  position: absolute; left: 50%; bottom: 4%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 22px; background: var(--glass-strong); border: 1px solid var(--line); border-radius: var(--r-lg); backdrop-filter: blur(8px);
+  white-space: nowrap; text-align: center; cursor: default;
+}
+.lobby-tag__team { font: 600 11px "Barlow Condensed", sans-serif; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); }
+.lobby-tag strong { font: 700 20px "Barlow Condensed", sans-serif; letter-spacing: 0.04em; color: var(--text); }
+.lobby-tag em { font-style: normal; font-size: 13px; }
+@media (max-width: 1280px) { .lobby-stage { display: none; } }
+@media (max-width: 1280px) { .lobby-stage { display: none; } }
+
+/* the "hold this gun" picker under the agent */
+.gunpick { position: relative; margin-top: 10px; }
+.gunpick__btn {
+  display: flex; align-items: center; gap: 10px; width: 300px; padding: 6px 12px 6px 6px; cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; color: var(--text); text-align: left;
+  transition: border-color .15s, background .15s;
+}
+.gunpick__btn:hover, .gunpick__btn.is-open { border-color: var(--brand); background: var(--surface-3); }
+.gunpick__thumb { flex: 0 0 76px; height: 46px; display: grid; place-items: center; border-radius: 10px; background: color-mix(in oklab, var(--bg) 60%, transparent); overflow: hidden; }
+.gunpick__thumb img { width: 100%; height: 100%; object-fit: contain; }
+.gunpick__thumb i { font: 600 11px "Barlow Condensed", sans-serif; font-style: normal; color: var(--text-dim); }
+.gunpick__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.gunpick__text small { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); }
+.gunpick__text b { font-weight: 500; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gunpick__caret { color: var(--text-dim); transition: transform .15s; }
+.gunpick__btn.is-open .gunpick__caret { transform: rotate(180deg); }
+.gunpick__panel {
+  position: absolute; right: -40px; bottom: calc(100% + 12px); width: min(620px, 70vw); max-height: min(66vh, 620px);
+  display: flex; flex-direction: column; padding: 16px; z-index: 5; white-space: normal; text-align: left;
+  background: var(--glass-strong); border: 1px solid var(--line); border-top: 3px solid var(--brand); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg); backdrop-filter: blur(14px); animation: gunpick-in .16s ease-out;
+}
+@keyframes gunpick-in { from { opacity: 0; transform: translateY(8px); } }
+.gunpick__panel header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.gunpick__panel h4 { margin: 0; font: 700 18px "Barlow Condensed", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--text); }
+.gunpick__panel header span { font-size: 12px; color: var(--text-dim); }
+.gunpick__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.gunpick__chips button {
+  padding: 5px 12px; border-radius: 999px; cursor: pointer; font: 400 12.5px "Lexend", sans-serif;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--text-dim);
+}
+.gunpick__chips button:hover { color: var(--text); }
+.gunpick__chips button.on { background: var(--brand-glow); border-color: var(--brand); color: var(--text); }
+.gunpick__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; overflow-y: auto; padding-right: 4px; }
+.gunpick__grid .mini-item { cursor: pointer; }
+.gunpick__auto {
+  display: flex; flex-direction: column; justify-content: center; gap: 4px; min-height: 120px; padding: 12px; cursor: pointer; text-align: left;
+  border-radius: 12px; border: 1px dashed var(--line); background: var(--surface-2); color: var(--text);
+}
+.gunpick__auto b { font: 700 16px "Barlow Condensed", sans-serif; letter-spacing: .04em; }
+.gunpick__auto span { font-size: 12px; color: var(--text-dim); }
+.gunpick__auto:hover, .gunpick__auto.is-on { border-color: var(--brand); border-style: solid; background: var(--brand-glow); }

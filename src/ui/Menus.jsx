@@ -10,6 +10,11 @@ import { inventory } from "../skins/inventory";
 import { NAV } from "../game/nav";
 import { loadLevel } from "../world/level";
 import { W } from "../game/weapons";
+import { LobbyAgent } from "./LobbyAgent";
+
+// the gun the lobby agent holds by default: the solo pick, or the side's rifle
+const TEAM_RIFLE = { T: "ak47", CT: "m4a4" };
+const lobbyWeapon = (mode, team, aimWeapon) => (mode === "aim" ? aimWeapon : TEAM_RIFLE[team]);
 
 const DIFFS = [
   { key: "easy", label: "Dễ" },
@@ -185,7 +190,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
     : `Dust · ${team === "CT" ? "Counter-Terrorist" : "Terrorist"} · ${size}v${size} · ${rounds === 16 ? "MR8" : "MR15"}`;
 
   return (
-    <div className="menu plgk">
+    <div className="menu plgk lobby">
       <div className="menu-card menu-main">
         <header className="mm-head">
           <div>
@@ -395,6 +400,8 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
           <img src="/plgk-logo.png" alt="plgk" />
         </footer>
       </div>
+      {/* the agent beside the menu, holding the gun this match will start with */}
+      <LobbyAgent team={aim ? "CT" : team} weapon={lobbyWeapon(mode, team, aimWeapon)} />
     </div>
   );
 }

@@ -17,6 +17,8 @@ export const TIERS = [
   { slug: 'classified', label: 'Classified', vi: 'Tối mật', color: '#d32ce6', odds: 3.2 },
   { slug: 'covert', label: 'Covert', vi: 'Tuyệt mật', color: '#eb4b4b', odds: 0.64 },
   { slug: 'gold', label: '★ Rare Special', vi: 'Cực hiếm', color: '#e4ae39', odds: 0.26 },
+  // above everything, like the Howl after 2014: never in a case, never traded up to
+  { slug: 'contraband', label: 'Contraband', vi: 'Hàng lậu', color: '#ff8a00', odds: 0, noDrop: true },
 ]
 export const tierBySlug = slug => TIERS.find(t => t.slug === slug) || TIERS[0]
 export const TIER_COLOR = Object.fromEntries(TIERS.map(t => [t.slug, t.color]))
@@ -324,16 +326,22 @@ const LATE_GUN_SKINS = [
   // the PLGK anniversary cards (year of the snake, year of the horse): the
   // card's navy as the ground, its picture set mid-gun, mirrored to read
   // right on the side you see (the snake stands upright, rising tail to head)
-  skin('m4a4', 'Kỉ niệm 2025', 'covert', 'gem', ['#23395b'], {
+  skin('m4a4', 'Kỉ niệm Tết 2025', 'contraband', 'gem', ['#23395b'], {
     id: 'm4a4_plgk_2025',
     // cut out, so the ground shows through round the snake
     image: '/textures/plgk_2025.png', fit: 'overlay', base: 'solid', metal: 0.35, rough: 0.4,
-    emblems: [{ crop: [0, 0, 1, 1], at: [0.54, 0.21], h: 0.66, flip: true }],
+    emblems: [
+      { crop: [0, 0, 1, 1], at: [0.54, 0.21], h: 0.66, flip: true },
+      { image: '/textures/plgk_signature.png', crop: [0, 0, 1, 1], at: [0.885, 0.44], h: 0.12, flip: true, tint: '#e9c46a', bold: 4 },   // the signature on the stock
+    ],
   }),
-  skin('m4a4', 'Kỉ niệm 2026', 'covert', 'gem', ['#253a5b'], {   // sampled off the card, so no seam
+  skin('m4a4', 'Kỉ niệm Tết 2026', 'contraband', 'gem', ['#253a5b'], {   // sampled off the card, so no seam
     id: 'm4a4_plgk_2026',
     image: '/textures/plgk_2026.jpg', fit: 'overlay', base: 'solid', metal: 0.3, rough: 0.45,
-    emblems: [{ crop: [0, 0, 1, 1], at: [0.58, 0.3], h: 0.58, flip: true }],
+    emblems: [
+      { crop: [0, 0, 1, 1], at: [0.58, 0.3], h: 0.58, flip: true },
+      { image: '/textures/plgk_signature.png', crop: [0, 0, 1, 1], at: [0.885, 0.44], h: 0.12, flip: true, tint: '#e9c46a', bold: 4 },   // the signature on the stock
+    ],
   }),
   // Dior's oblique monogram, tiled over the whole P90
   skin('p90', 'Dior Oblique', 'covert', 'gem', ['#f2f2f2'], {
@@ -431,7 +439,8 @@ export function variantOf(item, patternNo) {
 export const CASE = {
   id: 'garena_case_1',
   name: 'Hòm Garena #1',
-  items: ITEMS,
+  // Contraband never comes out of a case
+  items: ITEMS.filter(i => !TIERS.find(t => t.slug === i.tier)?.noDrop),
 }
 
 /** Weighted draw: pick a tier by the CS odds, then an item inside it. */
@@ -450,7 +459,8 @@ export function drawItem(items = CASE.items) {
 export const TRADE_COUNT = 5
 export function nextTier(slug) {
   const i = TIERS.findIndex(t => t.slug === slug)
-  return i >= 0 && i < TIERS.length - 1 ? TIERS[i + 1] : null
+  const up = i >= 0 && i < TIERS.length - 1 ? TIERS[i + 1] : null
+  return up && !up.noDrop ? up : null
 }
 export function drawFromTier(slug, items = CASE.items) {
   const pool = items.filter(i => i.tier === slug)
