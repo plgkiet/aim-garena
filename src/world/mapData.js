@@ -97,6 +97,19 @@ const MAPS = {
     id: 'aim', name: 'Aim Garena', ...AIM_DATA,
     SPAWN_YAW: { T: Math.PI, CT: 0 },
   },
+  /* Warehouse (Standoff 2's Arena): a walled yard about 33 x 49 m, crates
+     and low platforms down the middle; one side spawns along each short
+     wall (spots measured clear of everything on the floor). */
+  arena: {
+    id: 'arena', name: 'Warehouse',
+    SITES: {}, SPOTS: {},
+    BUY_ZONES: { CT: { min: [-30, -30], max: [30, 30] }, T: { min: [-30, -30], max: [30, 30] } },
+    SPAWNS: {
+      CT: [[0, 23.5, 0], [-5, 23.5, 0], [5, 23.5, 0], [-9, 23.5, 0], [10, 23.5, 0], [14, 23.5, 0], [2.5, 24.5, 0]],
+      T: [[0, -24, 0], [5, -24, 0], [-5, -24, 0], [10, -24, 0], [-10, -24, 0], [13, -24, 0], [-2.5, -25, 0]],
+    },
+    SPAWN_YAW: { T: Math.PI, CT: 0 },
+  },
 }
 
 /** The map the match is on. Its fields are swapped in place by setMap(). */

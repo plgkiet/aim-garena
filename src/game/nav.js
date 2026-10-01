@@ -12,7 +12,10 @@ import { level, onLevelChange } from '../world/level'
    the way. A* runs over (cell, layer) nodes; neighbours link when their floors
    are within a step of each other. Paths are then string-pulled. */
 
-export const NAV_CELL = 0.7
+// a finer grid on the small arena, whose doorways are barely a body wide:
+// a cell centre has to land inside a gap for the gap to count
+export let NAV_CELL = 0.7
+const CELL_FOR = { arena: 0.35 }
 const LAYERS = 3
 const R = MOVE.radius + 0.05
 const STEP = MOVE.step + 0.06
@@ -32,6 +35,7 @@ const cellOf = (x, z) => [
 ]
 
 function bake() {
+  NAV_CELL = CELL_FOR[level.id] ?? 0.7
   const b = level.bounds
   x0 = b.min.x - 1; z0 = b.min.z - 1
   NX = Math.ceil((b.max.x - b.min.x + 2) / NAV_CELL)

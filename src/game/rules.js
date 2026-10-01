@@ -27,7 +27,7 @@ const cfg = () => MODE[game.mode] || MODE.comp
 export function startMatch(settings) {
   Object.assign(game.settings, settings)
   game.mode = settings.mode === 'aim' ? 'aim' : 'comp'
-  setMap(game.mode === 'aim' ? 'aim' : 'dust2')
+  setMap(game.mode === 'aim' ? (settings.aimMap === 'arena' ? 'arena' : 'aim') : 'dust2')
   clearTimers()
   game.agents = []
   game.time = 0

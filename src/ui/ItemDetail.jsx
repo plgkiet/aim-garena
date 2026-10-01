@@ -4,6 +4,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { CASE, tierBySlug } from "../skins/catalog";
 import { inventory } from "../skins/inventory";
 import { buildItemModel } from "../skins/thumbs";
+import { KNIVES } from "../lib/knives";
 import { itemTitle } from "./CaseOpen";
 
 /* Inspecting one drop, after CS:GO's item screen: the weapon large in the
@@ -57,7 +58,10 @@ function Viewer({ item }) {
       const box = new THREE.Box3().setFromObject(holder);
       const size = box.getSize(new THREE.Vector3());
       const long = Math.max(size.x, size.y, size.z);
-      const s = 1 / (item.kind === "gun" ? Math.max(long, 0.55) : long);
+      // a figure stood upright (the Bearbrick) is tall: show it smaller so
+      // all of it fits with room around it
+      const upright = item.model && KNIVES[item.knife]?.upright;
+      const s = (upright ? 0.62 : 1) / (item.kind === "gun" ? Math.max(long, 0.55) : long);
       model.position.sub(box.getCenter(new THREE.Vector3()));
       holder.scale.setScalar(s);
       pivot.add(holder);

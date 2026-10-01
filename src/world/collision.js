@@ -7,7 +7,10 @@ import { level } from './level'
    the feet, so anything lower than that — a kerb, a ramp's rise over one tick —
    is walked onto by the ground snap rather than stopping you dead. */
 
-const SKIN = 0.2
+// close to a full step (MOVE.step 0.467): steep stairs (the Warehouse's
+// metal flights, 19 cm risers on 30 cm treads) put the next treads inside a
+// standing hull's footprint well above 0.2 m, which stopped you dead on them
+const SKIN = 0.42
 const IDENTITY = new THREE.Matrix4()
 const _box = new THREE.Box3()
 const _ray = new THREE.Ray()

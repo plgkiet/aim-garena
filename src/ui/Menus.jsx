@@ -141,6 +141,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
   const [aimWeapon, setAimWeapon] = useState({ m4a1s: "m4a4", ssg08: "p90" }[prefs.aimWeapon] || prefs.aimWeapon || "ak47");
   const [aimBots, setAimBots] = useState(prefs.aimBots || 1);
   const [aimRounds, setAimRounds] = useState(prefs.aimRounds || 10);
+  const [aimMap, setAimMap] = useState(prefs.aimMap === "arena" ? "arena" : "aim");
   const [loading, setLoading] = useState(false);
 
   const start = async () => {
@@ -155,6 +156,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
       maxRounds: aim ? aimRounds * 2 - 1 : rounds,
       aimWeapon,
       aimBots,
+      aimMap,
     };
     savePrefs({
       team,
@@ -167,6 +169,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
       aimWeapon,
       aimBots,
       aimRounds,
+      aimMap,
     });
     // everyone starts on the stock knife; a ★ knife only comes from a case
     const eq = inventory.equippedItem("knife");
@@ -178,7 +181,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
     knife.refresh();
     unlockAudio();
     setLoading(true);
-    await loadLevel(aim ? "aim" : "dust2");
+    await loadLevel(aim ? aimMap : "dust2");
     setLoading(false);
     startMatch(settings);
     onStart();
@@ -186,7 +189,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
 
   const aim = mode === "aim";
   const summary = aim
-    ? `Aim Garena · 1 vs ${aimBots} · ${W[aimWeapon].name} · thắng ${aimRounds} round`
+    ? `${aimMap === "arena" ? "Warehouse" : "Aim Garena"} · 1 vs ${aimBots} · ${W[aimWeapon].name} · thắng ${aimRounds} round`
     : `Dust · ${team === "CT" ? "Counter-Terrorist" : "Terrorist"} · ${size}v${size} · ${rounds === 16 ? "MR8" : "MR15"}`;
 
   return (
@@ -221,7 +224,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
                 onClick={() => setMode("aim")}
               >
                 <b>Solo aim</b>
-                <span>Aim Garena · 1 vs bot · round nhanh</span>
+                <span>Aim Garena / Warehouse · 1 vs bot · round nhanh</span>
               </button>
             </div>
 
@@ -229,6 +232,13 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
             <div className="mm-grid">
               {aim ? (
                 <>
+                  <Field label="Map" wide>
+                    {[["aim", "Aim Garena"], ["arena", "Warehouse"]].map(([id, label]) => (
+                      <button key={id} className={aimMap === id ? "on" : ""} onClick={() => setAimMap(id)}>
+                        {label}
+                      </button>
+                    ))}
+                  </Field>
                   <Field label="Súng" wide>
                     {["ak47", "m4a4", "awp", "p90", "deagle", "usp"].map(
                       (id) => (

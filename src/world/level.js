@@ -104,14 +104,61 @@ function loadDust2() {
   })
 }
 
-/** Switch to a map ('dust2' or 'aim'), loading it the first time. */
+/* Warehouse (Arena, from Standoff 2): an ordinary textured model (no baked light), so
+   it is drawn lit like the Aim Garena boxes. The export's units are scaled
+   to metres by ARENA_SCALE, and its see-through decal layers (grime, the
+   anniversary logo) are drawn but kept out of the collision. */
+export const ARENA_FILE = '/models/arena_standoff.glb'
+export const ARENA_SCALE = 82
+
+function loadArena() {
+  const loader = new GLTFLoader()
+  loader.setMeshoptDecoder(MeshoptDecoder)
+  return loader.loadAsync(ARENA_FILE).then(gltf => {
+    const meshes = []
+    const parts = []
+    const scale = new THREE.Matrix4().makeScale(ARENA_SCALE, ARENA_SCALE, ARENA_SCALE)
+    gltf.scene.updateMatrixWorld(true)
+    gltf.scene.traverse(o => {
+      if (!o.isMesh) return
+      const g = new THREE.BufferGeometry()
+      for (const name of ['position', 'uv']) {
+        const a = o.geometry.attributes[name]
+        if (!a) continue
+        const out = new Float32Array(a.count * a.itemSize)
+        for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) out[i * a.itemSize + c] = a.getComponent(i, c)
+        g.setAttribute(name, new THREE.BufferAttribute(out, a.itemSize))
+      }
+      if (o.geometry.index) g.setIndex(Array.from(o.geometry.index.array))
+      g.applyMatrix4(o.matrixWorld)
+      g.applyMatrix4(scale)
+      g.computeVertexNormals()
+      const src = o.material
+      const decal = src.transparent || src.alphaTest > 0
+      const mat = new THREE.MeshStandardMaterial({
+        map: src.map, roughness: 0.92, metalness: 0, side: THREE.DoubleSide,
+        transparent: decal, depthWrite: !decal, polygonOffset: decal, polygonOffsetFactor: -2,
+      })
+      if (mat.map) mat.map.anisotropy = 8
+      meshes.push({ geometry: g, material: mat, lit: true })
+      if (decal) return
+      const c = new THREE.BufferGeometry()
+      c.setAttribute('position', g.attributes.position.clone())
+      c.setIndex(g.index ? g.index.clone() : null)
+      parts.push(c)
+    })
+    return { meshes, collision: mergeGeometries(parts, false) }
+  })
+}
+
+/** Switch to a map ('dust2', 'aim' or 'arena'), loading it the first time. */
 export function loadLevel(id = 'dust2') {
   if (level.id === id && level.ready) return Promise.resolve(level)
   level.ready = false
   if (!cache[id]) {
     cache[id] = id === 'aim'
       ? Promise.resolve().then(() => { const a = buildAimArena(); return { meshes: a.meshes, collision: a.collision } })
-      : loadDust2()
+      : id === 'arena' ? loadArena() : loadDust2()
   }
   return cache[id].then(m => { install(id, m.meshes, m.collision); return level })
 }

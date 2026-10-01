@@ -450,16 +450,21 @@ const LATE_GUN_SKINS = [
       emblems: [],
     },
   }),
-  // MixiGaming: white like the logo's ground, the face in the middle of the
-  // gun and the long wordmark on the stock (mirrored to read right)
-  skin('m4a4', 'MixiGaming', 'covert', 'gem', ['#f7f7f5'], {
+  // MixiGaming, two-sided, fan art at its own aspect: the family in the red
+  // car outrunning zombies on your side (small enough that all five faces
+  // sit along the receiver and handguard, the car below), the city behind, the
+  // two geese in the neon alley on the other (left unmirrored so it reads
+  // right from there); the logo on the stock of both
+  skin('m4a4', 'MixiGaming', 'covert', 'gem', ['#b8a7c4'], {
     id: 'm4a4_mixigaming',
-    image: '/textures/mixi_face.jpg', fit: 'overlay', base: 'solid', metal: 0.15, rough: 0.5,
-    emblems: [
-      { crop: [0.02, 0.02, 0.98, 0.98], at: [0.565, 0.45], h: 0.26, flip: true },   // the face mid-gun
-      // the long wordmark (face, MIXIGAMING, cog) along the stock
-      { image: '/textures/mixi_wordmark.jpg', crop: [0.12, 0.2, 0.97, 0.8], at: [0.892, 0.445], h: 0.095, flip: true },
-    ],
+    image: '/textures/mixi_family.jpg', fit: 'band', metal: 0.15, rough: 0.5,
+    layout: { plain: true, u0: 0.29, u1: 0.79, v0: 0.04, v1: 0.6, fill: [0, 0.22, 0.24, 0.6], fillH: 0.3, fillRows: true, flip: true },
+    emblems: [{ image: '/textures/mixi_logo.png', crop: [0.1, 0.2, 0.93, 0.85], at: [0.892, 0.445], h: 0.11, flip: true }],
+    back: {
+      image: '/textures/mixi_goose.jpg', pal: ['#1d2a6b'],
+      layout: { plain: true, u0: 0.34, u1: 1.14, v0: -0.161, v1: 0.739, fill: [0.55, 0, 0.75, 0.3], fillRows: true, flip: false },
+      emblems: [{ image: '/textures/mixi_logo.png', crop: [0.1, 0.2, 0.93, 0.85], at: [0.892, 0.445], h: 0.11 }],
+    },
   }),
   // Magikarp leaping up the waterfall: one strip of the scratch-art card over
   // the whole P90, the fish on the body with the falls and the night jungle
