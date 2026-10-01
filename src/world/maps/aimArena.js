@@ -1,33 +1,42 @@
 import * as THREE from 'three'
 import { makeSand, makeWall, makeWood, makeMetal } from '../../lib/textures'
 
-/* aim_arena — a symmetric duel map in the spirit of aim_map / aim_redline.
-   A long yard with a spawn bunker at each end, crate stacks and low walls
-   mirrored down the middle, one raised catwalk per side. Built from boxes:
-   the same boxes are drawn and handed to the BVH for collision. */
+/* aim_arena — a symmetric duel map built for rifles and snipers alike.
+   A long yard (40 x 90 m) with a spawn bunker at each end, three openings in
+   each bunker wall; one sniper tower per side (2.4 m up, a waist-high
+   parapet to peek over, stairs behind), its twin on the far diagonal; crate
+   stacks, low walls and pillars down the side lanes for the close fights,
+   and two long open lanes through the bunker gaps for the long ones. Built
+   from boxes, point-mirrored: the same boxes are drawn and handed to the
+   BVH for collision. */
 
-const W = 34, L = 64            // yard width (x) and length (z), metres
+const W = 40, L = 90            // yard width (x) and length (z), metres
 const WALL = 7
 
 // [x, y, z, w, h, d, material]  — y is the bottom of the box
+const tower = []
+{
+  // the platform and the parapet along its front edge
+  tower.push([-15, 0, 31, 8, 2.4, 6, 'stone'], [-15, 2.4, 28.25, 8, 1.05, 0.5, 'stone'])
+  // stairs up its inner side, 0.4 m a step
+  for (let k = 1; k <= 5; k++) tower.push([-10.6 + (5 - k) * 0.8 + 0.4, 0, 33, 0.8, 0.4 * k, 2, 'stone'])
+}
 const HALF_SIDE = [
-  // spawn bunker walls with two openings
-  [-11, 0, 25, 10, 3.2, 1, 'stone'], [11, 0, 25, 10, 3.2, 1, 'stone'], [0, 0, 25, 4, 3.2, 1, 'stone'],
+  // spawn bunker wall, three segments: openings at |x| 4..11
+  [-15.5, 0, 37, 9, 3.4, 1, 'stone'], [0, 0, 37, 8, 3.4, 1, 'stone'], [15.5, 0, 37, 9, 3.4, 1, 'stone'],
+  ...tower,
   // crate stacks
-  [-7, 0, 17, 1.4, 1.4, 1.4, 'wood'], [-7, 1.4, 17, 1.2, 1.2, 1.2, 'wood'], [-5.6, 0, 17, 1.4, 1.4, 1.4, 'wood'],
-  [8, 0, 15, 1.4, 1.4, 1.4, 'wood'], [8, 0, 13.6, 1.4, 1.4, 1.4, 'wood'],
-  [0, 0, 12, 1.4, 1.4, 1.4, 'wood'], [0, 1.4, 12, 1.2, 1.2, 1.2, 'wood'],
-  [-13, 0, 10, 2.8, 1.4, 1.4, 'wood'],
-  [13.5, 0, 9, 1.4, 2.8, 1.4, 'wood'],
+  [8, 0, 30, 1.4, 1.4, 1.4, 'wood'], [9.4, 0, 30, 1.4, 1.4, 1.4, 'wood'], [8.7, 1.4, 30, 1.2, 1.2, 1.2, 'wood'],
+  [-4, 0, 24, 1.4, 1.4, 1.4, 'wood'], [-4, 1.4, 24, 1.2, 1.2, 1.2, 'wood'],
+  [12, 0, 22, 2.8, 1.4, 1.4, 'wood'],
+  [-14, 0, 18, 1.4, 2.8, 1.4, 'wood'], [-12.6, 0, 18, 1.4, 1.4, 1.4, 'wood'],
+  [5, 0, 16, 1.4, 1.4, 1.4, 'wood'], [6.4, 0, 16, 1.4, 1.4, 1.4, 'wood'],
   // low walls to crouch-peek over
-  [-4, 0, 7, 5, 1.05, 0.5, 'stone'], [5, 0, 5.5, 4, 1.05, 0.5, 'stone'],
-  // side catwalk with stairs
-  [-15.5, 0, 16, 3, 1.6, 10, 'stone'],
-  [-15.5, 0, 21.4, 3, 0.4, 0.8, 'stone'], [-15.5, 0, 22.2, 3, 0.8, 0.8, 'stone'], [-15.5, 0, 23, 3, 1.2, 0.8, 'stone'],
+  [-8, 0, 12, 6, 1.05, 0.5, 'stone'], [10, 0, 10, 5, 1.05, 0.5, 'stone'],
   // pillars
-  [10, 0, 21, 1.2, 4, 1.2, 'stone'], [-9, 0, 3, 1.2, 4, 1.2, 'stone'],
+  [16, 0, 26, 1.2, 4, 1.2, 'stone'], [-6, 0, 6, 1.2, 4, 1.2, 'stone'], [2.5, 0, 31, 1.2, 4, 1.2, 'stone'],
   // barrels
-  [3.5, 0, 18, 0.8, 1.1, 0.8, 'metal'], [-2, 0, 20, 0.8, 1.1, 0.8, 'metal'],
+  [1, 0, 20, 0.8, 1.1, 0.8, 'metal'], [-17, 0, 8, 0.8, 1.1, 0.8, 'metal'], [17.5, 0, 14, 0.8, 1.1, 0.8, 'metal'],
 ]
 
 function allBoxes() {
@@ -36,8 +45,8 @@ function allBoxes() {
   out.push([0, -0.5, 0, W + 2, 0.5, L + 2, 'floor'])
   out.push([-(W / 2 + 0.5), 0, 0, 1, WALL, L + 2, 'wall'], [W / 2 + 0.5, 0, 0, 1, WALL, L + 2, 'wall'])
   out.push([0, 0, -(L / 2 + 0.5), W + 2, WALL, 1, 'wall'], [0, 0, L / 2 + 0.5, W + 2, WALL, 1, 'wall'])
-  // centre piece: a broken wall that splits the yard
-  out.push([-8, 0, 0, 6, 2.6, 0.8, 'stone'], [8, 0, 0, 6, 2.6, 0.8, 'stone'], [0, 0, 0, 1.4, 1.4, 1.4, 'wood'])
+  // centre: a broken wall at each side, the middle left open with one crate
+  out.push([-12, 0, 0, 8, 2.6, 0.8, 'stone'], [12, 0, 0, 8, 2.6, 0.8, 'stone'], [0, 0, 0, 1.4, 1.4, 1.4, 'wood'])
   for (const b of HALF_SIDE) {
     out.push(b)
     out.push([-b[0], b[1], -b[2], b[3], b[4], b[5], b[6]])   // point-mirrored for the other side
@@ -124,8 +133,8 @@ export const AIM_DATA = {
   SITES: {},
   BUY_ZONES: { CT: { min: [-W, -L], max: [W, L] }, T: { min: [-W, -L], max: [W, L] } },
   SPAWNS: {
-    CT: [at(0, 28), at(-6, 28.5), at(6, 28.5), at(-11, 28), at(11, 28), at(-3, 29.5), at(3, 29.5)],
-    T: [at(0, -28), at(6, -28.5), at(-6, -28.5), at(11, -28), at(-11, -28), at(3, -29.5), at(-3, -29.5)],
+    CT: [at(0, 41), at(-5, 41), at(5, 41), at(-10, 41), at(10, 41), at(-2.5, 42.5), at(2.5, 42.5)],
+    T: [at(0, -41), at(5, -41), at(-5, -41), at(10, -41), at(-10, -41), at(2.5, -42.5), at(-2.5, -42.5)],
   },
   SPOTS: {},
 }
