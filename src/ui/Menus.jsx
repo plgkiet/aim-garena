@@ -235,9 +235,10 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
               {aim ? (
                 <>
                   <Field label="Map" wide>
-                    {[["arena", "Warehouse"], ["aim", "Aim Garena"]].map(([id, label]) => (
-                      <button key={id} className={aimMap === id ? "on" : ""} onClick={() => setAimMap(id)}>
-                        {label}
+                    {[["arena", "Warehouse", "/textures/map_warehouse.jpg", "center 55%"], ["aim", "Aim Garena", "/textures/map_aim.jpg", "center 80%"]].map(([id, label, pic, at]) => (
+                      <button key={id} className={`mapcard ${aimMap === id ? "on" : ""}`} onClick={() => setAimMap(id)}
+                        style={{ backgroundImage: `url(${pic})`, backgroundPosition: at }}>
+                        <span>{label}</span>
                       </button>
                     ))}
                   </Field>

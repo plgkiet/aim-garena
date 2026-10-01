@@ -1209,3 +1209,23 @@ canvas { display: block; cursor: crosshair; }
 .fps[data-level="good"] { color: #6ee36e; }
 .fps[data-level="ok"] { color: #f2c14e; }
 .fps[data-level="bad"] { color: #ff5a4f; }
+
+/* solo map picker: each button is a little picture of its map, the name on a
+   dark fade along the bottom; the same row height as before, just taller */
+.mm-grid .mapcard {
+  position: relative; height: 58px; padding: 0; overflow: hidden;
+  background-size: cover; background-position: center;
+  display: flex; align-items: flex-end; justify-content: flex-start;
+}
+.mm-grid .mapcard::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,12,16,0.05) 30%, rgba(10,12,16,0.85));
+  transition: opacity .16s;
+}
+.mm-grid .mapcard span {
+  position: relative; padding: 0 10px 7px; font-weight: 600; font-size: 13px;
+  color: #fff; letter-spacing: 0.02em; text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+.mm-grid .mapcard:not(.on) { filter: saturate(0.6) brightness(0.8); }
+.mm-grid .mapcard:hover { filter: none; }
+.mm-grid .mapcard.on { box-shadow: inset 0 0 0 2px var(--brand); }
