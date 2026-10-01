@@ -19,7 +19,8 @@ const tower = []
   // the platform and the parapet along its front edge
   tower.push([-15, 0, 31, 8, 2.4, 6, 'stone'], [-15, 2.4, 28.25, 8, 1.05, 0.5, 'stone'])
   // stairs up its inner side, 0.4 m a step
-  for (let k = 1; k <= 5; k++) tower.push([-10.6 + (5 - k) * 0.8 + 0.4, 0, 33, 0.8, 0.4 * k, 2, 'stone'])
+  // flush against the platform's side (x -11), the top step its own height
+  for (let k = 1; k <= 5; k++) tower.push([-11 + (5 - k) * 0.8 + 0.4, 0, 33, 0.8, 0.4 * k, 2, 'stone'])
 }
 const HALF_SIDE = [
   // spawn bunker wall, three segments: openings at |x| 4..11
