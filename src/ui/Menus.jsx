@@ -141,7 +141,8 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
   const [aimWeapon, setAimWeapon] = useState({ m4a1s: "m4a4", ssg08: "p90" }[prefs.aimWeapon] || prefs.aimWeapon || "ak47");
   const [aimBots, setAimBots] = useState(prefs.aimBots || 1);
   const [aimRounds, setAimRounds] = useState(prefs.aimRounds || 10);
-  const [aimMap, setAimMap] = useState(prefs.aimMap === "arena" ? "arena" : "aim");
+  // solo is on the Warehouse only for now (Aim Garena is kept in the code)
+  const aimMap = "arena";
   const [loading, setLoading] = useState(false);
 
   const start = async () => {
@@ -224,7 +225,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
                 onClick={() => setMode("aim")}
               >
                 <b>Solo aim</b>
-                <span>Aim Garena / Warehouse · 1 vs bot · round nhanh</span>
+                <span>Warehouse · 1 vs bot · round nhanh</span>
               </button>
             </div>
 
@@ -232,13 +233,6 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
             <div className="mm-grid">
               {aim ? (
                 <>
-                  <Field label="Map" wide>
-                    {[["aim", "Aim Garena"], ["arena", "Warehouse"]].map(([id, label]) => (
-                      <button key={id} className={aimMap === id ? "on" : ""} onClick={() => setAimMap(id)}>
-                        {label}
-                      </button>
-                    ))}
-                  </Field>
                   <Field label="Súng" wide>
                     {["ak47", "m4a4", "awp", "p90", "deagle", "usp"].map(
                       (id) => (
