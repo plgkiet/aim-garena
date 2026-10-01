@@ -26,23 +26,43 @@ function showcase(kind) {
     .sort((a, b) => ORDER[b.item.tier] - ORDER[a.item.tier]);
 }
 
-/** A name plate: the item's name over a bar in its grade's colour. */
+/** A name plate: a dark brushed panel with a stripe and glow in the item's
+    grade colour down its left edge, the weapon in small caps, the skin name
+    large, and the grade in a pill on the right. */
 function plate(item) {
+  const W = 768, H = 192;
   const c = document.createElement("canvas");
-  c.width = 512; c.height = 128;
+  c.width = W; c.height = H;
   const g = c.getContext("2d");
   const tier = tierBySlug(item.tier);
-  g.fillStyle = "#0d1014"; g.fillRect(0, 0, 512, 128);
-  g.fillStyle = tier.color; g.fillRect(0, 118, 512, 10);
-  g.fillStyle = "#9aa4ae"; g.font = "500 30px Barlow, Arial, sans-serif";
-  g.fillText(itemTitle(item), 22, 46);
-  g.fillStyle = "#ffffff"; g.font = "700 42px Barlow, Arial, sans-serif";
-  g.fillText(item.name, 22, 98);
-  g.fillStyle = tier.color; g.font = "700 24px 'Barlow Condensed', Arial, sans-serif";
-  const lbl = tier.label.toUpperCase();
-  g.fillText(lbl, 490 - g.measureText(lbl).width, 46);
+  const bg = g.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "#1b2027"); bg.addColorStop(1, "#0c0f13");
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  // the grade's glow bleeding in from the left
+  const glow = g.createLinearGradient(0, 0, W * 0.6, 0);
+  glow.addColorStop(0, tier.color + "55"); glow.addColorStop(1, tier.color + "00");
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  g.fillStyle = tier.color; g.fillRect(0, 0, 14, H);
+  // a hairline frame and a top highlight
+  g.strokeStyle = "rgba(255,255,255,0.12)"; g.lineWidth = 2; g.strokeRect(1, 1, W - 2, H - 2);
+  g.fillStyle = "rgba(255,255,255,0.08)"; g.fillRect(14, 0, W - 14, 3);
+  const knife = item.kind === "knife";
+  g.fillStyle = "rgba(255,255,255,0.62)"; g.font = "600 30px 'Barlow Condensed', Arial, sans-serif";
+  g.fillText((knife ? "★ " : "") + itemTitle(item).replace(/^★\s*/, "").toUpperCase(), 44, 62);
+  g.fillStyle = "#ffffff"; g.font = "700 60px Barlow, Arial, sans-serif";
+  let name = item.name;
+  while (g.measureText(name).width > W - 90 && name.length > 4) name = name.slice(0, -2) + "…";
+  g.fillText(name, 44, 140);
+  // the grade in a pill, top right
+  g.font = "700 22px 'Barlow Condensed', Arial, sans-serif";
+  const lbl = tier.label.replace("★ ", "").toUpperCase();
+  const pw = g.measureText(lbl).width + 34, px = W - pw - 26, py = 30;
+  g.fillStyle = tier.color + "33"; g.strokeStyle = tier.color; g.lineWidth = 2;
+  g.beginPath(); g.roundRect(px, py, pw, 38, 19); g.fill(); g.stroke();
+  g.fillStyle = tier.color; g.fillText(lbl, px + 17, py + 27);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
   return t;
 }
 
@@ -153,7 +173,7 @@ export function Gallery({ onBack }) {
       scene.add(turn);
       stands.push({ ...x, pos, turn, side, state: "none" });
     });
-    const plateGeo = new THREE.PlaneGeometry(1.1, 0.275);
+    const plateGeo = new THREE.PlaneGeometry(1.12, 0.28);
     disposables.push(plateGeo);
 
     // build one stand's model and name plate (one at a time)
@@ -275,9 +295,12 @@ export function Gallery({ onBack }) {
       <span className="gallery__cross" aria-hidden="true" />
       {looking && (
         <div className="gallery__look" style={{ "--tier": tier.color }}>
-          <small>{itemTitle(looking)}</small>
-          <b>{looking.name}</b>
-          <em>{tier.label}</em>
+          <i className="gallery__look-bar" />
+          <div className="gallery__look-text">
+            <small>{itemTitle(looking)}</small>
+            <b>{looking.name}</b>
+          </div>
+          <em>{tier.label.replace("★ ", "")}</em>
         </div>
       )}
       <header className="gallery__head">
