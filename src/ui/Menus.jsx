@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { game } from "../game/state";
 import { startMatch } from "../game/rules";
 import { DEFAULT_KNIFE, KNIVES } from "../lib/knives";
@@ -128,6 +128,8 @@ function ThemeToggle() {
 }
 
 export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
+  // the lobby always turns slowly over de_dust2, whatever map the last match was on
+  useEffect(() => { loadLevel("dust2"); }, []);
   const prefs = loadPrefs();
   const [team, setTeam] = useState(prefs.team || "CT");
   const [diff, setDiff] = useState(prefs.difficulty || "normal");
