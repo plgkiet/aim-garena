@@ -12,11 +12,11 @@ import { caseHardenedInfo } from './patterns'
    odds: Mil-Spec 79.92%, Restricted 15.98%, Classified 3.2%, Covert 0.64%
    and a knife 0.26%. Odds are split evenly inside a grade. */
 export const TIERS = [
-  { slug: 'milspec', label: 'Mil-Spec', vi: 'Quân dụng', color: '#4b69ff', odds: 42.5 },
-  { slug: 'restricted', label: 'Restricted', vi: 'Hạn chế', color: '#8847ff', odds: 28.5 },
+  { slug: 'milspec', label: 'Mil-Spec', vi: 'Quân dụng', color: '#4b69ff', odds: 37.26 },
+  { slug: 'restricted', label: 'Restricted', vi: 'Hạn chế', color: '#8847ff', odds: 32 },
   { slug: 'classified', label: 'Classified', vi: 'Tối mật', color: '#d32ce6', odds: 23.74 }   /* far more generous than CS's 3.2 / 0.64: asked for */,
   { slug: 'covert', label: 'Covert', vi: 'Tuyệt mật', color: '#eb4b4b', odds: 5 },
-  { slug: 'gold', label: '★ Rare Special', vi: 'Cực hiếm', color: '#e4ae39', odds: 0.26 },
+  { slug: 'gold', label: '★ Rare Special', vi: 'Cực hiếm', color: '#e4ae39', odds: 2 },
   // above everything, like the Howl after 2014: never in a case, never traded up to
   { slug: 'contraband', label: 'Contraband', vi: 'Hàng lậu', color: '#ff8a00', odds: 0, noDrop: true },
 ]
