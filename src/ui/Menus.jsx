@@ -138,9 +138,8 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
   const [sens, setSens] = useState(prefs.sensitivity || 2);
   const [name, setName] = useState(prefs.name || "Bạn");
   const [mode, setMode] = useState(prefs.mode || "comp");
-  // M4A1-S left the solo list for the M4A4; an old saved pick follows it
   // weapons since taken off the list map to what replaced them
-  const [aimWeapon, setAimWeapon] = useState({ m4a1s: "m4a4", ssg08: "p90", deagle: "ak47", usp: "ak47", glock: "ak47", p250: "ak47" }[prefs.aimWeapon] || prefs.aimWeapon || "ak47");
+  const [aimWeapon, setAimWeapon] = useState({ ssg08: "p90", deagle: "ak47", usp: "ak47", glock: "ak47", p250: "ak47" }[prefs.aimWeapon] || prefs.aimWeapon || "ak47");
   // the sidearm carried next to it
   const [aimPistol, setAimPistol] = useState(["usp", "glock", "deagle", "p250"].includes(prefs.aimPistol) ? prefs.aimPistol : "usp");
   const [aimBots, setAimBots] = useState(prefs.aimBots || 1);
@@ -269,7 +268,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
                     ))}
                   </Field>
                   <Field label="Súng" wide>
-                    {["ak47", "m4a4", "awp", "p90"].map(
+                    {["ak47", "m4a4", "m4a1s", "awp", "p90"].map(
                       (id) => (
                         <button
                           key={id}
