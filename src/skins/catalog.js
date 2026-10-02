@@ -629,8 +629,8 @@ export const GLOVES = [
     finger: '#17171a', finger2: '#a51c24', tip: '#c8202a', panel: '#17171a', mesh: 'rgba(200,32,42,0.28)', dash: 'rgba(0,0,0,0)',
     frame: '#c8202a', pad: '#222226', cuff: '#17171a', trim: '#c8202a',
     logo: {
-      left: { src: '/textures/mixi_glove_l.jpg', crop: [0, 0.1, 1, 0.82], size: 0.56, shift: -0.1, across: -0.01 },
-      right: { src: '/textures/mixi_glove_r.jpg', crop: [0.3, 0.215, 0.9, 0.765], size: 0.56, shift: -0.1, across: -0.01 },
+      left: { src: '/textures/mixi_glove_l.jpg', crop: [0, 0.1, 1, 0.82], size: 0.5, shift: -0.08, across: -0.01 },
+      right: { src: '/textures/mixi_glove_r.jpg', crop: [0.3, 0.215, 0.9, 0.765], size: 0.5, shift: -0.08, across: -0.01 },
     },
   }),
   glove('driver', 'King Snake', {
