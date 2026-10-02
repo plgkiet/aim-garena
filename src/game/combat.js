@@ -226,12 +226,15 @@ export function fireBullet(shooter, origin, dir, weaponId) {
     const point = _o.copy(origin).addScaledVector(dir, wh.t).clone()
     const normal = new THREE.Vector3(...wh.normal)
     spawnImpact({ point, normal, mat: wh.mat === 'roof' || wh.mat === 'stone' ? 'wall' : wh.mat, bullet: true })
-    const resist = PENETRATION[wh.mat] ?? Infinity
+    // the ground stops everything; otherwise it is what the solid is made of
+    const resist = wh.mat === 'sand' && wh.surface !== 'wood' ? Infinity : PENETRATION[wh.surface ?? 'wall'] ?? Infinity
     const thick = Math.max(0, Math.min(wh.tOut, maxDist) - wh.t)
     const cost = resist * thick
     if (!Number.isFinite(cost) || cost > pen) { end = point; break }
     pen -= cost
-    dmg *= 0.55 - cost * 0.15
+    // what is left after the wall: most of it through thin wood, little
+    // through anything near the gun's limit
+    dmg *= Math.max(0.2, 0.85 - cost * 0.3)
     penetrated = true
     from = wh.tOut
     // exit hole

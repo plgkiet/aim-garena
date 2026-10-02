@@ -343,7 +343,10 @@ export function buildKnifeModel(type, finish = null) {
     g.add(turned)
     g.updateMatrixWorld(true)
   }
-  if (finish) paintMeshes(g, blades, finish, 'y')
+  if (finish?.fit === 'band') {
+    paintMeshes(g, [blades[0]], finish, 'y', null, [blades[0]])
+    for (const o of blades.slice(1)) o.material = plainOf(finish)
+  } else if (finish) paintMeshes(g, blades, finish, 'y')
   g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.frustumCulled = false } })
   return g
 }
@@ -367,7 +370,28 @@ export function paintModelBlade(model, finish, bladeTokens = ['blade_'], roll = 
   model.updateMatrixWorld(true)
   const frame = new THREE.Matrix4().makeRotationY(roll)
   if (model.parent) frame.premultiply(model.parent.matrixWorld)
-  paintMeshes(model, blades, finish, 'y', frame)
+  // a finish cut to the blade (`bladeFit`, the Lore) is laid along the blade itself
+  const tok = bladeTokens.map(t => t.toLowerCase())
+  const primary = finish.fit === 'band' && finish.bladeFit ? blades.filter(o => tok.some(t => o.name.toLowerCase().startsWith(t))) : null
+  if (primary?.length) {
+    // only the blade carries the artwork; the fittings (handle inlays,
+    // guard, screws) are plain in its base colour
+    // `wholeKnife`: the artwork is a side photo of this very knife, so it is
+    // lined up on the whole model, though still only the blade wears it
+    const all = []
+    if (finish.wholeKnife) model.traverse(o => { if (o.isMesh) all.push(o) })
+    paintMeshes(model, primary, finish, 'y', frame, finish.wholeKnife ? all : primary)
+    const plain = plainOf(finish)
+    for (const o of blades) if (!primary.includes(o)) o.material = plain
+    return
+  }
+  paintMeshes(model, blades, finish, 'y', frame, primary)
+}
+const PLAIN = new Map()
+function plainOf(finish) {
+  const key = `${finish.pal?.[0]}|${finish.metal}|${finish.rough}`
+  if (!PLAIN.has(key)) PLAIN.set(key, new THREE.MeshStandardMaterial({ color: finish.pal?.[0] ?? '#888', metalness: finish.metal ?? 0.6, roughness: finish.rough ?? 0.4 }))
+  return PLAIN.get(key)
 }
 
 /** Swap the named parts of a model knife to polished silver (the Butterfly's

@@ -308,6 +308,10 @@ const FINISH = {
       layout: { plain: true, u0: 0.4, u1: 1, v0: 0.05, v1: 0.35, crop: [0.18, 0.92], cropV: [0.26, 0.72] },
     },
   },
+  // Lore: each knife wears the blade of its own real Lore, cut from a side
+  // photo and fitted onto the model's blade (see LORE_ART below); only the
+  // knives that have a photo come in it
+  lore: { name: 'Lore', pattern: 'gem', fit: 'band', pal: ['#e3b01f'], metal: 0.85, rough: 0.25, bladeFit: true },
   rust: { name: 'Rust Coat', pattern: 'gem', image: '/textures/rust.jpg', pal: ['#8a4a22'], metal: 0.45, rough: 0.8, sat: 1.1, contrast: 1.05, gloss: false },
 }
 
@@ -322,6 +326,25 @@ export const KNIFE_TYPES = {
   bowie: { name: 'Bowie Knife', band: 0.45 },
 }
 
+/* The blade's rectangle in each Lore photo (fractions of the picture):
+   `crop` along it, `cropV` across it (fitted so the photo's outline falls on
+   the model's, hence the odd figures and the ones just outside 0..1); `flip` / `flipV` turn it to the way
+   the model's blade runs. */
+const LORE_ART = {
+  m9a: { file: 'm9', crop: [0.391, 1.006], cropV: [0.336, 0.78] },
+  bfly: { file: 'butterfly', crop: [0.478, 1.017], cropV: [0.115, 0.732], align: true },
+  flip: { file: 'flip', crop: [0.464, 0.997], cropV: [0.04, 0.87], flipV: true },
+  // the model is this very knife: the whole photo is lined up on the whole
+  // model (`whole`) and the blade takes its part of it; the outline is grown
+  // a little (`bleed`) so the rim never reads the photo's empty background
+  huntsman: { file: 'huntsman', whole: true, bleed: 6, flipV: true, crop: [-0.01, 0.992], cropV: [-0.057, 0.928] },
+  karambit: { file: 'karambit', whole: true, bleed: 6, flipV: true, crop: [-0.027, 0.942], cropV: [-0.011, 1.09] },
+}
+const loreOf = type => {
+  const { file, align, whole, ...cut } = LORE_ART[type]
+  return { alignBlade: !!align, polarBlade: !!cut.polar, wholeKnife: !!whole, image: `/textures/lore_${file}.png`, layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 1, ...cut } }
+}
+
 const MODEL_TYPES = new Set(['karambit', 'huntsman', 'bowie', 'skeleton'])
 
 const knife = (type, finish) => ({
@@ -332,6 +355,7 @@ const knife = (type, finish) => ({
   seed: seed++,
   band: KNIFE_TYPES[type].band,
   ...FINISH[finish],
+  ...(finish === 'lore' && loreOf(type)),
   // these lines are real models now: the finish goes on the model's blade
   ...(MODEL_TYPES.has(type) && { model: true, finish: true }),
 })
@@ -341,7 +365,7 @@ export const KNIFE_SKINS = [
   knife('flip', 'ruby'), knife('flip', 'web'), knife('flip', 'gamma'),
   knife('huntsman', 'slaughter'), knife('huntsman', 'emerald'), knife('huntsman', 'doppler'),
   // every knife comes in every gem, Case Hardened and Rust Coat
-  ...['karambit', 'flip', 'huntsman'].flatMap(t => ['gemRuby', 'gemSapphire', 'gemEmerald', 'caseHardened', 'rust', 'blackPearl'].map(f => knife(t, f))),
+  ...['karambit', 'flip', 'huntsman'].flatMap(t => ['gemRuby', 'gemSapphire', 'gemEmerald', 'caseHardened', 'rust', 'blackPearl', 'lore'].map(f => knife(t, f))),
   // the newer lines, each in the headline finishes
   ...['skeleton', 'stiletto', 'bowie'].flatMap(t =>
     ['fade', 'doppler', 'slaughter', 'tiger', 'gemRuby', 'gemSapphire', 'gemEmerald', 'caseHardened', 'blackPearl'].map(f => knife(t, f))),
@@ -352,16 +376,16 @@ export const KNIFE_SKINS = [
    Case Hardened. `finish` marks a model knife whose blade gets repainted. */
 const modelKnife = (type, weaponName, f) => ({
   id: `knife_${type}_${f}`, kind: 'knife', knife: type, tier: 'gold', weaponName, model: true,
-  seed: seed++, ...FINISH[f], finish: true,
+  seed: seed++, ...FINISH[f], ...(f === 'lore' && loreOf(type)), finish: true,
 })
 
 export const MODEL_KNIVES = [
   { id: 'knife_m9a', kind: 'knife', knife: 'm9a', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Sapphire', model: true },
   { id: 'knife_m9b', kind: 'knife', knife: 'm9b', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Autotronic', model: true },
   { id: 'knife_bfly', kind: 'knife', knife: 'bfly', tier: 'gold', weaponName: '★ Butterfly Knife', name: 'Crimson Web', model: true },
-  ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
+  ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl', 'lore'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
   // (no painted Sapphire: the M9's own look is the Sapphire)
-  ...['gemEmerald', 'gemRuby', 'caseHardened', 'blackPearl', 'mixi'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
+  ...['gemEmerald', 'gemRuby', 'caseHardened', 'blackPearl', 'lore', 'mixi'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
   // the special one: a Bearbrick in the Jiangshi (cương thi) livery, held as a knife
   { id: 'knife_racket', kind: 'knife', knife: 'racket', tier: 'gold', weaponName: '★ Badminton Racket', name: 'Vợt Cầu Lông', model: true },
   { id: 'knife_iphone', kind: 'knife', knife: 'iphone', tier: 'gold', weaponName: '★ iPhone', name: 'Burgundy Red', model: true },

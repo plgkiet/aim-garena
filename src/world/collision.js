@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { level } from './level'
+import { SURFACES } from './mapData'
 
 /* World queries against the real map's triangles through a BVH.
 
@@ -77,6 +78,13 @@ export function ceilingHeight(x, z, r, y) {
 /* ------------------------------------------------------------------ rays --- */
 
 const matOf = n => (n.y > 0.7 ? 'sand' : 'wall')
+/* What a hit face is made of, for bullet penetration: the map's per-vertex
+   `surface` code when it has one, else plain wall. */
+function surfaceOf(h) {
+  const attr = level.geometry?.attributes.surface, idx = level.geometry?.index
+  if (!attr || !idx || h.faceIndex == null) return 'wall'
+  return SURFACES[attr.getX(idx.getX(h.faceIndex * 3))] || 'wall'
+}
 
 function toRay(o, d) {
   _ray.origin.set(o.x, o.y, o.z)
@@ -114,7 +122,7 @@ export function rayAll(o, d, maxDist) {
     for (let k = i + 1; k < hits.length; k++) {
       if (hits[k].face.normal.dot(ray.direction) > 0) { tOut = hits[k].distance; i = k; break }
     }
-    out.push({ t: h.distance, tOut, normal: [n.x, n.y, n.z], box: true, mat: matOf(n) })
+    out.push({ t: h.distance, tOut, normal: [n.x, n.y, n.z], box: true, mat: matOf(n), surface: surfaceOf(h) })
   }
   return out
 }

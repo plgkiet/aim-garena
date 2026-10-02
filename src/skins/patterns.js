@@ -539,6 +539,32 @@ function paintBand(g, skin, img) {
       }
     }
   }
+  // `polar`: a curved blade (the Karambit) straightened out: the picture is
+  // read round a circle (centre `c` in px, radii `r`, angles `a` in degrees)
+  // so u runs along the arc of the blade and v across it
+  if (L.polar) {
+    const P = L.polar
+    const src = document.createElement('canvas')
+    src.width = img.width; src.height = img.height
+    const sg = src.getContext('2d', { willReadFrequently: true })
+    sg.drawImage(img, 0, 0)
+    const S = sg.getImageData(0, 0, img.width, img.height).data
+    const out = g.getImageData(0, 0, TEX_W, TEX_H), O = out.data
+    for (let Y = 0; Y < TEX_H; Y++) for (let X = 0; X < TEX_W; X++) {
+      let u = X / TEX_W, v = 1 - Y / TEX_H
+      if (L.flip) u = 1 - u
+      if (L.flipV) v = 1 - v
+      const th = (P.a[0] + u * (P.a[1] - P.a[0])) * Math.PI / 180, r = P.r[0] + v * (P.r[1] - P.r[0])
+      const px = Math.round(P.c[0] + r * Math.cos(th)), py = Math.round(P.c[1] + r * Math.sin(th))
+      if (px < 0 || py < 0 || px >= img.width || py >= img.height) continue
+      const k = (py * img.width + px) * 4
+      if (S[k + 3] < 128) continue
+      const o = (Y * TEX_W + X) * 4
+      O[o] = S[k]; O[o + 1] = S[k + 1]; O[o + 2] = S[k + 2]; O[o + 3] = 255
+    }
+    g.putImageData(out, 0, 0)
+    return
+  }
   const [c0, c1] = L.crop ?? [0, 1]
   const [r0, r1] = L.cropV ?? [0, 1]
   const sx = img.width * c0, sw = img.width * (c1 - c0)
@@ -546,8 +572,14 @@ function paintBand(g, skin, img) {
   const x = L.u0 * TEX_W, w = (L.u1 - L.u0) * TEX_W
   const y = (1 - L.v1) * TEX_H, h = (L.v1 - L.v0) * TEX_H
   g.save()
-  if (L.flip) { g.translate(x + w, 0); g.scale(-1, 1); g.drawImage(img, sx, sy, sw, sh, 0, y, w, h) }
-  else g.drawImage(img, sx, sy, sw, sh, x, y, w, h)
+  // `flip` mirrors it along the weapon, `flipV` across it
+  g.translate(L.flip ? x + w : x, L.flipV ? y + h : y)
+  g.scale(L.flip ? -1 : 1, L.flipV ? -1 : 1)
+  // `bleed`: the cut-out drawn shifted about underneath first, so its colours
+  // run on a few pixels past its outline
+  for (let d = L.bleed ?? 0; d > 0; d -= 2)
+    for (const [dx, dy] of [[-d, 0], [d, 0], [0, -d], [0, d], [-d, -d], [d, -d], [-d, d], [d, d]]) g.drawImage(img, sx, sy, sw, sh, dx, dy, w, h)
+  g.drawImage(img, sx, sy, sw, sh, 0, 0, w, h)
   g.restore()
 }
 

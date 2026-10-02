@@ -79,11 +79,17 @@ const DUST2_SPOTS = {
   plantB: [p(-1650, 2650, 0), p(-1750, 2850, 32), p(-1550, 2450, 0)],
 }
 
-/* Bullet penetration cost per metre of map. The mesh carries no surface
-   types, so every solid is treated as CS:GO's plaster/wood average: rifles
-   punch through ~0.5 m, pistols through a door, nothing through a building,
-   and nothing ever through the ground. */
-export const PENETRATION = { wall: 4, sand: Infinity }
+/* Bullet penetration cost per metre, by what the solid is made of. A gun's
+   `pen` is its budget (pistols and SMGs 1, rifles 2, snipers 2.5), so:
+     wood   crates: rifles through a whole crate, pistols through a thin one
+     wall   plaster / thin brick, and anything untyped (de_dust2's mesh
+            carries no surface types): rifles through ~0.5 m, pistols a door
+     stone  concrete and thick masonry: only half a metre, rifles and up
+     metal  solid steel: a few centimetres at most
+   and nothing ever goes through the ground. */
+export const PENETRATION = { wood: 1.2, wall: 4, stone: 4.5, metal: 14, sand: Infinity, floor: Infinity }
+/** Material codes stored per vertex on a map's collision mesh (see level.js). */
+export const SURFACES = ['wall', 'wood', 'stone', 'metal', 'floor']
 
 /* ------------------------------------------------------------ registry --- */
 

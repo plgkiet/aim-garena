@@ -146,6 +146,10 @@ function loadArena() {
       if (decal) return
       const c = new THREE.BufferGeometry()
       c.setAttribute('position', g.attributes.position.clone())
+      // what it is made of, for wallbangs: sheet iron is metal, brick and
+      // concrete are stone, the rest plain wall
+      const code = /iron|metal/i.test(src.name) ? 3 : /brick|concrete/i.test(src.name) ? 2 : 0
+      c.setAttribute('surface', new THREE.BufferAttribute(new Float32Array(c.attributes.position.count).fill(code), 1))
       c.setIndex(g.index ? g.index.clone() : null)
       parts.push(c)
     })

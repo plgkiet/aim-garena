@@ -97,8 +97,15 @@ function geometryFor(list, tile, tint) {
 }
 
 /** Collision only (no textures) — also what the headless tests load. */
+const SURFACE_CODE = { wall: 0, wood: 1, stone: 2, metal: 3, floor: 4 }
 export function aimCollision() {
-  return geometryFor(allBoxes(), 1, () => new THREE.Color())
+  const boxes = allBoxes()
+  const g = geometryFor(boxes, 1, () => new THREE.Color())
+  // 24 vertices a box, each tagged with what the box is made of (for wallbangs)
+  const surf = new Float32Array(boxes.length * 24)
+  boxes.forEach((bx, i) => surf.fill(SURFACE_CODE[bx[6]] ?? 0, i * 24, i * 24 + 24))
+  g.setAttribute('surface', new THREE.Float32BufferAttribute(surf, 1))
+  return g
 }
 
 /** Build the arena: render meshes plus a plain collision geometry. */

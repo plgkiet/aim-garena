@@ -7,7 +7,8 @@ import { lineClear, raycast } from '../world/collision'
 import { smokeBlocks } from './grenades'
 import { switchTo, hasSlot, bestSlot } from './weaponLogic'
 import { buy, canPlant } from './rules'
-import { SITES, SPOTS, siteAt } from '../world/mapData'
+import { SITES, SPOTS, SPAWNS, siteAt } from '../world/mapData'
+import { level } from '../world/level'
 import { maxSpeed } from './movement'
 
 /* CS:GO-flavoured bots. Each one perceives at 10 Hz (field of view, line of
@@ -22,10 +23,12 @@ import { maxSpeed } from './movement'
    cleanly it stops to shoot and strafes, and how well it plays as a team
    (grenades before an entry, groups waiting for each other, CT rotations). */
 const DIFF = {
-  easy: { reaction: 0.7, turn: 220, err: 4.5, settle: 1.2, head: 0.03, spray: 0.2, fov: 100, stop: 0.3, strafe: 0.1, nades: 0.2, sync: false, rotate: false },
-  normal: { reaction: 0.48, turn: 340, err: 3.0, settle: 1.7, head: 0.1, spray: 0.4, fov: 115, stop: 0.55, strafe: 0.3, nades: 0.5, sync: true, rotate: true },
-  hard: { reaction: 0.32, turn: 520, err: 1.8, settle: 2.6, head: 0.3, spray: 0.65, fov: 125, stop: 0.8, strafe: 0.5, nades: 0.7, sync: true, rotate: true },
-  expert: { reaction: 0.2, turn: 780, err: 0.9, settle: 3.8, head: 0.55, spray: 0.9, fov: 135, stop: 0.95, strafe: 0.65, nades: 0.9, sync: true, rotate: true },
+  // softened across the board (they felt too strong): slower to react, a
+  // wider first shot that settles more slowly, weaker spray control
+  easy: { reaction: 1.25, turn: 160, err: 8.5, settle: 0.7, head: 0.01, spray: 0.08, fov: 90, stop: 0.2, strafe: 0.08, nades: 0.2, sync: false, rotate: false },
+  normal: { reaction: 0.9, turn: 230, err: 6.0, settle: 0.95, head: 0.04, spray: 0.18, fov: 105, stop: 0.35, strafe: 0.2, nades: 0.5, sync: true, rotate: true },
+  hard: { reaction: 0.62, turn: 340, err: 3.8, settle: 1.4, head: 0.12, spray: 0.36, fov: 115, stop: 0.6, strafe: 0.38, nades: 0.7, sync: true, rotate: true },
+  expert: { reaction: 0.42, turn: 500, err: 2.2, settle: 2.1, head: 0.28, spray: 0.58, fov: 125, stop: 0.85, strafe: 0.55, nades: 0.9, sync: true, rotate: true },
 }
 
 export function initBot(a, difficulty = 'normal') {
@@ -125,6 +128,7 @@ export function botsRoundStart() {
     const b = a.bot
     b.path = null; b.goal = null; b.goalKey = ''
     b.target = null; b.visible = false; b.lastKnown = null; b.heard = null
+    b.patrolled = false; b.huntSpot = null; b.huntClue = null
     b.lookAt = null; b.throwPlan = null
     b.bought = false
     b.buyAt = game.time + 0.4 + Math.random() * 2.5
@@ -719,23 +723,38 @@ function ctRead() {
   }
 }
 
-/* Solo aim: go find the enemy. The bot knows roughly where you are — a guess
-   within a few metres, refreshed every few seconds — never exactly. */
+/* Solo aim: go find the enemy, fairly. The bot is never told where you are.
+   It goes to where it last SAW you (for a few seconds after losing sight),
+   else to what it last HEARD (a shot, running footsteps within 15 m, being
+   hit), and with neither it patrols: random spots across the map, starting
+   toward the far side where the other team spawned. Crouch-walking is
+   silent, so staying quiet and out of sight really does hide you. */
 function hunt(a, dt) {
   const b = a.bot
   const foes = game.agents.filter(x => x.alive && x.team !== a.team)
   if (!foes.length) { a.cmd.fwd = 0; a.cmd.side = 0; return }
-  if (!b.huntSpot || game.time > b.huntUntil) {
-    const f = foes.sort((p, q) => p.pos.distanceTo(a.pos) - q.pos.distanceTo(a.pos))[0]
-    const src = b.lastKnown && game.time - b.lastSeen < 4 ? b.lastKnown : f.pos
-    b.huntSpot = randomNear(src.x, src.z, 5, src.y)
-    b.huntUntil = game.time + 2.5 + Math.random() * 2
+  const seen = b.lastKnown && game.time - b.lastSeen < 6 ? b.lastKnown : null
+  const heard = b.heard && game.time - b.heard.t < 8 ? b.heard : null
+  const clue = seen ? `s${b.lastSeen.toFixed(1)}` : heard ? `h${heard.t.toFixed(1)}` : 'patrol'
+  if (!b.huntSpot || game.time > b.huntUntil || (clue !== 'patrol' && clue !== b.huntClue)) {
+    b.huntClue = clue
+    if (seen) { b.huntSpot = randomNear(seen.x, seen.z, 2, seen.y); b.huntUntil = game.time + 4 }
+    else if (heard) { b.huntSpot = randomNear(heard.pos.x, heard.pos.z, 4, heard.pos.y); b.huntUntil = game.time + 5 }
+    else {
+      // patrol: the first leg goes toward the enemy spawn, then anywhere
+      const c = level.bounds.getCenter(_patrol), sz = level.bounds.getSize(_patrolSize)
+      const spawn = !b.patrolled && SPAWNS[a.team === 'T' ? 'CT' : 'T']?.[0]
+      b.patrolled = true
+      b.huntSpot = spawn ? randomNear(spawn[0], spawn[1], 6, spawn[2]) : randomNear(c.x, c.z, Math.max(sz.x, sz.z) * 0.45, 0)
+      b.huntUntil = game.time + 9
+    }
   }
   const [x, z, y] = b.huntSpot
   if (Math.hypot(a.pos.x - x, a.pos.z - z) < 1.2) { b.huntUntil = 0; idleScan(a, dt); a.cmd.fwd = 0; a.cmd.side = 0; return }
   moveTo(a, x, z, dt, 'hunt', false, y)
   lookAlongPath(a, dt)
 }
+const _patrol = new THREE.Vector3(), _patrolSize = new THREE.Vector3()
 
 function hold(a, spot, dt) {
   const d = Math.hypot(a.pos.x - spot.p[0], a.pos.z - spot.p[1])
