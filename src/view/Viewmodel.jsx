@@ -572,6 +572,8 @@ export function Viewmodel() {
     let extraPy = 0, extraPz = 0, extraRx = 0
     if (w.type === 'grenade' && ws.throwing) { extraPy = 0.03; extraPz = 0.06; extraRx = -0.35 }
     if (w.type === 'c4' && me.planting > 0) { extraPy = -0.05; extraPz = -0.03; extraRx = 0.5 }
+    // defusing: the gun drops out of the way while the hands are on the bomb
+    if (me.defusing > 0) { extraPy = -0.16; extraRx = 0.7 }
 
     const H = holdOf(w)
     // aim down the sights: blend the hold toward the pose that puts the iron

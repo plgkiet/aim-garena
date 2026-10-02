@@ -1229,3 +1229,67 @@ canvas { display: block; cursor: crosshair; }
 .mm-grid .mapcard:not(.on) { filter: saturate(0.6) brightness(0.8); }
 .mm-grid .mapcard:hover { filter: none; }
 .mm-grid .mapcard.on { box-shadow: inset 0 0 0 2px var(--brand); }
+
+/* loading screen: over the lobby while a map loads. A faint drifting grid,
+   a crosshair that turns, the title, a sweep bar, and the three notices as
+   outlined tags. */
+.loading-screen {
+  position: fixed; inset: 0; z-index: 200; display: grid; place-content: center; justify-items: center; gap: 22px;
+  background: radial-gradient(ellipse at 50% 40%, #1b222c 0%, #0b0e13 55%, #050608 100%); color: #fff; text-align: center; padding: 24px; overflow: hidden;
+}
+.loading-screen > * { position: relative; }
+.loading-screen__grid {
+  position: absolute !important; inset: -40px; opacity: 0.5;
+  background-image: linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size: 40px 40px; mask-image: radial-gradient(ellipse at center, #000 20%, transparent 72%);
+  animation: loadgrid 6s linear infinite;
+}
+@keyframes loadgrid { to { transform: translate(40px, 40px); } }
+.loading-screen__mark { width: 64px; height: 64px; border: 2px solid rgba(233,164,58,0.35); border-radius: 50%; animation: loadspin 2.4s linear infinite; }
+.loading-screen__mark i { position: absolute; background: var(--brand, #e9a43a); }
+.loading-screen__mark i:nth-child(1) { left: 50%; top: -8px; width: 2px; height: 18px; margin-left: -1px; }
+.loading-screen__mark i:nth-child(2) { left: 50%; bottom: -8px; width: 2px; height: 18px; margin-left: -1px; }
+.loading-screen__mark i:nth-child(3) { top: 50%; left: -8px; height: 2px; width: 18px; margin-top: -1px; }
+.loading-screen__mark i:nth-child(4) { top: 50%; right: -8px; height: 2px; width: 18px; margin-top: -1px; }
+.loading-screen__mark b { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: #fff; animation: loadpulse 1.2s ease-in-out infinite; }
+@keyframes loadspin { to { transform: rotate(360deg); } }
+@keyframes loadpulse { 50% { transform: scale(1.8); opacity: 0.4; } }
+.loading-screen__title .logo { font-size: clamp(40px, 8vw, 76px); line-height: 1; text-shadow: 0 6px 30px rgba(233,164,58,0.25); }
+.loading-screen__title em { display: block; margin-top: 8px; font: 600 13px "Barlow Condensed", sans-serif; font-style: normal; letter-spacing: 0.5em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+.loading-screen__bar { width: min(360px, 72vw); height: 2px; background: rgba(255,255,255,0.1); overflow: hidden; }
+.loading-screen__bar i { display: block; width: 35%; height: 100%; background: linear-gradient(90deg, transparent, var(--brand, #e9a43a), transparent); animation: loadbar 1.2s ease-in-out infinite; }
+@keyframes loadbar { 0% { transform: translateX(-100%); } 100% { transform: translateX(290%); } }
+.loading-screen__msg { margin: -10px 0 0; font: 600 12px "Barlow Condensed", sans-serif; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+.loading-screen__msg::after { content: "…"; }
+/* the three notices: big solid orange plates, slanted like a warning strip,
+   lighting up one after another */
+.loading-screen__tags { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.loading-screen__tags li {
+  padding: 10px 22px; transform: skewX(-10deg); background: var(--brand, #e9a43a); color: #14100a;
+  font: 700 clamp(15px, 2.2vw, 21px) "Barlow Condensed", sans-serif; letter-spacing: 0.16em;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.15) inset, 0 8px 28px rgba(233,164,58,0.35);
+  animation: loadtag 2.4s ease-in-out infinite;
+}
+.loading-screen__tags li:nth-child(2) { animation-delay: 0.4s; }
+.loading-screen__tags li:nth-child(3) { animation-delay: 0.8s; }
+@keyframes loadtag {
+  0%, 60%, 100% { filter: brightness(1); box-shadow: 0 0 0 1px rgba(255,255,255,0.15) inset, 0 8px 28px rgba(233,164,58,0.35); }
+  20% { filter: brightness(1.25); box-shadow: 0 0 0 1px rgba(255,255,255,0.4) inset, 0 8px 44px rgba(233,164,58,0.75); }
+}
+@media (prefers-reduced-motion: reduce) { .loading-screen__grid, .loading-screen__mark, .loading-screen__mark b, .loading-screen__bar i, .loading-screen__tags li { animation: none; } .loading-screen__bar i { width: 100%; } }
+
+/* lobby on smaller screens: keep the card off the window's edges, let it
+   scroll from its top, and drop the agent when there is no room for it */
+.menu.plgk.lobby { padding: clamp(16px, 3vw, 40px); align-items: flex-start; }
+.menu.plgk.lobby > .menu-main, .menu.plgk.lobby > .lobby-stage { margin-block: auto; }
+@media (max-width: 1280px) { .lobby-stage { flex-basis: 24vw; } }
+@media (max-width: 1080px) { .lobby-stage { display: none; } }
+
+/* case contents under the reel */
+.case-contents { margin-top: 34px; }
+.case-contents h3 { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; font-size: 18px; color: #fff; }
+.case-contents h3 small { font-size: 12.5px; font-weight: 300; color: #aeb8c2; }
+.case-contents__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 8px; }
+.case-contents .mini-item { padding: 8px 8px 10px; }
+.case-contents .mini-item span { font-size: 12.5px; }
+.case-contents .mini-item--gold { min-height: 0; }

@@ -74,6 +74,9 @@ function resetLoadout(a) {
     const id = game.settings.aimWeapon || 'ak47'
     if (W[id].slot === 1) a.inv[1] = newInstance(id)
     else a.inv[2] = newInstance(id)
+    // and the sidearm picked in the menu
+    const side = game.settings.aimPistol
+    if (W[id].slot === 1 && W[side]?.slot === 2) a.inv[2] = newInstance(side)
     a.armor = 100; a.helmet = true
     // you also get one of each grenade every round (4 again cycles them)
     if (!a.isBot) a.inv[4] = ['he', 'smoke', 'flash', 'molotov'].map(id => ({ id }))

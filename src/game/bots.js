@@ -531,6 +531,14 @@ function objective(a, dt) {
   if (game.mode === 'aim') return hunt(a, dt)
   const bomb = game.bomb
   const roundLeft = game.phaseEnd - game.time
+  // endgame: with two or fewer enemies left and the numbers on our side, go
+  // and find them instead of holding a post (not the bomb carrier, and not
+  // once the bomb is down: then the site is the fight)
+  if (bomb?.state !== 'planted' && !a.inv[5]) {
+    let foes = 0, mates = 0
+    for (const x of game.agents) if (x.alive) (x.team === a.team ? mates++ : foes++)
+    if (foes > 0 && foes <= 2 && mates > foes) return hunt(a, dt)
+  }
 
   if (a.team === 'T') {
     // bomb on the floor: the nearest T fetches it

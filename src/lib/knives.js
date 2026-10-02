@@ -77,7 +77,7 @@ export const KNIVES = {
     // guard and pommel cap: they wear the finish with the blade
     accent: ["cylinder01", "box002"],
     name: "M9 Bayonet",
-    skin: "★ | Doppler",
+    skin: "★ | Sapphire",
     rarity: "Covert",
     length: 0.315,
     gripAt: 0.2,

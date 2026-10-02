@@ -40,13 +40,23 @@ export function GameLoop({ onLockChange }) {
     }
     const down = e => {
       if (e.repeat) return
+      mods(e)
       input.keys[e.code] = true
       input.pressed.add(e.code)
       if (game.locked && ['Space', 'Tab', 'ControlLeft', 'KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyQ', 'KeyE'].includes(e.code)) e.preventDefault()
     }
-    const up = e => { input.keys[e.code] = false }
+    const up = e => { input.keys[e.code] = false; mods(e) }
+    // a modifier's keyup can go missing (released during a browser shortcut,
+    // or while the window was away) and leave you crouched: every key and
+    // mouse event says whether Shift / Ctrl are really down, so trust that
+    const mods = e => {
+      if (!e.shiftKey) { input.keys.ShiftLeft = false; input.keys.ShiftRight = false }
+      if (!e.ctrlKey) { input.keys.ControlLeft = false; input.keys.ControlRight = false }
+    }
+    const blur = () => { input.keys = Object.create(null); input.mouse = [false, false, false] }
     const mdown = e => {
       if (document.pointerLockElement !== el) return
+      mods(e)
       input.mouse[e.button] = true
       input.pressed.add('Mouse' + e.button)
     }
@@ -56,6 +66,7 @@ export function GameLoop({ onLockChange }) {
     document.addEventListener('pointerlockchange', onLock)
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
+    window.addEventListener('blur', blur)
     window.addEventListener('mousedown', mdown)
     window.addEventListener('mouseup', mup)
     window.addEventListener('wheel', wheel, { passive: true })

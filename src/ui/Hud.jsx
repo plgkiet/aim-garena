@@ -77,7 +77,7 @@ export function Hud({ locked, onRequestLock }) {
       {scoped && <ScopeOverlay />}
       <FlashOverlay />
       {game.smokeFog > 0.02 && <div className="smokefog" style={{ opacity: game.smokeFog }} />}
-      {me.alive && !scoped && <Crosshair />}
+      {me.alive && !scoped && W[activeWeapon(me)?.id]?.type !== 'sniper' && <Crosshair />}
       {me.alive && <DamageDirs />}
       <NameTags />
 
@@ -103,7 +103,7 @@ export function Hud({ locked, onRequestLock }) {
       <Radio me={me} />
       <FpsMeter />
       {game.time - (game.spinToast ?? -10) < 1.6 && (
-        <div className="spin-toast" key={game.spinToast}>+1 lượt quay hòm</div>
+        <div className="spin-toast" key={game.spinToast}>{game.spinToastN === 2 ? 'HEADSHOT · +2 lượt quay hòm' : '+1 lượt quay hòm'}</div>
       )}
       <CenterText />
 

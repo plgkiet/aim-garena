@@ -309,15 +309,14 @@ export function Impacts() {
         continue
       }
       if (hit.mat === 'flesh') {
-        // mist that hangs for a moment, droplets that fall, and splats on what is behind
-        emit(dust, Math.round(22 * heavy), hit,
-          { color: '#7a0808', spread: 1.4, speed: 1.3, life: 0.55, size: 0.05, vary: 0.35, jitter: 0.06 })
+        // no mist hanging in the air: droplets that fly out and fall, and
+        // splats where they land (the wall behind, the floor underneath)
         const back = hit.normal.clone().negate()
         const spray = { point: hit.point, normal: back.clone().add(new THREE.Vector3(0, 0.35, 0)).normalize() }
-        emit(drops, Math.round(26 * heavy), spray,
-          { color: '#6d0404', spread: 1.1, speed: 3.2, life: 0.9, size: 0.014, vary: 0.4, jitter: 0.03 })
-        emit(drops, Math.round(8 * heavy), hit,
-          { color: '#6d0404', spread: 1.2, speed: 1.4, life: 0.7, size: 0.012, vary: 0.4, jitter: 0.03 })
+        emit(drops, Math.round(70 * heavy), spray,
+          { color: '#6d0404', spread: 1.2, speed: 3.6, life: 1.1, size: 0.02, vary: 0.5, jitter: 0.04 })
+        emit(drops, Math.round(24 * heavy), hit,
+          { color: '#6d0404', spread: 1.3, speed: 1.6, life: 0.9, size: 0.016, vary: 0.5, jitter: 0.04 })
         const splats = splatRef.current
         if (splats) {
           const place = (h, dirHint) => {
@@ -334,12 +333,21 @@ export function Impacts() {
             splats.instanceMatrix.needsUpdate = true
           }
           // the wall behind the victim
-          const wall = raycast(hit.point, back, 2.6)
-          if (wall && wall.box) place({ p: hit.point.clone().addScaledVector(back, wall.t), normal: wall.normal, k: 1 - wall.t / 3.5 }, new THREE.Vector3(1, 0.2, 0))
+          const wall = raycast(hit.point, back, 3.2)
+          if (wall && wall.box) {
+            const wp = hit.point.clone().addScaledVector(back, wall.t)
+            place({ p: wp, normal: wall.normal, k: 1.3 - wall.t / 3.5 }, new THREE.Vector3(1, 0.2, 0))
+            // a second, smaller one lower down, where it runs
+            place({ p: wp.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.3, -0.25 - Math.random() * 0.2, (Math.random() - 0.5) * 0.3)), normal: wall.normal, k: 0.6 }, new THREE.Vector3(0, -1, 0))
+          }
           // and the floor under them
           const floorOrigin = hit.point.clone().addScaledVector(back, 0.4)
           const down = raycast(floorOrigin, new THREE.Vector3(0, -1, 0), 2.5)
-          if (down) place({ p: floorOrigin.clone().setY(floorOrigin.y - down.t), normal: down.normal, k: 0.8 }, new THREE.Vector3(back.x, back.z, 0))
+          if (down) {
+            const fp = floorOrigin.clone().setY(floorOrigin.y - down.t)
+            place({ p: fp, normal: down.normal, k: 1.1 }, new THREE.Vector3(back.x, back.z, 0))
+            for (let k = 0; k < 2; k++) place({ p: fp.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.9 + back.x * 0.4, 0, (Math.random() - 0.5) * 0.9 + back.z * 0.4)), normal: down.normal, k: 0.5 }, new THREE.Vector3(back.x, back.z, 0))
+          }
         }
         continue
       }

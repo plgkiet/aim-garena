@@ -131,6 +131,14 @@ function slide(a, dt) {
   const h = a.ducking ? MOVE.heightDuck : MOVE.height
   const p = a.pos
 
+  // wedged inside geometry (stepped in between two stair treads, slid under
+  // a flight): lift out onto whatever is just above rather than staying stuck
+  if (hullBlocked(p.x, p.y, p.z, R, h)) {
+    for (let up = 0.1; up <= 0.61; up += 0.1) {
+      if (!hullBlocked(p.x, p.y + up, p.z, R, h)) { p.y += up; a.vel.y = 0; break }
+    }
+  }
+
   for (const axis of ['x', 'z']) {
     const d = a.vel[axis] * dt
     if (Math.abs(d) < 1e-7) continue

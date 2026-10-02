@@ -177,7 +177,8 @@ export function pose(ch, a, dt) {
   }
 
   // spine follows the aim pitch, spread over the vertebrae; lean forward in a crouch
-  const pitch = a.pitch
+  // defusing: crouched over the bomb, looking down at it, not folded in half
+  const pitch = a.defusing > 0 ? Math.max(a.pitch, -0.55) : a.pitch
   _right.set(Math.cos(a.yaw), 0, -Math.sin(a.yaw))
   const bend = -pitch * 0.55 + duck * 0.25 + move * 0.08
   for (let i = 1; i < 4; i++) {

@@ -1,12 +1,15 @@
 import { game, on } from '../game/state'
 import { inventory } from './inventory'
 
-/* Every enemy the local player kills earns one case opening, in every mode and
+/* Every enemy the local player kills earns one case opening (two for a headshot), in every mode and
    with any weapon (knife and grenade kills included). Team kills and deaths
    to the world earn nothing. */
-on('kill', ({ victim, attacker }) => {
+on('kill', ({ victim, attacker, info }) => {
   const me = game.local
   if (!me || attacker !== me || victim === me || victim.team === me.team) return
-  inventory.addSpins(1)
+  // a headshot is worth two
+  const n = info?.headshot ? 2 : 1
+  inventory.addSpins(n)
   game.spinToast = game.time
+  game.spinToastN = n
 })

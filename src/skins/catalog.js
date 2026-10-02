@@ -12,9 +12,9 @@ import { caseHardenedInfo } from './patterns'
    odds: Mil-Spec 79.92%, Restricted 15.98%, Classified 3.2%, Covert 0.64%
    and a knife 0.26%. Odds are split evenly inside a grade. */
 export const TIERS = [
-  { slug: 'milspec', label: 'Mil-Spec', vi: 'Quân dụng', color: '#4b69ff', odds: 79.92 },
+  { slug: 'milspec', label: 'Mil-Spec', vi: 'Quân dụng', color: '#4b69ff', odds: 72.12 },
   { slug: 'restricted', label: 'Restricted', vi: 'Hạn chế', color: '#8847ff', odds: 15.98 },
-  { slug: 'classified', label: 'Classified', vi: 'Tối mật', color: '#d32ce6', odds: 3.2 },
+  { slug: 'classified', label: 'Classified', vi: 'Tối mật', color: '#d32ce6', odds: 11 }   /* pink shows up and drops more often than CS's 3.2 */,
   { slug: 'covert', label: 'Covert', vi: 'Tuyệt mật', color: '#eb4b4b', odds: 0.64 },
   { slug: 'gold', label: '★ Rare Special', vi: 'Cực hiếm', color: '#e4ae39', odds: 0.26 },
   // above everything, like the Howl after 2014: never in a case, never traded up to
@@ -28,7 +28,9 @@ export const TIER_COLOR = Object.fromEntries(TIERS.map(t => [t.slug, t.color]))
    (see skinMaterial) so they catch the light like cut gems. */
 const GEM_LOOK = {
   ruby: { bright: 1.45, sat: 1.5, contrast: 1.1, hue: -8, metal: 0.35, rough: 0.12, iridescent: true },
-  sapphire: { bright: 2.1, sat: 1.35, contrast: 1.05, metal: 0.35, rough: 0.12, iridescent: true },
+  // the picture is the blade of the M9 model itself (its violet-indigo), so
+  // every Sapphire matches that knife; shown nearly as it is
+  sapphire: { bright: 1.2, sat: 1.15, contrast: 1.05, metal: 0.35, rough: 0.12, iridescent: true },
   emerald: { bright: 1.08, sat: 1.6, contrast: 1.2, metal: 0.3, rough: 0.12, iridescent: true },
 }
 
@@ -258,7 +260,7 @@ const FINISH = {
   fade: { name: 'Fade', pattern: 'fade', pal: ['#fff04d', '#ff8ad8', '#b44dff', '#5b2bff'], metal: 0.9, rough: 0.2 },
   doppler: { name: 'Doppler', pattern: 'doppler', pal: ['#0a0212', '#3b0a52', '#c1128c', '#ff5bd1', '#1b1f5a'], metal: 0.85, rough: 0.2 },
   ruby: { name: 'Doppler Ruby', pattern: 'doppler', pal: ['#1a0003', '#6e0010', '#e0102c', '#ff4d5e', '#3a0008'], metal: 0.9, rough: 0.18 },
-  sapphire: { name: 'Doppler Sapphire', pattern: 'doppler', pal: ['#00031a', '#001b6e', '#0a52ff', '#48a7ff', '#000b3a'], metal: 0.9, rough: 0.18 },
+  sapphire: { name: 'Doppler Sapphire', pattern: 'doppler', pal: ['#0a0524', '#2a148f', '#4b2fe0', '#b4a8ff', '#160a52'], metal: 0.9, rough: 0.18 },
   emerald: { name: 'Gamma Emerald', pattern: 'doppler', pal: ['#001207', '#00471f', '#00c853', '#7dff9c', '#002a12'], metal: 0.9, rough: 0.18 },
   gamma: { name: 'Gamma Doppler', pattern: 'doppler', pal: ['#02140a', '#0b5e3a', '#2cf5a1', '#b8ff3b', '#083b28'], metal: 0.85, rough: 0.2 },
   marble: { name: 'Marble Fade', pattern: 'marble', pal: ['#ffe600', '#ff2a00', '#fff4c2', '#1f4fff', '#ffe600'], metal: 0.85, rough: 0.22 },
@@ -270,7 +272,7 @@ const FINISH = {
   caseHardened: { name: 'Case Hardened', pattern: 'caseHardened', pal: ['#3f86e0'], seeded: true, metal: 0.8, rough: 0.24 },
   // gems: photographs of the stone (public/textures), painted by paintGem
   gemRuby: { name: 'Ruby', pattern: 'gem', image: '/textures/ruby.jpg', pal: ['#b0142e'], ...GEM_LOOK.ruby },
-  gemSapphire: { name: 'Sapphire', pattern: 'gem', image: '/textures/sapphire.jpg', pal: ['#1f4fd6'], ...GEM_LOOK.sapphire },
+  gemSapphire: { name: 'Sapphire', pattern: 'gem', image: '/textures/sapphire.jpg', pal: ['#4b2fe0'], ...GEM_LOOK.sapphire },
   gemEmerald: { name: 'Emerald', pattern: 'gem', image: '/textures/emerald.jpg', pal: ['#12a866'], ...GEM_LOOK.emerald },
   rust: { name: 'Rust Coat', pattern: 'gem', image: '/textures/rust.jpg', pal: ['#8a4a22'], metal: 0.45, rough: 0.8, sat: 1.1, contrast: 1.05, gloss: false },
 }
@@ -320,11 +322,12 @@ const modelKnife = (type, weaponName, f) => ({
 })
 
 export const MODEL_KNIVES = [
-  { id: 'knife_m9a', kind: 'knife', knife: 'm9a', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Doppler', model: true },
+  { id: 'knife_m9a', kind: 'knife', knife: 'm9a', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Sapphire', model: true },
   { id: 'knife_m9b', kind: 'knife', knife: 'm9b', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Autotronic', model: true },
   { id: 'knife_bfly', kind: 'knife', knife: 'bfly', tier: 'gold', weaponName: '★ Butterfly Knife', name: 'Crimson Web', model: true },
   ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
-  ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
+  // (no painted Sapphire: the M9's own look is the Sapphire)
+  ...['gemEmerald', 'gemRuby', 'caseHardened', 'blackPearl'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
   // the special one: a Bearbrick in the Jiangshi (cương thi) livery, held as a knife
   { id: 'knife_racket', kind: 'knife', knife: 'racket', tier: 'gold', weaponName: '★ Badminton Racket', name: 'Vợt Cầu Lông', model: true },
   { id: 'knife_iphone', kind: 'knife', knife: 'iphone', tier: 'gold', weaponName: '★ iPhone', name: 'Burgundy Red', model: true },
@@ -421,6 +424,11 @@ const LATE_GUN_SKINS = [
   // KAWS on the Glock: the half-dissected Companion over its graffiti wall, a
   // square around the head and torso (the Glock's side is about square once
   // squeezed with vSpan, as for the Lucky Cat)
+  // Gamma Doppler: the emerald stone on the slide only, the frame left black
+  skin('glock', 'Gamma Doppler', 'covert', 'gem', ['#12a866'], {
+    id: 'glock_gamma_doppler',
+    image: '/textures/emerald.jpg', ...GEM_LOOK.emerald, slideOnly: true,
+  }),
   skin('glock', 'KAWS', 'covert', 'gem', ['#1c1c1c'], {
     image: '/textures/kaws.jpg', fit: 'band', metal: 0.15, rough: 0.5, vSpan: 2,
     layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.97, crop: [0.17, 0.83], cropV: [0.05, 0.52], flip: true },
@@ -456,7 +464,7 @@ const LATE_GUN_SKINS = [
   // sit along the receiver and handguard, the car below), the city behind, the
   // two geese in the neon alley on the other (left unmirrored so it reads
   // right from there); the logo on the stock of both
-  skin('m4a4', 'MixiGaming', 'covert', 'gem', ['#b8a7c4'], {
+  skin('m4a4', 'MixiGaming FanArt', 'covert', 'gem', ['#b8a7c4'], {
     id: 'm4a4_mixigaming',
     image: '/textures/mixi_family.jpg', fit: 'band', metal: 0.15, rough: 0.5,
     layout: { plain: true, u0: 0.29, u1: 0.79, v0: 0.04, v1: 0.6, fill: [0, 0.22, 0.24, 0.6], fillH: 0.3, fillRows: true, flip: true },
@@ -616,6 +624,7 @@ export const LEGACY_IDS = {
   knife_flip_blueGem: 'knife_flip_caseHardened',
   knife_huntsman_blueGem: 'knife_huntsman_caseHardened',
   m4a1s_howl: 'm4a4_howl',
+  knife_m9a_gemSapphire: 'knife_m9a',
   deagle_water_lilies: 'usp_water_lilies',
 }
 

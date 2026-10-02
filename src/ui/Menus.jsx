@@ -140,11 +140,17 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
   const [mode, setMode] = useState(prefs.mode || "comp");
   // M4A1-S left the solo list for the M4A4; an old saved pick follows it
   // weapons since taken off the list map to what replaced them
-  const [aimWeapon, setAimWeapon] = useState({ m4a1s: "m4a4", ssg08: "p90" }[prefs.aimWeapon] || prefs.aimWeapon || "ak47");
+  const [aimWeapon, setAimWeapon] = useState({ m4a1s: "m4a4", ssg08: "p90", deagle: "ak47", usp: "ak47", glock: "ak47", p250: "ak47" }[prefs.aimWeapon] || prefs.aimWeapon || "ak47");
+  // the sidearm carried next to it
+  const [aimPistol, setAimPistol] = useState(["usp", "glock", "deagle", "p250"].includes(prefs.aimPistol) ? prefs.aimPistol : "usp");
   const [aimBots, setAimBots] = useState(prefs.aimBots || 1);
   const [aimRounds, setAimRounds] = useState(prefs.aimRounds || 10);
   const [aimMap, setAimMap] = useState(prefs.aimMap === "aim" ? "aim" : "arena");
   const [loading, setLoading] = useState(false);
+  // every choice is remembered as it is made, not only when a match starts
+  useEffect(() => {
+    patchPrefs({ team, difficulty: diff, maxRounds: rounds, teamSize: size, mode, aimWeapon, aimPistol, aimBots, aimRounds, aimMap });
+  }, [team, diff, rounds, size, mode, aimWeapon, aimPistol, aimBots, aimRounds, aimMap]);
 
   const start = async () => {
     const aim = mode === "aim";
@@ -157,6 +163,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
       playerName: name.trim() || "Bạn",
       maxRounds: aim ? aimRounds * 2 - 1 : rounds,
       aimWeapon,
+      aimPistol,
       aimBots,
       aimMap,
     };
@@ -196,6 +203,25 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
 
   return (
     <div className="menu plgk lobby">
+      {(loading || !NAV.ready) && (
+        <div className="loading-screen">
+          <div className="loading-screen__grid" aria-hidden="true" />
+          <div className="loading-screen__mark" aria-hidden="true"><i /><i /><i /><i /><b /></div>
+          <div className="loading-screen__title">
+            <div className="logo">
+              AIM<span>·</span>GARENA
+            </div>
+            <em>shot match</em>
+          </div>
+          <div className="loading-screen__bar"><i /></div>
+          <p className="loading-screen__msg">Đang tải map</p>
+          <ul className="loading-screen__tags">
+            <li>FANMADE GAME</li>
+            <li>FOR FUN</li>
+            <li>NON COMMERCIAL</li>
+          </ul>
+        </div>
+      )}
       <div className="menu-card menu-main">
         <header className="mm-head">
           <div>
@@ -243,7 +269,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
                     ))}
                   </Field>
                   <Field label="Súng" wide>
-                    {["ak47", "m4a4", "awp", "p90", "deagle", "usp"].map(
+                    {["ak47", "m4a4", "awp", "p90"].map(
                       (id) => (
                         <button
                           key={id}
@@ -254,6 +280,13 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
                         </button>
                       ),
                     )}
+                  </Field>
+                  <Field label="Súng lục (vũ khí phụ)" wide>
+                    {["usp", "glock", "deagle", "p250"].map((id) => (
+                      <button key={id} className={aimPistol === id ? "on" : ""} onClick={() => setAimPistol(id)}>
+                        {W[id].name}
+                      </button>
+                    ))}
                   </Field>
                   <Field label="Số bot">
                     {[1, 2, 3, 5].map((n) => (

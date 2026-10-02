@@ -141,6 +141,13 @@ function Tile({ item }) {
   );
 }
 
+/* The case's contents for the list under the reel: guns by grade, commonest
+   first; the rare specials get one tile of their own. */
+const GRADE = { milspec: 0, restricted: 1, classified: 2, covert: 3 };
+const CONTENTS = {
+  guns: CASE.items.filter((i) => i.kind === "gun").sort((p, q) => GRADE[p.tier] - GRADE[q.tier]),
+};
+
 export function CaseOpen({ onBack, onInventory }) {
   const items = CASE.items;
   const [idle, setIdle] = useState([]);
@@ -350,6 +357,16 @@ export function CaseOpen({ onBack, onInventory }) {
               SourceSounds
             </a>
           </span>
+          <span className="case-credit">
+            Respect to{" "}
+            <a
+              href="https://github.com/truanayangi-com"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Truanayangi
+            </a>
+          </span>
         </div>
 
         <div className="case-panel">
@@ -415,6 +432,21 @@ export function CaseOpen({ onBack, onInventory }) {
             </p>
           </div>
         )}
+        {/* what the case can drop, as CS:GO lists it under the case: every gun
+            finish from the commonest grade up, then one gold tile standing in
+            for all the rare specials (knives and gloves) */}
+        <section className="case-contents">
+          <h3>Vật phẩm trong hòm</h3>
+          <div className="case-contents__grid">
+            {CONTENTS.guns.map((it) => (
+              <MiniItem key={it.id} item={it} />
+            ))}
+            <div className="mini-item mini-item--gold spin-tile--gold">
+              <img src="/textures/rare_special.png" alt="" />
+              <span>★ Rare Special Item ★</span>
+            </div>
+          </div>
+        </section>
       </div>
 
       {revealed && result && (

@@ -335,6 +335,14 @@ export function buildKnifeModel(type, finish = null) {
   const g = new THREE.Group()
   g.name = `knife_${type}`
   const blades = BUILD[type](g)
+  // the Flip Knife is carried edge up: turn it over about its length
+  if (type === 'flip') {
+    const turned = new THREE.Group()
+    turned.rotation.y = Math.PI
+    for (const c of [...g.children]) turned.add(c)
+    g.add(turned)
+    g.updateMatrixWorld(true)
+  }
   if (finish) paintMeshes(g, blades, finish, 'y')
   g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.frustumCulled = false } })
   return g

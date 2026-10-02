@@ -63,7 +63,9 @@ function bake() {
         last = f
         const k = l * NN + j * NX + i
         H[k] = f
-        WALK[k] = hullBlocked(x, f + STEP - 0.2, z, R, 1.8 - STEP + 0.2) ? 0 : 1
+        // anything taller than a step in the way (a low tread under a staircase,
+        // a kerb) makes the cell unwalkable: the hull test's own skin would miss it
+        WALK[k] = hullBlocked(x, f, z, R, 1.8, STEP + 0.02) ? 0 : 1
         l++
       }
     }

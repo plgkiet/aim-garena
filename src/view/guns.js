@@ -788,9 +788,18 @@ function pistol(g, M, kind) {
   const frameMat = kind === 'usp' || kind === 'glock' ? M.polymer : M.black
   const len = big ? 0.25 : kind === 'usp' ? 0.19 : 0.18
   const h = big ? 0.045 : 0.033
-  const gripR = pistolGrip(g, frameMat, { h: big ? 0.11 : 0.1, rake: 0.3, w: big ? 0.034 : 0.028 })
-  triggerGuard(g, frameMat, -0.035, 0.008)
-  box(g, frameMat, [0.026, 0.025, len * 0.8], [0, 0.028, -len * 0.4 + 0.02])     // frame
+  // frame and grip as one piece (a raked grip box under a frame box left its
+  // corner poking into the trigger guard): dust cover, grip, beavertail
+  const F = -len * 0.8 + 0.02, drop = big ? 0.01 : 0
+  profile(g, frameMat, [
+    [0.034, 0.0405], [F, 0.0405], [F, 0.016], [-0.026, 0.016],
+    [0.0048, -0.0846 - drop], [0.0488, -0.071 - drop], [0.022, 0.018], [0.034, 0.026],
+  ], big ? 0.034 : 0.028)
+  const gripR = { pos: V(0, -0.025, 0.012), dir: V(0, Math.cos(0.3), -Math.sin(0.3)) }
+  // trigger guard loop, joined to the frame in front and the grip behind
+  box(g, frameMat, [0.008, 0.006, 0.058], [0, -0.012, -0.041])
+  box(g, frameMat, [0.008, 0.03, 0.006], [0, 0.002, -0.069])
+  box(g, M.black, [0.004, 0.02, 0.005], [0, 0.004, -0.04], [0.35, 0, 0])           // trigger
   const slide = new THREE.Group()
   box(slide, slideMat, [big ? 0.034 : 0.027, h, len], [0, 0.04 + h / 2 + 0.002, -len / 2 + 0.04])
   box(slide, M.black, [0.006, 0.008, 0.008], [0, 0.04 + h + 0.006, -len + 0.05])  // front sight
@@ -799,7 +808,7 @@ function pistol(g, M, kind) {
   g.add(slide)
   if (kind === 'usp') cyl(g, M.dark, 0.016, 0.16, [0, 0.055, -len - 0.04])
   const mag = new THREE.Group()
-  mag.position.set(0, -0.085, 0.03)
+  mag.position.set(0, -0.085 - drop, 0.03)
   box(mag, M.dark, [0.022, 0.03, 0.04], [0, 0, 0], [-0.3, 0, 0])
   g.add(mag)
   return {
@@ -922,7 +931,10 @@ export function buildGun(id, { shadows = false, skin = null } = {}) {
       // a painting covers the chrome too (the Deagle's slide)
       ...(skin.paintChrome ? [M.chrome] : [])])
     const parts = []
-    g.traverse(o => { if (o.isMesh && paintable.has(o.material)) parts.push(o) })
+    // `slideOnly`: just the slide wears the finish, the frame stays stock
+    // (the Glock's Gamma Doppler)
+    if (skin.slideOnly && info.slide) info.slide.traverse(o => { if (o.isMesh) parts.push(o) })
+    else g.traverse(o => { if (o.isMesh && paintable.has(o.material)) parts.push(o) })
     paintMeshes(g, parts, skin, 'z')
   }
   if (info.sight) clearSightLine(g, info.sight)

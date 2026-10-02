@@ -19,9 +19,9 @@ const DOWN = new THREE.Vector3(0, -1, 0)
 const UP = new THREE.Vector3(0, 1, 0)
 
 /** Does a hull (feet at y, half-width r, height h) intersect the map? */
-export function hullBlocked(x, y, z, r, h) {
+export function hullBlocked(x, y, z, r, h, skin = SKIN) {
   if (!level.bvh) return false
-  _box.min.set(x - r, y + SKIN, z - r)
+  _box.min.set(x - r, y + skin, z - r)
   _box.max.set(x + r, y + h, z + r)
   if (_box.max.y <= _box.min.y) return false
   return level.bvh.intersectsBox(_box, IDENTITY)
