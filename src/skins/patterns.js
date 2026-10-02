@@ -729,7 +729,12 @@ function paintGem(g, skin, img, extra = {}) {
     for (const e of skin.emblems ?? []) { const src = e.image ? extra[e.image] : img; if (src) paintEmblem(g, e, src) }
     return
   }
-  if (skin.fit === 'decal') return paintDecal(g, skin, img)
+  if (skin.fit === 'decal') {
+    paintDecal(g, skin, img)
+    // stickers on top of the photo
+    for (const e of skin.emblems ?? []) { const src = e.image ? extra[e.image] : img; if (src) paintEmblem(g, e, src) }
+    return
+  }
   if (skin.fit === 'tile') {
     g.filter = `saturate(${skin.sat ?? 1}) brightness(${skin.bright ?? 1})`
     paintTile(g, skin, img)

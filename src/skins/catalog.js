@@ -178,6 +178,30 @@ export const GUN_SKINS = [
       { crop: [0.22, 0.12, 0.78, 0.89], at: [0.77, 0.21], h: 0.9, w: 0.17, rot: -Math.PI / 2 }, // the snake
     ],
   }),
+  // Gold Arabesque: a side photo of the real skin laid on like Wild Lotus,
+  // pinned at the same landmarks: gold metal, the carved dark furniture
+  skin('ak47', 'Gold Arabesque', 'covert', 'gem', ['#c9a227'], {
+    image: '/textures/gold_arabesque.png', fit: 'decal', metal: 0.75, rough: 0.32,
+    decal: { left: 20, right: 1475, bottom: 440, sy: 1.05, bleed: 24, pins: [[68, 0.075], [238, 0.224], [625, 0.423], [820, 0.569], [988, 0.608], [1063, 0.681], [1075, 0.733]] },
+    // four Katowice 2014 stickers along the side: one on the handguard,
+    // three down the receiver
+    emblems: [
+      { image: '/textures/sticker_navi_kato14.png', crop: [0.08, 0.1, 0.92, 0.9], h: 0.105, flip: true, at: [0.315, 0.482] },
+      { image: '/textures/sticker_navi_kato14.png', crop: [0.08, 0.1, 0.92, 0.9], h: 0.105, flip: true, at: [0.47, 0.482] },
+      { image: '/textures/sticker_navi_kato14.png', crop: [0.08, 0.1, 0.92, 0.9], h: 0.105, flip: true, at: [0.565, 0.482] },
+      { image: '/textures/sticker_navi_kato14.png', crop: [0.08, 0.1, 0.92, 0.9], h: 0.105, flip: true, at: [0.66, 0.482] },
+    ],
+    // the other side: the same photo, its stickers unmirrored so they read
+    // right from there too
+    back: {
+      emblems: [
+        { image: '/textures/sticker_navi_kato14.png', crop: [0.08, 0.1, 0.92, 0.9], h: 0.105, at: [0.315, 0.482] },
+        { image: '/textures/sticker_navi_kato14.png', crop: [0.08, 0.1, 0.92, 0.9], h: 0.105, at: [0.47, 0.482] },
+        { image: '/textures/sticker_navi_kato14.png', crop: [0.08, 0.1, 0.92, 0.9], h: 0.105, at: [0.565, 0.482] },
+        { image: '/textures/sticker_navi_kato14.png', crop: [0.08, 0.1, 0.92, 0.9], h: 0.105, at: [0.66, 0.482] },
+      ],
+    },
+  }),
   // a side photo of the real skin laid on muzzle to butt, like Fire Serpent,
   // pinned landmark by landmark onto the model (measured off the photo's
   // outline and the model's UVs): front sight, handguard front, the
