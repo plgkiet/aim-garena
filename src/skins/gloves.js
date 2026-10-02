@@ -121,19 +121,55 @@ function cuffTexture(G) {
   })
 }
 
+/* `logo`: a picture set on the back of the hand once it has loaded, turned
+   so it stands upright when the fingers point up (the panel's u runs along
+   the hand). `logo.crop` [x0, y0, x1, y1] picks the part of the file. */
+function withLogo(tex, G, side) {
+  if (!G.logo) return tex
+  // `logo.left` / `logo.right`: a different picture on each hand
+  const L = G.logo[side] ?? G.logo
+  const img = new Image()
+  img.onload = () => {
+    const g = tex.image.getContext('2d')
+    const [x0, y0, x1, y1] = L.crop ?? [0, 0, 1, 1]
+    const sw = (x1 - x0) * img.width, sh = (y1 - y0) * img.height
+    const size = SIZE * (L.size ?? 0.62)
+    // a stitched-on patch: the picture cut to a rounded card with a light
+    // border, slid along the hand (`shift`, negative toward the wrist) so the knuckle pad clears it
+    const w = size, h = size * sh / sw
+    g.save()
+    // `across` nudges it across the hand, to sit centred on the panel that shows
+    g.translate(SIZE / 2 + (L.shift ?? 0) * SIZE, SIZE / 2 + (L.across ?? 0) * SIZE)
+    g.rotate((L.turn ?? 1) * Math.PI / 2)
+    // the left hand is the right one mirrored: mirror its picture back
+    if (side === 'left') g.scale(-1, 1)
+    g.beginPath(); g.roundRect(-w / 2, -h / 2, w, h, 14); g.closePath()
+    g.save(); g.clip()
+    g.drawImage(img, x0 * img.width, y0 * img.height, sw, sh, -w / 2, -h / 2, w, h)
+    g.restore()
+    g.lineWidth = 6; g.strokeStyle = L.border ?? '#f4f1ea'; g.stroke()
+    g.restore()
+    tex.needsUpdate = true
+  }
+  img.src = L.src
+  return tex
+}
+
 /** The rig materials for a glove item: finger, fingertip, back panel, pads, cuff. */
-export function gloveMaterials(item) {
-  if (cache.has(item.id)) return cache.get(item.id)
+export function gloveMaterials(item, side = 'right') {
+  // a glove with a picture per hand gets its own materials for each
+  const key = item.glove.logo?.left ? `${item.id}:${side}` : item.id
+  if (cache.has(key)) return cache.get(key)
   const G = item.glove
   const std = (o) => new THREE.MeshStandardMaterial({ roughness: 0.62, metalness: 0.05, ...o })
   const finger = std({ map: fingerTexture(G) })
   const M = {
     glove: finger,
     tip: G.tip ? std({ color: G.tip }) : finger,
-    panel: std({ map: panelTexture(G), roughness: 0.7 }),
+    panel: std({ map: withLogo(panelTexture(G), G, side), roughness: 0.7 }),
     pad: std({ color: G.pad, roughness: G.type === 'moto' ? 0.35 : 0.6, metalness: G.type === 'moto' ? 0.2 : 0.05 }),
     cuff: std({ map: cuffTexture(G) }),
   }
-  cache.set(item.id, M)
+  cache.set(key, M)
   return M
 }

@@ -85,7 +85,7 @@ function glovePair(item) {
   const pair = new THREE.Group()
   for (const side of ['left', 'right']) {
     const h = buildHand({ side, glove: item, bare: true, size: 1 })
-    h.setPose('open', 0.6)
+    h.setPose('open', 0.75)
     // hand space: fingers down -Z, back of the hand out along +X (the left
     // hand's along -X, so it turns round to show its back too)
     const turn = new THREE.Group()
@@ -93,8 +93,8 @@ function glovePair(item) {
     turn.rotation.set(Math.PI / 2, side === 'right' ? Math.PI : 0, 0, 'YXZ')
     const tilt = new THREE.Group()
     tilt.add(turn)
-    tilt.rotation.x = side === 'left' ? -0.32 : 0.32
-    tilt.position.z = side === 'left' ? -0.075 : 0.075
+    tilt.rotation.x = side === 'left' ? -0.2 : 0.2
+    tilt.position.z = side === 'left' ? -0.06 : 0.06
     pair.add(tilt)
   }
   // seen from the other side: the backs of both gloves with their knuckle

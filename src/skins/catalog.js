@@ -274,6 +274,16 @@ const FINISH = {
   gemRuby: { name: 'Ruby', pattern: 'gem', image: '/textures/ruby.jpg', pal: ['#b0142e'], ...GEM_LOOK.ruby },
   gemSapphire: { name: 'Sapphire', pattern: 'gem', image: '/textures/sapphire.jpg', pal: ['#4b2fe0'], ...GEM_LOOK.sapphire },
   gemEmerald: { name: 'Emerald', pattern: 'gem', image: '/textures/emerald.jpg', pal: ['#12a866'], ...GEM_LOOK.emerald },
+  // MixiGaming fan art, two-sided: the whole squad lined up along the blade
+  // on one side, the goose with the knife on the other
+  mixi: {
+    name: 'MixiGaming FanArt', pattern: 'gem', image: '/textures/mixi_squad.jpg', fit: 'band', pal: ['#d6d6da'], metal: 0.25, rough: 0.4,
+    layout: { plain: true, u0: 0.4, u1: 1, v0: -0.015, v1: 0.27, crop: [0.05, 0.97], cropV: [0.25, 0.78] },
+    back: {
+      image: '/textures/mixi_goose_knife.jpg', pal: ['#0f2a55'],
+      layout: { plain: true, u0: 0.4, u1: 1, v0: 0.05, v1: 0.35, crop: [0.18, 0.92], cropV: [0.26, 0.72] },
+    },
+  },
   rust: { name: 'Rust Coat', pattern: 'gem', image: '/textures/rust.jpg', pal: ['#8a4a22'], metal: 0.45, rough: 0.8, sat: 1.1, contrast: 1.05, gloss: false },
 }
 
@@ -327,7 +337,7 @@ export const MODEL_KNIVES = [
   { id: 'knife_bfly', kind: 'knife', knife: 'bfly', tier: 'gold', weaponName: '★ Butterfly Knife', name: 'Crimson Web', model: true },
   ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
   // (no painted Sapphire: the M9's own look is the Sapphire)
-  ...['gemEmerald', 'gemRuby', 'caseHardened', 'blackPearl'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
+  ...['gemEmerald', 'gemRuby', 'caseHardened', 'blackPearl', 'mixi'].map(f => modelKnife('m9a', '★ M9 Bayonet', f)),
   // the special one: a Bearbrick in the Jiangshi (cương thi) livery, held as a knife
   { id: 'knife_racket', kind: 'knife', knife: 'racket', tier: 'gold', weaponName: '★ Badminton Racket', name: 'Vợt Cầu Lông', model: true },
   { id: 'knife_iphone', kind: 'knife', knife: 'iphone', tier: 'gold', weaponName: '★ iPhone', name: 'Burgundy Red', model: true },
@@ -457,6 +467,21 @@ const LATE_GUN_SKINS = [
     back: {
       layout: { plain: true, u0: 0, u1: 1, v0: 0, v1: 0.61, crop: [0, 1], cropV: [0.72, 1], flip: false },
       emblems: [],
+    },
+  }),
+  // MixiGaming fan art on the Deagle, two-sided, each picture at its own
+  // aspect across the whole side (faces on the slide): the family walk under
+  // the ginkgo on your side, the two geese at the haunted church on the
+  // other (unmirrored, so it reads right from there); the logo on the grip
+  skin('deagle', 'MixiGaming FanArt', 'covert', 'gem', ['#e9b949'], {
+    id: 'deagle_mixigaming',
+    image: '/textures/mixi_walk.jpg', fit: 'band', metal: 0.15, rough: 0.5, vSpan: 2, paintChrome: true,
+    layout: { plain: true, u0: 0, u1: 1, v0: 0.3, v1: 0.805, fill: [0, 0.82, 1, 1], fillH: 0.25, fillRows: true, flip: true },
+    emblems: [{ image: '/textures/mixi_logo.png', crop: [0.1, 0.2, 0.93, 0.85], at: [0.905, 0.27], h: 0.075, disc: null, flip: true }],
+    back: {
+      image: '/textures/mixi_halloween.jpg', pal: ['#5a1f7a'],
+      layout: { plain: true, u0: 0, u1: 1, v0: 0.29, v1: 0.81, crop: [0.02, 0.98], cropV: [0.4, 0.9], fill: [0.38, 0.6, 0.62, 0.78], fillH: 0.25, fillRows: true, flip: false },
+      emblems: [{ image: '/textures/mixi_logo.png', crop: [0.1, 0.2, 0.93, 0.85], at: [0.905, 0.27], h: 0.075 }],
     },
   }),
   // MixiGaming, two-sided, fan art at its own aspect: the family in the red
@@ -597,6 +622,16 @@ export const GLOVES = [
   glove('sport', 'Vice', {
     finger: '#e8459a', finger2: '#f070b4', panel: '#5d6b62', tri: true, mesh: 'rgba(25,32,30,0.55)', dash: '#4fd6e0',
     frame: '#e8459a', pad: '#4fd6e0', cuff: '#e8459a', trim: '#4fd6e0',
+  }),
+  // MixiGaming: black and red, a fan art on the back of each hand (the camel
+  // ride on the left, Mixi at his desk on the right)
+  glove('sport', 'MixiGaming FanArt', {
+    finger: '#17171a', finger2: '#a51c24', tip: '#c8202a', panel: '#17171a', mesh: 'rgba(200,32,42,0.28)', dash: 'rgba(0,0,0,0)',
+    frame: '#c8202a', pad: '#222226', cuff: '#17171a', trim: '#c8202a',
+    logo: {
+      left: { src: '/textures/mixi_glove_l.jpg', crop: [0, 0.1, 1, 0.82], size: 0.56, shift: -0.1, across: -0.01 },
+      right: { src: '/textures/mixi_glove_r.jpg', crop: [0.3, 0.215, 0.9, 0.765], size: 0.56, shift: -0.1, across: -0.01 },
+    },
   }),
   glove('driver', 'King Snake', {
     finger: '#d6cfbb', panel: '#8f8877', scales: ['#3e3a33', '#857e6d', '#d6d0bf'], pad: '#c9a85a',

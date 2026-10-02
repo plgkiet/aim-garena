@@ -63,7 +63,7 @@ function capsule(r, len, mat) {
  * @param {number} o.haft  radius of the handle this hand closes on
  */
 export function buildHand({ side = 'right', team = 'T', haft = 0.018, size = 0.88, maxWrist = MAX_WRIST, glove = null, bare = false } = {}) {
-  const M = glove ? { ...mats(team), ...gloveMaterials(glove) } : mats(team)
+  const M = glove ? { ...mats(team), ...gloveMaterials(glove, side) } : mats(team)
   const group = new THREE.Group()                    // placed by the viewmodel
   const mirror = new THREE.Group()                   // left = right reflected in X
   // `size` scales the whole arm; the grip solve below runs in unscaled hand units
@@ -85,7 +85,10 @@ export function buildHand({ side = 'right', team = 'T', haft = 0.018, size = 0.8
     }
     palmGeo.computeVertexNormals()
   }
-  const palm = new THREE.Mesh(palmGeo, M.panel ?? M.glove)
+  // a glove's printed panel goes on the back of the hand only (the box's +X
+  // face, its first material group); the sides and the palm stay plain
+  const palm = new THREE.Mesh(palmGeo, M.panel && palmGeo.groups.length === 6
+    ? [M.panel, M.glove, M.glove, M.glove, M.glove, M.glove] : M.panel ?? M.glove)
   palm.position.set(0, 0, -PALM.l / 2 + 0.004)
   mirror.add(palm)
   const pad = new THREE.Mesh(new RoundedBoxGeometry(0.006, PALM.h * 0.86, 0.026, 2, 0.003), M.pad)

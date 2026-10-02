@@ -66,6 +66,14 @@ export function Inventory({ onBack, onCase, onTradeUp, onGallery, onOpen }) {
               Dọn full skin
             </button>
             {/* END TEST ONLY */}
+            {/* the whole MixiGaming set at once: M4A4, Deagle, M9 Bayonet, gloves */}
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm btn--led"
+              onClick={() => ITEMS.filter((it) => it.name === "MixiGaming FanArt").forEach((it) => inventory.add(it.id))}
+            >
+              Nhận skin MixiGaming
+            </button>
             <button
               type="button"
               className="btn btn--ghost btn--sm btn--led"
