@@ -314,7 +314,7 @@ export function CaseOpen({ onBack, onInventory }) {
     setPhase("spinning");
     // a Case Hardened drop gets its pattern now, so the reel shows the real one
     const drawn = drawItem(items);
-    const item = drawn.seeded ? variantOf(drawn, rollPattern()) : drawn;
+    const item = drawn.seeded ? variantOf(drawn, rollPattern(drawn)) : drawn;
     pendingRef.current = item;
     setResult(null);
     // the winning tile's picture must exist before it slides into view
@@ -325,7 +325,7 @@ export function CaseOpen({ onBack, onInventory }) {
 
   const draw = () => {
     const drawn = drawItem(items);
-    return drawn.seeded ? variantOf(drawn, rollPattern()) : drawn;
+    return drawn.seeded ? variantOf(drawn, rollPattern(drawn)) : drawn;
   };
 
   /* Open up to ten in a row: every key is spent and every item drawn now,

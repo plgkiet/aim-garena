@@ -6,9 +6,11 @@ import * as THREE from 'three'
 
      sport       bright fingers, a dark breathable mesh down the back of the
                  hand with rows of reflective dashes along each finger, a
-                 contrasting frame round the panel (Pandora's Box, Hedge Maze)
+                 contrasting frame round the panel (Pandora's Box, Hedge Maze);
+                 `blobs` prints ringed pond-skin cells for the mesh (Amphibious)
      moto        white fingers, a printed back panel (shards of camo with a
-                 stroke across it) under a hard black knuckle guard (Spearmint)
+                 stroke across it) under a hard black knuckle guard (Spearmint);
+                 `poly` prints a grid of cut squares instead (Polygon)
      specialist  one colour all over, perforated, with ribbed stripes of a
                  second colour down the back (Crimson Kimono)
      driver      perforated leather fingers and a snakeskin back (King Snake)
@@ -48,7 +50,28 @@ function dots(g, color, step, r) {
 function panelTexture(G) {
   return canvas(g => {
     g.fillStyle = G.panel; g.fillRect(0, 0, SIZE, SIZE)
-    if (G.type === 'moto') {
+    if (G.type === 'moto' && G.poly) {
+      // Polygon: a grid of squares, each cut corner to corner (or into a
+      // smaller square and its corners) and filled in a few shades of one colour
+      const r = rand(G.seed ?? 7)
+      const n = 16, pick = () => G.poly[(r() * G.poly.length) | 0]
+      for (let y = 0; y < SIZE; y += n) for (let x = 0; x < SIZE; x += n) {
+        g.fillStyle = pick(); g.fillRect(x, y, n, n)
+        const k = r()
+        g.fillStyle = pick()
+        g.beginPath()
+        if (k < 0.3) { g.moveTo(x, y); g.lineTo(x + n, y); g.lineTo(x, y + n) }
+        else if (k < 0.6) { g.moveTo(x + n, y); g.lineTo(x + n, y + n); g.lineTo(x, y + n) }
+        else if (k < 0.8) { g.moveTo(x, y); g.lineTo(x + n, y + n); g.lineTo(x, y + n) }
+        else { g.moveTo(x + n / 2, y); g.lineTo(x + n, y + n / 2); g.lineTo(x + n / 2, y + n); g.lineTo(x, y + n / 2) }
+        g.closePath(); g.fill()
+      }
+      // the pale seam that sweeps across the back of the hand under the guard
+      if (G.stroke) {
+        g.strokeStyle = G.stroke; g.lineWidth = 7; g.lineCap = 'round'
+        g.beginPath(); g.moveTo(SIZE * 0.42, 14); g.quadraticCurveTo(SIZE * 0.3, SIZE * 0.5, SIZE * 0.46, SIZE - 14); g.stroke()
+      }
+    } else if (G.type === 'moto') {
       // camo shards, then the stroke across them
       const r = rand(G.seed ?? 7)
       for (let i = 0; i < 90; i++) {
@@ -79,7 +102,18 @@ function panelTexture(G) {
     } else {
       // sport: breathable mesh (dots, or a moulded triangle grid), then the
       // reflective dashes, one row per finger
-      if (G.tri) {
+      if (G.blobs) {
+        // Amphibious: a pond-skin print, rounded cells of a deeper colour,
+        // each ringed in a pale line, some with a smaller ring inside
+        const r = rand(G.seed ?? 5)
+        for (let i = 0; i < 150; i++) {
+          const x = r() * SIZE, y = r() * SIZE, a = 7 + r() * 17, b = a * (0.55 + r() * 0.5)
+          g.beginPath(); g.ellipse(x, y, a, b, r() * Math.PI, 0, Math.PI * 2)
+          g.fillStyle = G.blobs[(r() * G.blobs.length) | 0]; g.fill()
+          g.strokeStyle = G.mesh; g.lineWidth = 2; g.stroke()
+          if (r() < 0.4) { g.beginPath(); g.ellipse(x, y, a * 0.4, b * 0.4, 0, 0, Math.PI * 2); g.stroke() }
+        }
+      } else if (G.tri) {
         g.strokeStyle = G.mesh; g.lineWidth = 1.4
         for (let y = 0; y < SIZE; y += 10) for (let x = (y / 10) % 2 ? 6 : 0; x < SIZE; x += 12) {
           g.beginPath(); g.moveTo(x, y + 9); g.lineTo(x + 6, y + 1); g.lineTo(x + 12, y + 9); g.closePath(); g.stroke()

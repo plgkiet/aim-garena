@@ -682,6 +682,12 @@ export const GLOVES = [
       right: { src: '/textures/mixi_glove_r.jpg', crop: [0.3, 0.215, 0.9, 0.765], size: 0.5, shift: -0.08, across: -0.01 },
     },
   }),
+  // Amphibious: sky-blue fingers, a pond-skin print of deep blue cells ringed
+  // in pale blue down the back, white dashes, white frame and wrist
+  glove('sport', 'Amphibious', {
+    finger: '#1f5fd6', finger2: '#2f74e8', panel: '#1f4fd8', blobs: ['#1a2cc0', '#2238cc', '#4a3cc8', '#1634a8'], mesh: '#4fb0f0', dash: '#ffffff',
+    frame: '#e9eef6', pad: '#2458d8', cuff: '#e9eef6', trim: '#1f5fd6', seed: 9,
+  }),
   glove('driver', 'King Snake', {
     finger: '#d6cfbb', panel: '#8f8877', scales: ['#3e3a33', '#857e6d', '#d6d0bf'], pad: '#c9a85a',
     cuff: '#d6cfbb', trim: '#a89f88', seed: 5,
@@ -689,6 +695,12 @@ export const GLOVES = [
   glove('moto', 'Spearmint', {
     finger: '#eef1f3', panel: '#7fd6cf', camo: ['#3fb8b0', '#a9ece6', '#e8faf8', '#2c8f8a', '#5ccac2'], stroke: '#e0453a',
     pad: '#1c1d20', cuff: '#2a2c30', trim: '#7fd6cf', seed: 11,
+  }),
+  // Polygon: navy leather fingers and a hard navy knuckle guard over a print
+  // of cut squares in blues, with a pale seam swept across it
+  glove('moto', 'Polygon', {
+    finger: '#232f7c', panel: '#3f7ae6', poly: ['#3f7ae6', '#5b93f2', '#243a9e', '#2f5fd0', '#6aa2f5', '#1f2f86'], stroke: '#a9c4f2',
+    pad: '#2238a6', cuff: '#2a47b8', trim: '#5b93f2', seed: 4,
   }),
   glove('specialist', 'Crimson Kimono', {
     finger: '#d4243c', finger2: '#e2334a', panel: '#c81f37', mesh: 'rgba(40,10,40,0.45)', dash: '#2a1f4a',
@@ -717,7 +729,43 @@ export const LEGACY_IDS = {
    drops. The variant carries its own id so its texture and picture are its
    own, and is named Blue Gem when the pattern came out nearly all blue. */
 export const PATTERN_MAX = 1000
-export const rollPattern = () => 1 + Math.floor(Math.random() * PATTERN_MAX)
+
+/* Blue Gems. A pattern number is a gem or it is not (caseHardenedInfo), 33 of
+   the 1000 are; the AK-47 rolls its number evenly, so 3.3% of Case Hardened
+   AKs are gems. There are eight Case Hardened knives to the one AK, and a
+   knife is not that much rarer than a Covert, so rolled the same way a knife
+   gem would come out about three times as often as an AK gem. Instead the
+   knives' roll is weighted so that a Blue Gem knife (all eight together)
+   drops exactly as often as a Blue Gem AK: about once in 25,000 cases each. */
+let gemTable = null
+function gemOdds() {
+  if (gemTable) return gemTable
+  const gems = [], plain = []
+  for (let n = 1; n <= PATTERN_MAX; n++) (caseHardenedInfo(n).gem ? gems : plain).push(n)
+  const base = gems.length / PATTERN_MAX
+  // how often a case gives a Case Hardened gun, and a Case Hardened knife
+  const perCase = kind => {
+    let p = 0
+    for (const slug of ['covert', 'gold']) {
+      const pool = CASE.items.filter(i => i.tier === slug)
+      const rest = pool.filter(i => !isJackpot(i))
+      const mine = rest.filter(i => i.seeded && i.kind === kind).length
+      if (mine) p += (tierBySlug(slug).odds - (JACKPOT_ODDS[slug] ?? 0)) * mine / rest.length
+    }
+    return p
+  }
+  const gun = perCase('gun'), knifeP = perCase('knife')
+  gemTable = { gems, plain, gun: base, knife: knifeP > 0 && gun > 0 ? Math.min(base, base * gun / knifeP) : base }
+  return gemTable
+}
+
+/** A pattern number for a Case Hardened drop (see above for the knives). */
+export function rollPattern(item) {
+  const t = gemOdds()
+  if (!t.gems.length || !t.plain.length) return 1 + Math.floor(Math.random() * PATTERN_MAX)
+  const from = Math.random() < (item?.kind === 'knife' ? t.knife : t.gun) ? t.gems : t.plain
+  return from[Math.floor(Math.random() * from.length)]
+}
 
 export function variantOf(item, patternNo) {
   if (!item?.seeded || !patternNo) return item

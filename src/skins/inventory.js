@@ -41,7 +41,7 @@ function patternFor(drop) {
   for (const ch of drop.uid) h = (h * 31 + ch.charCodeAt(0)) >>> 0
   return 1 + (h % 1000)
 }
-const withPattern = (itemId, drop) => (itemById(itemId)?.seeded && !drop.pattern ? { ...drop, pattern: rollPattern() } : drop)
+const withPattern = (itemId, drop) => (itemById(itemId)?.seeded && !drop.pattern ? { ...drop, pattern: rollPattern(itemById(itemId)) } : drop)
 
 const newUid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
 
