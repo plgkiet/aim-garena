@@ -121,11 +121,11 @@ Chuyển động theo đúng tham số của Source engine: ma sát, gia tốc, 
   | Restricted | 32% |
   | Classified | 23.74% |
   | Covert | 5% |
-  | ↳ trong đó: Howl, Fire Serpent, Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque | 0.26% (cả nhóm) |
+  | ↳ trong đó: Howl, Fire Serpent, Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque | 0.03% (cả nhóm) |
   | ★ Rare Special (dao / găng) | 2% |
-  | ↳ trong đó: dao Ruby, Sapphire, Emerald, Black Pearl (mọi loại dao, kể cả Doppler Ruby/Sapphire; Gamma Doppler không thuộc nhóm này), Bearbrick Cương Thi, toàn bộ găng tay | 0.26% (cả nhóm) |
+  | ↳ trong đó: dao Ruby, Sapphire, Emerald, Black Pearl (mọi loại dao, kể cả Doppler Ruby/Sapphire; Gamma Doppler không thuộc nhóm này), Bearbrick Cương Thi, toàn bộ găng tay | 0.03% (cả nhóm) |
 
-  Tổng tỉ lệ của mỗi bậc không đổi: nhóm cực hiếm chỉ chiếm 0.26% bên trong bậc đó, phần còn lại chia cho các món khác. Trade Up lên bậc Covert hoặc ★ cũng dùng đúng tỉ lệ này. Contraband không bao giờ rơi từ hòm.
+  Tổng tỉ lệ của mỗi bậc không đổi: nhóm cực hiếm chỉ chiếm 0.03% bên trong bậc đó, phần còn lại chia cho các món khác. Trade Up lên bậc Covert hoặc ★ cũng dùng đúng tỉ lệ này. Contraband không bao giờ rơi từ hòm.
 - **Kho đồ** (`/inventory`): xem, trang bị và gỡ skin cho từng súng, dao và găng. Trang chi tiết món đồ có pattern, Case Hardened, đá quý, v.v.
 - **Trade Up** (`/tradeup`): đổi 5 món cùng bậc lấy 1 món ngẫu nhiên ở bậc kế tiếp. 5 món Covert đổi được 1 con dao. Đồ đang trang bị không bị đưa vào hợp đồng.
 - **Gallery:** phòng trưng bày 3D, đi bằng WASD để ngắm bộ sưu tập.

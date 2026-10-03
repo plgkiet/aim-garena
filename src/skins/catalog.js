@@ -745,13 +745,13 @@ export const CASE = {
 /* The jackpots: the rarest drops of their grade. Inside ★ Rare Special
    (2% a case) the gem knives (Ruby, Sapphire, Emerald, Black Pearl, in every
    cut, the Doppler Ruby and Sapphire included; Gamma Doppler is not one of them), the Bearbrick Cương Thi and every pair of
-   gloves come out 0.26% of cases between them, the other knives the
-   remaining 1.74%. Inside Covert (5%) the six grails (Howl, Fire Serpent,
-   Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque) come out 0.26% between
-   them, the other Coverts 4.74%. The grade's own total is unchanged. */
+   gloves come out 0.03% of cases between them, the other knives the
+   remaining 1.97%. Inside Covert (5%) the six grails (Howl, Fire Serpent,
+   Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque) come out 0.03% between
+   them, the other Coverts 4.97%. The grade's own total is unchanged. */
 const JACKPOT_GUNS = new Set(['m4a4_howl', 'ak47_fire_serpent', 'awp_dragon_lore', 'awp_gungnir', 'ak47_wild_lotus', 'ak47_gold_arabesque'])
 const JACKPOT_KNIFE = /\b(ruby|sapphire|emerald|black pearl)\b/i
-export const JACKPOT_ODDS = { gold: 0.26, covert: 0.26 }
+export const JACKPOT_ODDS = { gold: 0.03, covert: 0.03 }
 export function isJackpot(it) {
   const id = it.baseId || it.id
   if (it.tier === 'covert') return JACKPOT_GUNS.has(id)

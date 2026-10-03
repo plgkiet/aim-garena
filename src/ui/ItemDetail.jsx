@@ -61,7 +61,11 @@ function Viewer({ item }) {
       // a figure stood upright (the Bearbrick) is tall: show it smaller so
       // all of it fits with room around it
       const upright = item.model && KNIVES[item.knife]?.upright;
-      const s = (upright ? 0.62 : 1) / (item.kind === "gun" ? Math.max(long, 0.55) : long);
+      // gloves are nearly as tall as they are wide, where a gun or a knife
+      // is a long thin thing: at full size the pair runs off the top and
+      // bottom of the frame, so they are shown smaller too
+      const fill = upright ? 0.62 : item.kind === "glove" ? 0.58 : 1;
+      const s = fill / (item.kind === "gun" ? Math.max(long, 0.55) : long);
       model.position.sub(box.getCenter(new THREE.Vector3()));
       holder.scale.setScalar(s);
       pivot.add(holder);
