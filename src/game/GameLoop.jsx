@@ -98,8 +98,10 @@ export function GameLoop({ onLockChange }) {
     localCmd.jump = canAct && !frozen && !!k.Space
     localCmd.duck = canAct && !!(k.ControlLeft || k.ControlRight || k.KeyC || k.ShiftLeft || k.ShiftRight)
     localCmd.walk = false          // Shift crouches in this build (see duck)
-    // PUBG-style lean on Q / E (hold)
-    localCmd.lean = canAct ? (k.KeyE ? 1 : 0) - (k.KeyQ ? 1 : 0) : 0
+    // PUBG-style lean on Q / E (hold) — a setting; switched off, Q is the
+    // quick switch instead (see below) and E does nothing
+    const leanOn = game.settings.lean !== false
+    localCmd.lean = canAct && leanOn ? (k.KeyE ? 1 : 0) - (k.KeyQ ? 1 : 0) : 0
     // read the click before it is thrown away: dead, it changes who you watch.
     // A quick click (a trackpad tap, a fast flick) can go down and come back
     // up between two frames, so input.mouse[0] is already false by the time
@@ -113,7 +115,9 @@ export function GameLoop({ onLockChange }) {
 
     if (me.alive && canAct) {
       for (let s = 1; s <= 5; s++) if (consume('Digit' + s)) switchTo(me, s)
-      if (consume('KeyX')) switchTo(me, hasSlot(me, me.lastActive) ? me.lastActive : 3)
+      // X — and Q when leaning is off, as in CS:GO — back to the weapon held before
+      const quick = consume('KeyX')
+      if (quick || (!leanOn && consume('KeyQ'))) switchTo(me, hasSlot(me, me.lastActive) ? me.lastActive : 3)
       if (consume('KeyG')) dropActive(me)
       if (consume('KeyF')) pickupAimed(me)
       if (consume('KeyV')) { me.w.inspectSeq++; emit('inspect', { agent: me }) }

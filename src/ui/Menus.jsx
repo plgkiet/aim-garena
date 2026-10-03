@@ -42,11 +42,15 @@ function patchPrefs(p) {
   savePrefs({ ...loadPrefs(), ...p });
 }
 
+/* Q / E: lean-and-aim when that is switched on (the default); switched off,
+   Q is CS:GO's quick switch (the weapon you held before) and E does nothing. */
+const LEAN_KEYS = [["Q", "E"], "nghiêng trái / phải"];
+const SNAP_KEYS = [["Q"], "đổi nhanh về súng trước (snap)"];
 const KEYS = [
   [["WASD"], "di chuyển"],
   [["Shift", "Ctrl"], "ngồi (không kêu)"],
   [["Space"], "nhảy"],
-  [["Q", "E"], "nghiêng trái / phải"],
+  LEAN_KEYS,
   [["LMB"], "bắn"],
   [["RMB"], "ngắm / scope / đâm"],
   [["R"], "nạp đạn"],
@@ -62,10 +66,10 @@ const KEYS = [
   [["Esc"], "tạm dừng"],
 ];
 
-function Controls() {
+function Controls({ lean = true }) {
   return (
     <div className="controls">
-      {KEYS.map(([keys, what]) => (
+      {KEYS.map((row) => (row === LEAN_KEYS && !lean ? SNAP_KEYS : row)).map(([keys, what]) => (
         <div key={what} className={`ctl${keys.length > 3 ? " ctl--wide" : ""}`}>
           <span className="ctl-keys">
             {keys.map((k) => (
@@ -137,6 +141,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
   const [size, setSize] = useState(prefs.teamSize || 5);
   const [sens, setSens] = useState(prefs.sensitivity || 2);
   const [name, setName] = useState(prefs.name || "Bạn");
+  const [lean, setLean] = useState(prefs.lean !== false);
   const [mode, setMode] = useState(prefs.mode || "comp");
   // weapons since taken off the list map to what replaced them
   const [aimWeapon, setAimWeapon] = useState({ ssg08: "p90", deagle: "ak47", usp: "ak47", glock: "ak47", p250: "ak47" }[prefs.aimWeapon] || prefs.aimWeapon || "ak47");
@@ -148,8 +153,8 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
   const [loading, setLoading] = useState(false);
   // every choice is remembered as it is made, not only when a match starts
   useEffect(() => {
-    patchPrefs({ team, difficulty: diff, maxRounds: rounds, teamSize: size, mode, aimWeapon, aimPistol, aimBots, aimRounds, aimMap });
-  }, [team, diff, rounds, size, mode, aimWeapon, aimPistol, aimBots, aimRounds, aimMap]);
+    patchPrefs({ team, difficulty: diff, maxRounds: rounds, teamSize: size, mode, aimWeapon, aimPistol, aimBots, aimRounds, aimMap, lean });
+  }, [team, diff, rounds, size, mode, aimWeapon, aimPistol, aimBots, aimRounds, aimMap, lean]);
 
   const start = async () => {
     const aim = mode === "aim";
@@ -165,6 +170,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
       aimPistol,
       aimBots,
       aimMap,
+      lean,
     };
     savePrefs({
       team,
@@ -178,6 +184,8 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
       aimBots,
       aimRounds,
       aimMap,
+      aimPistol,
+      lean,
     });
     // everyone starts on the stock knife; a ★ knife only comes from a case
     const eq = inventory.equippedItem("knife");
@@ -364,6 +372,16 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
                   </button>
                 ))}
               </Field>
+              {/* Q / E: lean and aim, or (off) Q as the quick switch */}
+              {/* half width beside the difficulty in Solo aim; a row of its own in Competitive */}
+              <Field label={lean ? "Nghiêng người nhắm · Q / E" : "Nghiêng người · tắt (Q = snap)"} wide={!aim}>
+                <button className={lean ? "on" : ""} onClick={() => setLean(true)}>
+                  Bật
+                </button>
+                <button className={!lean ? "on" : ""} onClick={() => setLean(false)}>
+                  Tắt
+                </button>
+              </Field>
             </div>
           </section>
 
@@ -438,7 +456,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
           </aside>
         </div>
 
-        <Controls />
+        <Controls lean={lean} />
 
         <footer className="made-by">
           <span>Made by</span>
@@ -464,6 +482,12 @@ function Field({ label, wide = false, children }) {
 export function PauseMenu({ onResume }) {
   const [muted, setM] = useState(isMuted());
   const [sens, setSens] = useState(game.settings.sensitivity);
+  const [lean, setLeanState] = useState(game.settings.lean !== false);
+  const setLean = (v) => {
+    setLeanState(v);
+    game.settings.lean = v;
+    patchPrefs({ lean: v });
+  };
   return (
     <div className="menu pause" onClick={onResume}>
       <div className="menu-card small" onClick={(e) => e.stopPropagation()}>
@@ -508,6 +532,17 @@ export function PauseMenu({ onResume }) {
             </button>
           </div>
         </div>
+        <div className="row">
+          <label>Nghiêng người nhắm (Q / E){!lean && " — tắt: Q = đổi nhanh súng trước"}</label>
+          <div className="seg">
+            <button className={lean ? "on" : ""} onClick={() => setLean(true)}>
+              Bật
+            </button>
+            <button className={!lean ? "on" : ""} onClick={() => setLean(false)}>
+              Tắt
+            </button>
+          </div>
+        </div>
         <button className="play" onClick={onResume}>
           TIẾP TỤC
         </button>
@@ -523,7 +558,7 @@ export function PauseMenu({ onResume }) {
         >
           Thoát ra menu
         </button>
-        <Controls />
+        <Controls lean={lean} />
       </div>
     </div>
   );
