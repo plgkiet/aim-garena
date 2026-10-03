@@ -285,7 +285,8 @@ const FINISH = {
   doppler: { name: 'Doppler', pattern: 'doppler', pal: ['#0a0212', '#3b0a52', '#c1128c', '#ff5bd1', '#1b1f5a'], metal: 0.85, rough: 0.2 },
   ruby: { name: 'Doppler Ruby', pattern: 'doppler', pal: ['#1a0003', '#6e0010', '#e0102c', '#ff4d5e', '#3a0008'], metal: 0.9, rough: 0.18 },
   sapphire: { name: 'Doppler Sapphire', pattern: 'doppler', pal: ['#0a0524', '#2a148f', '#4b2fe0', '#b4a8ff', '#160a52'], metal: 0.9, rough: 0.18 },
-  emerald: { name: 'Gamma Emerald', pattern: 'doppler', pal: ['#001207', '#00471f', '#00c853', '#7dff9c', '#002a12'], metal: 0.9, rough: 0.18 },
+  // the emerald phase of a Gamma Doppler, shown under the family's name
+  emerald: { name: 'Gamma Doppler', pattern: 'doppler', pal: ['#001207', '#00471f', '#00c853', '#7dff9c', '#002a12'], metal: 0.9, rough: 0.18 },
   gamma: { name: 'Gamma Doppler', pattern: 'doppler', pal: ['#02140a', '#0b5e3a', '#2cf5a1', '#b8ff3b', '#083b28'], metal: 0.85, rough: 0.2 },
   marble: { name: 'Marble Fade', pattern: 'marble', pal: ['#ffe600', '#ff2a00', '#fff4c2', '#1f4fff', '#ffe600'], metal: 0.85, rough: 0.22 },
   tiger: { name: 'Tiger Tooth', pattern: 'tiger', pal: ['#fff2b0', '#e8a317', '#3b1d00'], metal: 0.95, rough: 0.2 },
@@ -741,14 +742,45 @@ export const CASE = {
   items: ITEMS.filter(i => !TIERS.find(t => t.slug === i.tier)?.noDrop),
 }
 
-/** Weighted draw: pick a tier by the CS odds, then an item inside it. */
+/* The jackpots: the rarest drops of their grade. Inside ★ Rare Special
+   (2% a case) the gem knives (Ruby, Sapphire, Emerald, Black Pearl, in every
+   cut, the Doppler Ruby and Sapphire included; Gamma Doppler is not one of them), the Bearbrick Cương Thi and every pair of
+   gloves come out 0.26% of cases between them, the other knives the
+   remaining 1.74%. Inside Covert (5%) the six grails (Howl, Fire Serpent,
+   Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque) come out 0.26% between
+   them, the other Coverts 4.74%. The grade's own total is unchanged. */
+const JACKPOT_GUNS = new Set(['m4a4_howl', 'ak47_fire_serpent', 'awp_dragon_lore', 'awp_gungnir', 'ak47_wild_lotus', 'ak47_gold_arabesque'])
+const JACKPOT_KNIFE = /\b(ruby|sapphire|emerald|black pearl)\b/i
+export const JACKPOT_ODDS = { gold: 0.26, covert: 0.26 }
+export function isJackpot(it) {
+  const id = it.baseId || it.id
+  if (it.tier === 'covert') return JACKPOT_GUNS.has(id)
+  if (it.tier !== 'gold') return false
+  return it.kind === 'glove' || id === 'knife_bearbrick_jiangshi' || (it.kind === 'knife' && JACKPOT_KNIFE.test(it.name))
+}
+
+/** One item of a grade: the jackpots get only their share of the grade. */
+function pickInTier(slug, items) {
+  const pool = items.filter(i => i.tier === slug)
+  const tier = tierBySlug(slug)
+  const share = JACKPOT_ODDS[slug] != null && tier.odds > 0 ? JACKPOT_ODDS[slug] / tier.odds : null
+  if (share != null) {
+    const rare = pool.filter(isJackpot), rest = pool.filter(i => !isJackpot(i))
+    if (rare.length && rest.length) {
+      const from = Math.random() < share ? rare : rest
+      return from[Math.floor(Math.random() * from.length)]
+    }
+  }
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+/** Weighted draw: pick a tier by the case odds, then an item inside it. */
 export function drawItem(items = CASE.items) {
   const total = TIERS.reduce((s, t) => s + t.odds, 0)
   let p = Math.random() * total
   let tier = TIERS[0]
   for (const t of TIERS) { p -= t.odds; if (p < 0) { tier = t; break } }
-  const pool = items.filter(i => i.tier === tier.slug)
-  return pool[Math.floor(Math.random() * pool.length)]
+  return pickInTier(tier.slug, items)
 }
 
 /* Trade up, as in CS:GO: five drops of one grade go in, one drop of the next
@@ -761,8 +793,8 @@ export function nextTier(slug) {
   return up && !up.noDrop ? up : null
 }
 export function drawFromTier(slug, items = CASE.items) {
-  const pool = items.filter(i => i.tier === slug)
-  return pool[Math.floor(Math.random() * pool.length)]
+  // a trade up lands on a jackpot no more often than a case would
+  return pickInTier(slug, items)
 }
 
 export const fullName = it => it.kind === 'knife' || it.kind === 'glove' ? `${it.weaponName} | ${it.name}` : null

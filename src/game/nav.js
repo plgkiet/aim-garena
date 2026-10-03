@@ -25,6 +25,8 @@ export const NAV = { ready: false, NX: 0, NZ: 0, x0: 0, z0: 0, H: null, walk: nu
 let NX = 0, NZ = 0, NN = 0, x0 = 0, z0 = 0
 let H = null          // Float32Array(LAYERS * NN), NaN where no floor
 let WALK = null       // Uint8Array(LAYERS * NN)
+const DIRS = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, 1.414], [1, -1, 1.414], [-1, 1, 1.414], [-1, -1, 1.414]]
+let REGION = null      // Int32Array(LAYERS * NN): connected walkable region per node
 let gScore, came, stamp, closed   // A* scratch, sized per map
 
 const toX = i => x0 + (i + 0.5) * NAV_CELL
@@ -70,7 +72,42 @@ function bake() {
       }
     }
   }
+  labelRegions()
   Object.assign(NAV, { ready: true, NX, NZ, x0, z0, H, walk: WALK, toX, toZ, LAYERS, NN })
+}
+
+/* Flood-fill the walkable nodes into connected regions, with the same links
+   A* uses, so "is there any path from here to there" is a lookup: a goal in
+   a pocket nothing connects to (a crate top, a closed-off room) can be
+   skipped instead of planned for and failed. */
+function labelRegions() {
+  REGION = new Int32Array(LAYERS * NN).fill(-1)
+  const stack = []
+  let id = 0
+  for (let s0 = 0; s0 < LAYERS * NN; s0++) {
+    if (WALK[s0] !== 1 || REGION[s0] >= 0) continue
+    REGION[s0] = id
+    stack.push(s0)
+    while (stack.length) {
+      const cur = stack.pop()
+      const ci = (cur % NN) % NX, cj = ((cur % NN) / NX) | 0
+      for (const [di, dj] of DIRS) {
+        const n = layerNear(ci + di, cj + dj, H[cur], STEP)
+        if (n < 0 || REGION[n] >= 0) continue
+        if (di && dj && (layerNear(ci + di, cj, H[cur], STEP) < 0 || layerNear(ci, cj + dj, H[cur], STEP) < 0)) continue
+        REGION[n] = id
+        stack.push(n)
+      }
+    }
+    id++
+  }
+}
+
+/** Connected region of the node nearest a point (-1 if none). */
+export function regionAt(x, y, z) {
+  if (!NAV.ready || !REGION) return -1
+  const k = nearestNode(x, y, z)
+  return k < 0 ? -1 : REGION[k]
 }
 
 onLevelChange(() => {
@@ -95,23 +132,30 @@ function layerNear(i, j, y, tol) {
   return best
 }
 
-/** Nearest walkable node to a world point. */
+/** Nearest walkable node to a world point. Height counts for more than
+ *  distance: standing on the floor beside a platform, the floor a cell or
+ *  two away is the right node, not the platform top right overhead (taking
+ *  that one left bots with no path at all, walking into the platform's side). */
 export function nearestNode(x, y, z) {
   const [ci, cj] = cellOf(x, z)
-  for (let r = 0; r < 10; r++) {
-    let best = -1, bd = Infinity
+  const rMax = Math.max(10, Math.ceil(3.5 / NAV_CELL))
+  let best = -1, bd = Infinity
+  for (let r = 0; r <= rMax; r++) {
+    // nothing further out can beat what we have
+    if (best >= 0 && r * NAV_CELL * 0.6 >= bd) break
     for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) {
       if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue
+      if (ci + di < 0 || cj + dj < 0 || ci + di >= NX || cj + dj >= NZ) continue
       for (let l = 0; l < LAYERS; l++) {
         const k = l * NN + (cj + dj) * NX + (ci + di)
-        if (ci + di < 0 || cj + dj < 0 || ci + di >= NX || cj + dj >= NZ || WALK[k] !== 1) continue
-        const d = Math.abs(H[k] - y) + r * 0.3
+        if (WALK[k] !== 1) continue
+        const dh = Math.abs(H[k] - y)
+        const d = (dh > STEP ? dh * 3 : dh) + Math.hypot(di, dj) * NAV_CELL * 0.6
         if (d < bd) { bd = d; best = k }
       }
     }
-    if (best >= 0) return best
   }
-  return -1
+  return best
 }
 
 /* ------------------------------------------------------------------ A* --- */
@@ -152,7 +196,6 @@ class Heap {
 }
 
 let run = 0
-const DIRS = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, 1.414], [1, -1, 1.414], [-1, 1, 1.414], [-1, -1, 1.414]]
 
 const cellI = k => (k % NN) % NX
 const cellJ = k => ((k % NN) / NX) | 0
@@ -227,6 +270,9 @@ function straight(a, b) {
       const [ii, jj] = cellOf(x + ox, z + oz)
       if (layerNear(ii, jj, H[k], STEP) < 0) return false
     }
+    // and the real hull, with a hair to spare: a line that shaves a wall's
+    // corner passes the grid test but leaves a bot grinding on that corner
+    if (hullBlocked(x, H[k], z, MOVE.radius + 0.03, MOVE.height, 0.42)) return false
     y = H[k]
   }
   return Math.abs(y - b[2]) < STEP * 2

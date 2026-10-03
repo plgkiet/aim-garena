@@ -2,9 +2,9 @@ import * as THREE from 'three'
 import { D2R, R2D, MOVE, U } from './constants'
 import { game, on, eyePos, eyeHeight, activeWeapon } from './state'
 import { W } from './weapons'
-import { findPath, randomNear } from './nav'
+import { findPath, randomNear, regionAt, NAV } from './nav'
 import { lineClear, raycast } from '../world/collision'
-import { smokeBlocks } from './grenades'
+import { smokeBlocks, smokeRadius } from './grenades'
 import { switchTo, hasSlot, bestSlot } from './weaponLogic'
 import { buy, canPlant } from './rules'
 import { SITES, SPOTS, SPAWNS, siteAt } from '../world/mapData'
@@ -23,12 +23,14 @@ import { maxSpeed } from './movement'
    cleanly it stops to shoot and strafes, and how well it plays as a team
    (grenades before an entry, groups waiting for each other, CT rotations). */
 const DIFF = {
-  // softened across the board (they felt too strong): slower to react, a
-  // wider first shot that settles more slowly, weaker spray control
-  easy: { reaction: 1.25, turn: 160, err: 8.5, settle: 0.7, head: 0.01, spray: 0.08, fov: 90, stop: 0.2, strafe: 0.08, nades: 0.2, sync: false, rotate: false },
-  normal: { reaction: 0.9, turn: 230, err: 6.0, settle: 0.95, head: 0.04, spray: 0.18, fov: 105, stop: 0.35, strafe: 0.2, nades: 0.5, sync: true, rotate: true },
-  hard: { reaction: 0.62, turn: 340, err: 3.8, settle: 1.4, head: 0.12, spray: 0.36, fov: 115, stop: 0.6, strafe: 0.38, nades: 0.7, sync: true, rotate: true },
-  expert: { reaction: 0.42, turn: 500, err: 2.2, settle: 2.1, head: 0.28, spray: 0.58, fov: 125, stop: 0.85, strafe: 0.55, nades: 0.9, sync: true, rotate: true },
+  // easy / normal stay soft; hard and expert were raised again (expert felt
+  // too easy): expert reacts in about a quarter second, flicks fast, starts
+  // close to the head and settles on it, pulls most of a spray, counter-
+  // strafes cleanly, and calls out what it sees to the rest of its team
+  easy: { reaction: 1.25, turn: 160, err: 8.5, settle: 0.7, head: 0.01, spray: 0.08, fov: 90, stop: 0.2, strafe: 0.08, nades: 0.2, sync: false, rotate: false, comms: false },
+  normal: { reaction: 0.9, turn: 230, err: 6.0, settle: 0.95, head: 0.04, spray: 0.18, fov: 105, stop: 0.35, strafe: 0.2, nades: 0.5, sync: true, rotate: true, comms: false },
+  hard: { reaction: 0.45, turn: 520, err: 2.6, settle: 2.4, head: 0.3, spray: 0.6, fov: 125, stop: 0.82, strafe: 0.5, nades: 0.8, sync: true, rotate: true, comms: true },
+  expert: { reaction: 0.24, turn: 900, err: 1.2, settle: 4.2, head: 0.62, spray: 0.88, fov: 145, stop: 0.95, strafe: 0.7, nades: 0.95, sync: true, rotate: true, comms: true },
 }
 
 export function initBot(a, difficulty = 'normal') {
@@ -242,7 +244,14 @@ on('kill', ({ victim }) => {
 
 function hear(a, pos, urgent = false) {
   const b = a.bot
-  b.heard = { pos: pos.clone(), t: game.time, urgent }
+  pos = pos.clone()
+  // a sound from inside a smoke only says "somewhere in there"
+  const s = smokeAround(pos)
+  if (s) {
+    const r = Math.min(2.2, smokeRadius(s) * 0.6), ang = Math.random() * Math.PI * 2
+    pos.x += Math.cos(ang) * r * Math.random(); pos.z += Math.sin(ang) * r * Math.random()
+  }
+  b.heard = { pos, t: game.time, urgent }
   if (!b.visible) {
     b.lookAt = pos.clone()
     b.lookUntil = game.time + (urgent ? 2.5 : 1.6)
@@ -261,6 +270,7 @@ export function updateBots(dt) {
 
 function perceive(a) {
   const b = a.bot
+  if (game.mode === 'aim') markSearched(a)
   const blind = a.flashUntil > game.time && (a.flashUntil - game.time) > 0.6
   let best = null, bestD = Infinity, bestKind = null
   if (!blind) {
@@ -285,6 +295,13 @@ function perceive(a) {
         b.errX = Math.cos(ang) * e; b.errY = Math.sin(ang) * e * 0.6
         b.aimHead = Math.random() < b.d.head
         b.burst = 0
+        // callout: teammates hear where the enemy is (hard / expert)
+        if (b.d.comms && game.time > (b.calloutAt ?? 0)) {
+          b.calloutAt = game.time + 1
+          for (const m of game.agents) {
+            if (m !== a && m.isBot && m.alive && m.team === a.team && !m.bot.visible) hear(m, best.pos)
+          }
+        }
       }
     }
     b.target = best
@@ -337,6 +354,9 @@ function tickBot(a, dt) {
 
   // grenade plan in progress
   if (b.throwPlan) { doThrow(a, dt); return }
+
+  // the enemy went into a smoke (or is heard in one): hold it and spray it
+  if (smokeFight(a, dt)) return
 
   // lost sight recently: push the last known spot for a moment
   if (b.target && b.lastKnown && game.time - b.lastSeen < 2.5 && !isObjectiveCritical(a)) {
@@ -482,6 +502,88 @@ function fight(a, dt) {
       } else b.burst = 0
     }
   }
+}
+
+/* Smoke. A bot never sees through one (canSee), and a sound from inside one
+   is blurred (hear), so an enemy hiding in a smoke is somewhere in there
+   and no more. If the last clue to where they are (where they vanished,
+   or what was just heard) sits in a live smoke, and the bot is outside it
+   with a line into it, it stops and sprays the smoke: random points around
+   that clue, leaning toward the smoke's middle, in bursts, for a few
+   seconds per clue; then it holds the smoke, waiting for them to come out.
+   A new sound from inside sets it off again. An enemy who is simply
+   somewhere else while a smoke is up elsewhere changes nothing. */
+function smokeAround(p) {
+  for (const s of game.smokes) {
+    if (game.time > s.end) continue
+    const r = smokeRadius(s)
+    if (r < 1.2) continue
+    if (Math.hypot(p.x - s.pos.x, p.z - s.pos.z) < r * 0.95 + 0.3 && Math.abs(p.y - s.pos.y) < 3) return s
+  }
+  return null
+}
+
+function smokeFight(a, dt) {
+  const b = a.bot, cmd = a.cmd
+  if (isObjectiveCritical(a)) return false
+  // the newest clue: where it lost sight of them, or what it heard since
+  let clue = null, ct = -1
+  if (b.target?.alive && b.lastKnown && game.time - b.lastSeen < 8) { clue = b.lastKnown; ct = b.lastSeen }
+  if (b.heard && game.time - b.heard.t < 4 && b.heard.t > ct) { clue = b.heard.pos; ct = b.heard.t }
+  if (!clue) return false
+  const s = smokeAround(clue)
+  if (!s) return false
+  eyePos(a, _eye)
+  const r = smokeRadius(s)
+  const d = Math.hypot(_eye.x - s.pos.x, _eye.z - s.pos.z)
+  if (d < r + 0.8 || d > 45) return false                                   // inside it ourselves, or too far off
+  // some line into it (over a crate in front, past a wall's edge): else go round
+  const sx = -(s.pos.z - _eye.z) / d, sz = (s.pos.x - _eye.x) / d
+  const open = [[0, 1.1], [0, 1.8], [0.5, 1.2], [-0.5, 1.2]].some(([k, h]) =>
+    lineClear(_eye.x, _eye.y, _eye.z, s.pos.x + sx * r * k, s.pos.y + h, s.pos.z + sz * r * k))
+  if (!open) return false
+
+  if (b.smokeClueT !== ct) {
+    // a fresh clue: react, then spray for a few seconds (longer the better the bot)
+    b.smokeClueT = ct
+    b.smokeFrom = game.time + b.d.reaction * (0.6 + Math.random() * 0.6)
+    b.smokeUntil = b.smokeFrom + 2.2 + Math.random() * 2 + b.d.spray * 2.5
+    b.smokeAimAt = 0
+    if (game.mode !== 'aim' && Math.random() < 0.5) radio(a.team, 'Nó trốn trong smoke!')
+  }
+  cmd.fwd = 0; cmd.side = 0
+  if (b.d.stop > 0.8 && d > 10) cmd.duck = true
+
+  // a new random point to put bullets through every fraction of a second
+  if (game.time > b.smokeAimAt || !b.smokePt) {
+    b.smokeAimAt = game.time + 0.15 + Math.random() * 0.35
+    const cx = clue.x + (s.pos.x - clue.x) * 0.35, cz = clue.z + (s.pos.z - clue.z) * 0.35
+    const spread = Math.min(1.8, r * 0.5), ang = Math.random() * Math.PI * 2, rr = Math.sqrt(Math.random()) * spread
+    // body height off the smoke's floor (a heard shot comes from eye level)
+    b.smokePt = { x: cx + Math.cos(ang) * rr, y: s.pos.y + 0.5 + Math.random() * 1.1, z: cz + Math.sin(ang) * rr }
+  }
+  // pulling the spray down as well as the bot can, as in a fight
+  const k = b.d.spray * 2 * D2R
+  const err = aimAt(a, b.smokePt.x, b.smokePt.y, b.smokePt.z, dt, 1, -a.w.punch.x * k, -a.w.punch.y * k)
+
+  const inst = activeWeapon(a)
+  const w = W[inst?.id]
+  const spraying = game.time >= b.smokeFrom && game.time < b.smokeUntil
+  if (!spraying || !w || w.type === 'knife' || w.type === 'grenade') { maybeReload(a, 0.5); return true }
+  if (w.clip && inst.clip === 0) { cmd.reload = true; return true }
+  b.burst += a.w.fireSeq - (b.seenSeq ?? a.w.fireSeq)
+  b.seenSeq = a.w.fireSeq
+  // (the deliberate pull-down shows up as error too: allow for it)
+  if (game.time < b.burstPause || err > 6 + Math.hypot(a.w.punch.x, a.w.punch.y) * 2 * b.d.spray) return true
+  if (w.auto) {
+    if (b.burst >= 5 + ((Math.random() * 6) | 0)) { b.burst = 0; b.burstPause = game.time + 0.12 + Math.random() * 0.3; return true }
+    cmd.attack = true
+  } else {
+    // pistols and snipers: one round at a time, as fast as it cycles
+    b.click = !b.click
+    if (b.click) cmd.attack = true
+  }
+  return true
 }
 
 function sideWithRoom(a) {
@@ -724,11 +826,13 @@ function ctRead() {
 }
 
 /* Solo aim: go find the enemy, fairly. The bot is never told where you are.
-   It goes to where it last SAW you (for a few seconds after losing sight),
-   else to what it last HEARD (a shot, running footsteps within 15 m, being
-   hit), and with neither it patrols: random spots across the map, starting
-   toward the far side where the other team spawned. Crouch-walking is
-   silent, so staying quiet and out of sight really does hide you. */
+   It goes to where it (or, on hard and up, a teammate) last SAW you, else to
+   what it last HEARD (a shot, running footsteps within 15 m, being hit), and
+   with neither it searches: the team remembers which parts of the map it
+   has looked at and when, and each bot heads for the part nobody has
+   checked for longest, favouring your half of the map and the corners you
+   can only see by walking up to them. Crouch-walking is silent, so staying
+   quiet and out of sight still hides you, but not in the same spot forever. */
 function hunt(a, dt) {
   const b = a.bot
   const foes = game.agents.filter(x => x.alive && x.team !== a.team)
@@ -741,18 +845,96 @@ function hunt(a, dt) {
     if (seen) { b.huntSpot = randomNear(seen.x, seen.z, 2, seen.y); b.huntUntil = game.time + 4 }
     else if (heard) { b.huntSpot = randomNear(heard.pos.x, heard.pos.z, 4, heard.pos.y); b.huntUntil = game.time + 5 }
     else {
-      // patrol: the first leg goes toward the enemy spawn, then anywhere
-      const c = level.bounds.getCenter(_patrol), sz = level.bounds.getSize(_patrolSize)
-      const spawn = !b.patrolled && SPAWNS[a.team === 'T' ? 'CT' : 'T']?.[0]
-      b.patrolled = true
-      b.huntSpot = spawn ? randomNear(spawn[0], spawn[1], 6, spawn[2]) : randomNear(c.x, c.z, Math.max(sz.x, sz.z) * 0.45, 0)
-      b.huntUntil = game.time + 9
+      b.huntSpot = searchSpot(a)
+      // enough time to get there (paths bend), plus a look around
+      b.huntUntil = game.time + Math.hypot(b.huntSpot[0] - a.pos.x, b.huntSpot[1] - a.pos.z) / 3.5 + 4
     }
   }
   const [x, z, y] = b.huntSpot
   if (Math.hypot(a.pos.x - x, a.pos.z - z) < 1.2) { b.huntUntil = 0; idleScan(a, dt); a.cmd.fwd = 0; a.cmd.side = 0; return }
   moveTo(a, x, z, dt, 'hunt', false, y)
+  // no way there (or kept getting stuck on the way): pick somewhere else
+  if (b.pathFailed) { b.huntUntil = 0; b.huntClue = 'patrol' }
   lookAlongPath(a, dt)
+}
+
+/* The team's search memory: the map cut into ~5 m squares, each with a
+   walkable point and the last time any bot of that team had eyes on it. */
+const search = { key: '', pts: [], seen: { T: null, CT: null } }
+const SEARCH_CELL = 5
+function searchGrid() {
+  const key = `${level.id}:${NAV.version}`
+  if (search.key === key) return search
+  search.key = key
+  search.pts = []
+  const bb = level.bounds
+  for (let x = bb.min.x + SEARCH_CELL / 2; x < bb.max.x; x += SEARCH_CELL) {
+    for (let z = bb.min.z + SEARCH_CELL / 2; z < bb.max.z; z += SEARCH_CELL) {
+      // a point on the ground floor, and one up on any platform there
+      for (const fy of [0, 2.4]) {
+        const p = randomNear(x, z, SEARCH_CELL * 0.45, fy)
+        if (p[0] === x && p[1] === z && p[2] === fy) continue       // nothing walkable
+        if (Math.abs(p[2] - fy) > 1.2) continue
+        if (search.pts.some(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < 1 && Math.abs(q[2] - p[2]) < 1)) continue
+        p[3] = regionAt(p[0], p[2], p[1])
+        search.pts.push(p)
+      }
+    }
+  }
+  search.seen = { T: new Float64Array(search.pts.length).fill(-1e9), CT: new Float64Array(search.pts.length).fill(-1e9) }
+  return search
+}
+
+/** What this bot can see right now counts as searched (a few squares a tick). */
+function markSearched(a) {
+  const s = searchGrid()
+  if (!s.pts.length) return
+  const seen = s.seen[a.team]
+  eyePos(a, _eye)
+  const fx = -Math.sin(a.yaw), fz = -Math.cos(a.yaw)
+  for (let n = 0; n < 8; n++) {
+    const i = (Math.random() * s.pts.length) | 0
+    const p = s.pts[i]
+    const dx = p[0] - _eye.x, dz = p[1] - _eye.z
+    const d = Math.hypot(dx, dz)
+    if (d < 3) { seen[i] = game.time; continue }
+    if (d > 40 || (dx * fx + dz * fz) / d < Math.cos(70 * D2R)) continue
+    // a crouching body's height: a low wall in between still hides that square
+    if (lineClear(_eye.x, _eye.y, _eye.z, p[0], p[2] + 0.7, p[1])) seen[i] = game.time
+  }
+}
+
+/** The square to search next: long unchecked, on the enemy's side, not too far. */
+function searchSpot(a) {
+  const s = searchGrid()
+  if (!s.pts.length) {
+    const c = level.bounds.getCenter(_patrol), sz = level.bounds.getSize(_patrolSize)
+    return randomNear(c.x, c.z, Math.min(sz.x, sz.z) * 0.45, 0)
+  }
+  const seen = s.seen[a.team]
+  const mine = SPAWNS[a.team]?.[0], theirs = SPAWNS[a.team === 'T' ? 'CT' : 'T']?.[0]
+  // squares other bots of the team are already heading to
+  const taken = game.agents.filter(m => m !== a && m.isBot && m.alive && m.team === a.team && m.bot.huntSpot).map(m => m.bot.huntSpot)
+  // only squares there is a way to (not a crate top, not a sealed room)
+  const here = regionAt(a.pos.x, a.pos.y, a.pos.z)
+  let best = null, bs = -Infinity
+  for (let i = 0; i < s.pts.length; i++) {
+    const p = s.pts[i]
+    if (here >= 0 && p[3] !== here) continue
+    const age = Math.min(90, game.time - seen[i])
+    const d = Math.hypot(p[0] - a.pos.x, p[1] - a.pos.z)
+    let score = age - d * 0.35 + Math.random() * 10
+    if (mine && theirs && Math.hypot(p[0] - theirs[0], p[1] - theirs[1]) < Math.hypot(p[0] - mine[0], p[1] - mine[1])) score += 25 * (age / 90)
+    if (taken.some(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < 6)) score -= 40
+    if (d < 4) score -= 30
+    if (score > bs) { bs = score; best = p }
+  }
+  if (!best) return randomNear(a.pos.x, a.pos.z, 6, a.pos.y)
+  for (let k = 0; k < 6; k++) {
+    const q = randomNear(best[0], best[1], 1.2, best[2])
+    if (regionAt(q[0], q[2], q[1]) === best[3]) return q
+  }
+  return best.slice(0, 3)
 }
 const _patrol = new THREE.Vector3(), _patrolSize = new THREE.Vector3()
 
@@ -789,45 +971,81 @@ function idleScan(a, dt) {
 function moveTo(a, x, z, dt, why, walk = false, y = a.pos.y) {
   const b = a.bot
   const key = `${why}:${Math.round(x * 2)}:${Math.round(z * 2)}`
-  if (b.goalKey !== key || !b.path) {
-    b.goalKey = key
-    const noise = Math.random() * 1000
-    // a little per-bot noise in the costs so a team does not walk single-file
-    b.path = findPath(a.pos, { x, y, z }, (i, j) => ((i * 73 + j * 151 + noise) % 7) * 0.04)
-    b.pathI = 1
-    b.stuckT = 0
-    b.stuckPos.copy(a.pos)
-  }
   const cmd = a.cmd
+  if (b.goalKey !== key) { b.goalKey = key; b.path = null; b.repathAt = 0; b.stuckTotal = 0; b.pathFailed = false }
+  if (!b.path && game.time >= (b.repathAt ?? 0)) {
+    const noise = Math.random() * 1000
+    // spots the bot got stuck at lately cost a lot, so the new path goes round
+    const av = (b.avoid || []).filter(v => game.time < v.until)
+    b.avoid = av
+    const cell = NAV_CELL()
+    // a little per-bot noise in the costs so a team does not walk single-file
+    b.path = findPath(a.pos, { x, y, z }, (i, j) => {
+      let c = ((i * 73 + j * 151 + noise) % 7) * 0.04
+      if (av.length) {
+        const wx = NAV.x0 + (i + 0.5) * cell, wz = NAV.z0 + (j + 0.5) * cell
+        for (const v of av) if (Math.hypot(wx - v.x, wz - v.z) < 1.1) c += 30
+      }
+      return c
+    })
+    b.pathI = 1
+    if (b.path) { b.stuckT = 0; b.stuckPos.copy(a.pos) }
+    else { b.pathFailed = true; b.repathAt = game.time + 0.6 }
+  }
+
+  // backing off after getting stuck: a short step away, then the new path
+  if (game.time < (b.backoffUntil ?? 0)) {
+    steer(a, b.backoffDir[0], b.backoffDir[1])
+    cmd.duck = !!b.backoffDuck
+    return false
+  }
+
+
   if (!b.path || b.pathI >= b.path.length) {
     const dx = x - a.pos.x, dz = z - a.pos.z
     if (Math.hypot(dx, dz) < 0.3) { cmd.fwd = 0; cmd.side = 0; return true }
     steer(a, dx, dz)
-    return false
+  } else {
+    let p = b.path[b.pathI]
+    let dx = p[0] - a.pos.x, dz = p[1] - a.pos.z
+    while (Math.hypot(dx, dz) < 0.55 && b.pathI < b.path.length - 1) {
+      b.pathI++
+      p = b.path[b.pathI]; dx = p[0] - a.pos.x; dz = p[1] - a.pos.z
+    }
+    if (b.pathI === b.path.length - 1 && Math.hypot(dx, dz) < 0.3) { cmd.fwd = 0; cmd.side = 0; b.pathI++; return true }
+    steer(a, dx, dz)
+    cmd.walk = walk
   }
-  let p = b.path[b.pathI]
-  let dx = p[0] - a.pos.x, dz = p[1] - a.pos.z
-  while (Math.hypot(dx, dz) < 0.55 && b.pathI < b.path.length - 1) {
-    b.pathI++
-    p = b.path[b.pathI]; dx = p[0] - a.pos.x; dz = p[1] - a.pos.z
-  }
-  if (b.pathI === b.path.length - 1 && Math.hypot(dx, dz) < 0.3) { cmd.fwd = 0; cmd.side = 0; b.pathI++; return true }
-  steer(a, dx, dz)
-  cmd.walk = walk
 
-  // stuck?
+  // stuck? (checked whether or not there is a path: walking straight at a
+  // goal with no path is exactly how a bot ends up nosing a wall forever)
   b.stuckT += dt
-  if (b.stuckT > 1) {
-    if (a.pos.distanceTo(b.stuckPos) < 0.35) {
+  if (b.stuckT > 0.8) {
+    if (a.pos.distanceTo(b.stuckPos) < 0.3) {
       b.stuckN++
-      cmd.jump = true
-      if (b.stuckN > 2) { b.path = null; b.stuckN = 0 }
+      b.stuckTotal = (b.stuckTotal || 0) + 1
+      if (b.stuckN === 1) cmd.jump = true
+      else {
+        // remember this spot as bad, back away from it (ducking, in case it
+        // is a low ceiling), and plan again around it
+        const md = a.moveDir || [Math.sin(a.yaw), Math.cos(a.yaw)]
+        b.avoid = (b.avoid || []).concat({ x: a.pos.x + md[0] * 0.5, z: a.pos.z + md[1] * 0.5, until: game.time + 12 })
+        const ang = Math.atan2(-md[0], -md[1]) + (Math.random() - 0.5) * 1.6
+        b.backoffDir = [Math.sin(ang), Math.cos(ang)]
+        b.backoffDuck = b.stuckTotal > 2
+        b.backoffUntil = game.time + 0.45 + Math.random() * 0.3
+        b.path = null; b.repathAt = 0
+        b.stuckN = 0
+      }
+      // still stuck after all that: this goal is not worth it
+      if (b.stuckTotal >= 6) b.pathFailed = true
     } else b.stuckN = 0
     b.stuckT = 0
     b.stuckPos.copy(a.pos)
   }
   return false
 }
+const NAV_CELL = () => (NAV.NX ? (NAV.toX(1) - NAV.toX(0)) : 0.7)
 
 function steer(a, dx, dz) {
   const l = Math.hypot(dx, dz) || 1

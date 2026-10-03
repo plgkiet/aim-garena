@@ -36,7 +36,10 @@ export function sphereHits(x, y, z, r) {
   return level.bvh.intersectsSphere(_sphere)
 }
 
-const FOOT = [[0, 0], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]]
+// centre, corners, and a line of probes along each axis (spaced closer than
+// a stair tread, so a row of them can't all drop through the gaps)
+const FOOT = [[0, 0], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7],
+  [0.95, 0], [-0.95, 0], [0, 0.95], [0, -0.95], [0.5, 0], [-0.5, 0], [0, 0.5], [0, -0.5]]
 
 /** First upward-facing surface below `fromY` along a vertical line, or -Infinity. */
 function floorBelow(x, z, fromY) {
@@ -51,13 +54,28 @@ function floorBelow(x, z, fromY) {
   return best
 }
 
+// a denser 5 x 5 net, for when the five probes disagree
+const FOOT_FINE = []
+for (const ox of [-0.95, -0.5, 0, 0.5, 0.95]) for (const oz of [-0.95, -0.5, 0, 0.5, 0.95]) FOOT_FINE.push([ox, oz])
+
 /** Highest floor under the hull's footprint no higher than `maxY`. */
 export function groundHeight(x, z, r, maxY) {
   if (!level.bvh) return 0
-  let g = -Infinity
+  let g = -Infinity, lo = Infinity
   for (const [ox, oz] of FOOT) {
     const y = floorBelow(x + ox * r, z + oz * r, maxY)
     if (y > g) g = y
+    if (y < lo) lo = y
+  }
+  // uneven underfoot (open metal stairs: thin treads with gaps between
+  // them, the Warehouse's flights): five probes can all fall through the
+  // gaps and miss the tread the hull is really standing on, which leaves
+  // the hull sunk into that tread and stuck. Look closer.
+  if (g - lo > 0.05) {
+    for (const [ox, oz] of FOOT_FINE) {
+      const y = floorBelow(x + ox * r, z + oz * r, maxY)
+      if (y > g) g = y
+    }
   }
   return g === -Infinity ? level.bounds.min.y - 50 : g
 }

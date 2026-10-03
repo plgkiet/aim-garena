@@ -94,6 +94,140 @@ function localMuzzle(a, out) {
   return out.addScaledVector(_dir, 0.55).add(new THREE.Vector3(rx * 0.12, -0.11, rz * 0.12))
 }
 
+/* An explosion, built from sprites and torn down when it is over: a white-hot
+   core and a fireball that swells and goes dark, sparks and debris thrown
+   out and falling, a ring of dust racing along the ground, a column of
+   smoke that rises and thins, and a light that lights up the walls for an
+   instant. A flashbang is just the pop of light; a molotov landing in a
+   smoke only puffs. */
+const BLAST = {
+  he: { life: 2.6, fire: 1, size: 3.2, sparks: 26, smoke: 14, light: 60, lightR: 14, ring: 1 },
+  c4: { life: 4.5, fire: 1, size: 9, sparks: 46, smoke: 26, light: 140, lightR: 40, ring: 2.6 },
+  flash: { life: 0.5, fire: 0, size: 2.4, sparks: 10, smoke: 0, light: 90, lightR: 18, ring: 0, white: true },
+  fizzle: { life: 1.2, fire: 0, size: 1, sparks: 0, smoke: 5, light: 0, lightR: 0, ring: 0 },
+  fire: { life: 0.6, fire: 0.5, size: 1.4, sparks: 10, smoke: 0, light: 30, lightR: 8, ring: 0 },
+}
+const ringGeo = new THREE.RingGeometry(0.7, 1, 40).rotateX(-Math.PI / 2)
+
+function makeBlast(pos, type, tex) {
+  const cfg = BLAST[type]
+  if (!cfg) return null
+  const group = new THREE.Group()
+  group.position.copy(pos)
+  const sprite = (map, color, blending = THREE.AdditiveBlending) => {
+    const m = new THREE.SpriteMaterial({ map, color, transparent: true, depthWrite: false, toneMapped: false, blending, opacity: 0 })
+    const sp = new THREE.Sprite(m)
+    group.add(sp)
+    return sp
+  }
+  const b = { cfg, t: 0, group, fire: [], sparks: [], smoke: [], ring: null, light: null, core: null }
+  // white-hot core
+  b.core = sprite(tex.fire, cfg.white ? '#ffffff' : '#fff6e0')
+  // fireball: a handful of hot blobs pushed out from the centre
+  for (let i = 0; i < (cfg.fire ? 10 : 0); i++) {
+    const sp = sprite(i % 2 ? tex.glow : tex.fire, i % 3 ? '#ffb050' : '#ff7020')
+    const d = new THREE.Vector3(Math.random() - 0.5, Math.random() * 0.8 + 0.1, Math.random() - 0.5).normalize()
+    sp.userData = { d, r: (0.35 + Math.random() * 0.45) * cfg.size * cfg.fire, s: (0.6 + Math.random() * 0.6) * cfg.size * cfg.fire, delay: Math.random() * 0.06 }
+    b.fire.push(sp)
+  }
+  // sparks and debris
+  for (let i = 0; i < cfg.sparks; i++) {
+    const sp = sprite(tex.fire, cfg.white ? '#ffffff' : i % 3 ? '#ffd27a' : '#ff8a30')
+    const sp0 = 6 + Math.random() * 10
+    const d = new THREE.Vector3(Math.random() - 0.5, Math.random() * 0.9 + 0.15, Math.random() - 0.5).normalize()
+    sp.userData = { v: d.multiplyScalar(sp0 * (cfg.size / 3.2) ** 0.5), life: 0.35 + Math.random() * 0.6, s: 0.08 + Math.random() * 0.1 }
+    b.sparks.push(sp)
+  }
+  // smoke: dark at first (soot), greying as it rises and spreads
+  for (let i = 0; i < cfg.smoke; i++) {
+    const sp = sprite(tex.cloud[i % tex.cloud.length], '#ffffff', THREE.NormalBlending)
+    const ang = Math.random() * Math.PI * 2, rr = Math.random()
+    sp.userData = {
+      ox: Math.cos(ang) * rr, oz: Math.sin(ang) * rr, oy: Math.random(),
+      delay: 0.05 + Math.random() * 0.25, s: (0.7 + Math.random() * 0.6) * cfg.size * 0.75,
+      rise: 0.5 + Math.random() * 0.9, rot: (Math.random() - 0.5) * 0.6, tone: 0.28 + Math.random() * 0.15,
+    }
+    sp.material.rotation = Math.random() * 6.28
+    b.smoke.push(sp)
+  }
+  if (cfg.ring) {
+    const m = new THREE.MeshBasicMaterial({ map: tex.cloud[0], color: '#d9c7a6', transparent: true, depthWrite: false, opacity: 0, side: THREE.DoubleSide })
+    b.ring = new THREE.Mesh(ringGeo, m)
+    b.ring.position.y = 0.05
+    group.add(b.ring)
+  }
+  if (cfg.light) {
+    b.light = new THREE.PointLight(cfg.white ? '#ffffff' : '#ffa050', 0, cfg.lightR, 1.4)
+    b.light.position.y = 0.6
+    group.add(b.light)
+  }
+  return b
+}
+
+const _g = 9.8
+function stepBlast(b, dt) {
+  const { cfg } = b
+  b.t += dt
+  const t = b.t
+  if (t > cfg.life) return false
+  // core: a very short, very bright pop
+  const ct = t / 0.18
+  b.core.material.opacity = Math.max(0, 1 - ct)
+  b.core.scale.setScalar(cfg.size * (0.6 + Math.min(1, ct) * 0.9))
+  b.core.visible = ct < 1
+  // fireball: swells fast, cools from yellow to deep orange, then goes
+  for (const sp of b.fire) {
+    const u = sp.userData
+    const k = THREE.MathUtils.clamp((t - u.delay) / 0.55, 0, 1)
+    const e = 1 - Math.pow(1 - k, 3)
+    sp.position.copy(u.d).multiplyScalar(u.r * e)
+    sp.position.y += e * 0.4 * cfg.size * 0.2
+    sp.scale.setScalar(u.s * (0.4 + e * 0.8))
+    sp.material.opacity = k <= 0 ? 0 : (1 - k) ** 1.4
+    sp.material.color.setRGB(1, 0.75 - k * 0.4, 0.35 - k * 0.3)
+  }
+  // sparks: ballistic, shrinking as they burn out
+  for (const sp of b.sparks) {
+    const u = sp.userData
+    if (t > u.life) { sp.visible = false; continue }
+    u.v.y -= _g * dt
+    sp.position.addScaledVector(u.v, dt)
+    if (sp.position.y < 0) { sp.position.y = 0; u.v.y *= -0.3; u.v.x *= 0.6; u.v.z *= 0.6 }
+    const f = 1 - t / u.life
+    sp.scale.setScalar(u.s * (0.5 + f))
+    sp.material.opacity = f
+  }
+  // smoke column
+  for (const sp of b.smoke) {
+    const u = sp.userData
+    const k = THREE.MathUtils.clamp((t - u.delay) / (cfg.life - u.delay), 0, 1)
+    const e = 1 - Math.pow(1 - k, 2)
+    const R = cfg.size * 0.7
+    sp.position.set(u.ox * R * (0.4 + e), 0.3 + u.oy * R * 0.5 + e * u.rise * cfg.size * 0.6, u.oz * R * (0.4 + e))
+    sp.scale.setScalar(u.s * (0.5 + e * 0.9))
+    const tone = u.tone + e * 0.3
+    sp.material.color.setRGB(tone, tone * 0.96, tone * 0.92)
+    sp.material.opacity = k <= 0 ? 0 : Math.min(1, k * 8) * (1 - k) * 0.7
+    sp.material.rotation += u.rot * dt
+  }
+  // dust ring along the floor
+  if (b.ring) {
+    const k = THREE.MathUtils.clamp(t / 0.7, 0, 1)
+    const e = 1 - Math.pow(1 - k, 3)
+    b.ring.scale.setScalar(0.3 + e * cfg.size * cfg.ring * 1.4)
+    b.ring.material.opacity = (1 - k) * 0.55
+  }
+  if (b.light) {
+    const k = t / 0.35
+    b.light.intensity = k < 1 ? cfg.light * (1 - k) ** 2 * (0.85 + Math.random() * 0.3) : 0
+  }
+  return true
+}
+
+function disposeBlast(b) {
+  b.group.traverse(o => { if (o.material) o.material.dispose() })
+}
+
 export function Effects() {
   const tracerGroup = useRef()
   const smokeGroup = useRef()
@@ -103,6 +237,8 @@ export function Effects() {
   const nadeGroup = useRef()
   const bombRef = useRef()
   const bombLight = useRef()
+  const blastGroup = useRef()
+  const blasts = useRef([])
   const flashLights = useRef([])
   const flashSprites = useRef([])
 
@@ -169,7 +305,20 @@ export function Effects() {
       if (isLocal(attacker)) { game.hitConfirm = game.time; game.hitKill = !victim.alive }
     }))
     offs.push(on('knifeWall', ({ point }) => { sfx.thud(point); sfx.clack(0.7, 0.1) }))
-    offs.push(on('explode', ({ pos, type }) => sfx.explosion(pos, type)))
+    offs.push(on('explode', ({ pos, type }) => {
+      sfx.explosion(pos, type)
+      const b = makeBlast(pos, type, { fire: flashTex, cloud: cloudTex, glow: fireTex })
+      if (!b) return
+      blastGroup.current?.add(b.group)
+      blasts.current.push(b)
+      // a blast close by shakes the view
+      const cam = game.camera?.position
+      if (cam && (type === 'he' || type === 'c4')) {
+        const d = cam.distanceTo(pos)
+        const k = THREE.MathUtils.clamp(1 - d / (type === 'c4' ? 40 : 16), 0, 1)
+        game.shake = Math.max(game.shake || 0, k * (type === 'c4' ? 1.4 : 1))
+      }
+    }))
     offs.push(on('grenadeBounce', ({ pos }) => sfx.grenadeBounce(pos)))
     offs.push(on('flashed', ({ amount, dur }) => { if (amount > 0.4) sfx.flashRing(dur) }))
     offs.push(on('bombBeep', ({ pos }) => sfx.bombBeep(pos)))
@@ -228,6 +377,16 @@ export function Effects() {
       S.userData.t = (S.userData.t || 0) - dt
       S.visible = S.userData.t > 0
       if (S.visible) S.scale.setScalar(0.35 + Math.random() * 0.2)
+    }
+
+    // grenade / bomb blasts
+    for (let i = blasts.current.length - 1; i >= 0; i--) {
+      const b = blasts.current[i]
+      if (!stepBlast(b, dt)) {
+        blastGroup.current?.remove(b.group)
+        disposeBlast(b)
+        blasts.current.splice(i, 1)
+      }
     }
 
     // smoke clouds: puffs bloom out from the grenade, settle into a dome, drift and thin
@@ -393,6 +552,7 @@ export function Effects() {
       <group ref={fireGroup} />
       <group ref={dropGroup} />
       <group ref={nadeGroup} />
+      <group ref={blastGroup} />
       <group ref={bombRef} visible={false}>
         <primitive object={bombModel.group} />
         <pointLight ref={bombLight} position={[0.03, 0.08, 0]} color="#ff2a1a" distance={2} intensity={0} />

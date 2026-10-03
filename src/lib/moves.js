@@ -192,6 +192,34 @@ export const MOVES = {
 /* Held knife only, two keys as in CS: V looks the knife over, R plays the
    next flourish in turn (the knife has nothing to reload). */
 export const FLOURISHES = ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow']
+
+/* R on each knife: the flourishes it cycles through, in order, picked knife
+   by knife; trim or reorder a line to change a knife's style (any move
+   name from MOVES above works). A knife missing here, or
+   left with an empty list, falls back to FLOURISHES. Flip and Stiletto are
+   keyed by type: every finish of them shares the line. */
+export const KNIFE_FLOURISHES = {
+  default: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick'],   // Knife (dao mặc định)
+  m9a: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'flow'],   // M9 Bayonet (Sapphire)
+  m9b: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'flow'],   // M9 Bayonet (Autotronic)
+  bfly: ['twirl', 'flip', 'fingerRoll', 'juggle'],   // Butterfly Knife
+  karambit: ['twirl', 'flip', 'palmSpin', 'juggle'],   // Karambit
+  huntsman: ['twirl', 'flip', 'palmSpin', 'reverseFlick'],   // Huntsman Knife
+  bowie: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'flow'],   // Bowie Knife
+  skeleton: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'flow'],   // Skeleton Knife
+  flip: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick'],   // Flip Knife
+  stiletto: ['twirl', 'flip', 'palmSpin', 'reverseFlick', 'flow'],   // Stiletto Knife
+  bearbrick: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'flow'],   // Bearbrick
+  racket: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'flow'],   // Vợt cầu lông
+  iphone: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'flow'],   // iPhone
+}
+
+/** The flourish list for a knife key ('knife_flip_ruby' reads the flip line). */
+export function flourishesFor(key) {
+  const type = /^knife_([a-z0-9]+)_/i.exec(key || '')?.[1]
+  const list = KNIFE_FLOURISHES[key] ?? KNIFE_FLOURISHES[type]
+  return list?.length ? list.filter(m => MOVES[m]) : FLOURISHES
+}
 export const BINDINGS = [
   { key: 'KeyV', move: 'inspect', label: 'V', name: 'Inspect' },
   { key: 'KeyR', move: 'next', label: 'R', name: 'Múa (đổi kiểu mỗi lần bấm)' },

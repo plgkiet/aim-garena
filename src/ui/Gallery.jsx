@@ -344,6 +344,7 @@ export function Gallery({ onBack }) {
       for (const d of disposables) d.dispose?.();
       pmrem.dispose();
       renderer.dispose();
+      renderer.forceContextLoss();   // give the context back now (see ItemDetail)
       el.removeChild(renderer.domElement);
     };
   }, [wing]);

@@ -134,8 +134,18 @@ function slide(a, dt) {
   // wedged inside geometry (stepped in between two stair treads, slid under
   // a flight): lift out onto whatever is just above rather than staying stuck
   if (hullBlocked(p.x, p.y, p.z, R, h)) {
-    for (let up = 0.1; up <= 0.61; up += 0.1) {
-      if (!hullBlocked(p.x, p.y + up, p.z, R, h)) { p.y += up; a.vel.y = 0; break }
+    let freed = false
+    for (let up = 0.1; up <= 0.61 && !freed; up += 0.1) {
+      if (!hullBlocked(p.x, p.y + up, p.z, R, h)) { p.y += up; a.vel.y = 0; freed = true }
+    }
+    // or a side-on overhang (a platform's lip over a flight of stairs): out
+    // sideways, by the smallest nudge that clears it
+    for (let d = 0.02; d <= 0.2 && !freed; d += 0.03) {
+      for (let k = 0; k < 8; k++) {
+        const ang = (k / 8) * Math.PI * 2
+        const nx = p.x + Math.cos(ang) * d, nz = p.z + Math.sin(ang) * d
+        if (!hullBlocked(nx, p.y, nz, R, h)) { p.x = nx; p.z = nz; freed = true; break }
+      }
     }
   }
 
@@ -152,7 +162,9 @@ function slide(a, dt) {
       const lift = MOVE.step
       if (!hullBlocked(nx, p.y + lift, nz, R, h - lift) && !hullBlocked(p.x, p.y + lift, p.z, R, h - lift)) {
         const top = groundHeight(nx, nz, R, p.y + lift)
-        if (top >= p.y - 0.02 && top <= p.y + lift + 0.01) {
+        // the whole hull has to fit up there too, head included: stepping
+        // up under an overhang would otherwise push the head into it
+        if (top >= p.y - 0.02 && top <= p.y + lift + 0.01 && !hullBlocked(nx, Math.max(p.y, top), nz, R, h)) {
           p.x = nx; p.z = nz; p.y = Math.max(p.y, top)
           if (!a.onGround) { a.onGround = true; a.vel.y = 0 }
           continue
@@ -166,7 +178,11 @@ function slide(a, dt) {
   const ground = groundHeight(p.x, p.z, R, p.y + (a.onGround ? MOVE.step : 0.001))
   if (a.onGround && a.vel.y <= 0) {
     // stick to the floor going down stairs
-    if (p.y - ground <= MOVE.step + 0.02) { p.y = ground; a.vel.y = 0; a.jumped = false; return }
+    if (p.y - ground <= MOVE.step + 0.02) {
+      // a snap up onto a tread must leave room for the head
+      if (ground <= p.y || !hullBlocked(p.x, ground, p.z, R, h)) p.y = ground
+      a.vel.y = 0; a.jumped = false; return
+    }
     a.onGround = false
   }
   const ny = p.y + a.vel.y * dt

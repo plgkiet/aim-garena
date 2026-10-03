@@ -8,13 +8,15 @@ import { Effects } from './view/Effects'
 import { Impacts } from './view/Impacts'
 import { Viewmodel } from './view/Viewmodel'
 import { Hud } from './ui/Hud'
+import { ErrorBoundary } from './ui/ErrorBoundary'
 import { game } from './game/state'
 import { canBuy, startMatch } from './game/rules'
 import { W } from './game/weapons'
 import { switchTo } from './game/weaponLogic'
 import * as collision from './world/collision'
-import { level } from './world/level'
+import { level, loadLevel } from './world/level'
 import * as nav from './game/nav'
+import * as movement from './game/movement'
 import { hfovToVfov, BASE_FOV } from './game/constants'
 import { KNIVES } from './lib/knives'
 import { MOVES } from './lib/moves'
@@ -24,6 +26,7 @@ import './styles.css'
 
 export default function App() {
   const [locked, setLocked] = useState(false)
+  const [glLost, setGlLost] = useState(false)
   const canvasWrap = useRef(null)
 
   const requestLock = useCallback(() => {
@@ -65,7 +68,7 @@ export default function App() {
           window.__step(frames)
         },
         freeze(v = true) { game.devFreeze = v },
-        collision, level, nav,
+        collision, level, nav, movement, loadLevel,
       }
     }
   }, [])
@@ -97,6 +100,14 @@ export default function App() {
         camera={{ fov: hfovToVfov(BASE_FOV), near: 0.05, far: 260, position: [0, 20, 30] }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         onCreated={({ gl, scene }) => {
+          // the GPU dropped the context (driver reset, too many WebGL pages
+          // open): let the browser restore it, and say so instead of a frozen
+          // white canvas; if it does not come back, offer a reload
+          const cv = gl.domElement
+          cv.addEventListener('webglcontextlost', e => { e.preventDefault(); console.error('WebGL context lost'); setGlLost(true) })
+          // a restored context comes back with the map's textures gone (a white
+          // world), so the overlay stays up and the way out is a reload
+          cv.addEventListener('webglcontextrestored', () => console.info('WebGL context restored'))
           gl.toneMapping = THREE.ACESFilmicToneMapping
           gl.toneMappingExposure = 1.0
           gl.shadowMap.type = THREE.PCFSoftShadowMap
@@ -106,15 +117,23 @@ export default function App() {
         onPointerDown={() => { if (game.phase !== 'menu' && game.phase !== 'matchEnd' && !game.buyOpen) requestLock() }}
       >
         <GameLoop onLockChange={onLockChange} />
-        <Suspense fallback={null}>
-          <Map />
-          <Characters />
-          <Effects />
-          <Impacts />
-          <Viewmodel />
-        </Suspense>
+        {/* each part loads and fails on its own: a model that is slow or
+            fails to load must not blank the map, nor take the gun with it */}
+        <ErrorBoundary name="map" fallback={null}><Suspense fallback={null}><Map /></Suspense></ErrorBoundary>
+        <ErrorBoundary name="characters" fallback={null}><Suspense fallback={null}><Characters /></Suspense></ErrorBoundary>
+        <ErrorBoundary name="effects" fallback={null}><Suspense fallback={null}><Effects /><Impacts /></Suspense></ErrorBoundary>
+        <ErrorBoundary name="viewmodel" fallback={null}><Suspense fallback={null}><Viewmodel /></Suspense></ErrorBoundary>
       </Canvas>
-      <Hud locked={locked} onRequestLock={requestLock} />
+      <ErrorBoundary name="hud"><Hud locked={locked} onRequestLock={requestLock} /></ErrorBoundary>
+      {glLost && (
+        <div className="crash">
+          <div className="crash__box">
+            <h2>Mất đồ hoạ</h2>
+            <p>Trình duyệt vừa ngắt WebGL của game (thường do mở quá nhiều trang/tab 3D cùng lúc, hoặc card đồ hoạ bị reset), nên màn hình sẽ trắng. Tải lại trang để chơi tiếp — kho đồ vẫn được giữ nguyên.</p>
+            <button type="button" onClick={() => window.location.reload()}>Tải lại trang</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

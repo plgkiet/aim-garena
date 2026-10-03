@@ -114,6 +114,7 @@ canvas { display: block; cursor: crosshair; }
 .kf .tag { font-size: 11px; padding: 0 3px; border: 1px solid rgba(255,255,255,0.4); border-radius: 2px; }
 .kf .tag.hs { border-color: var(--red); color: #ff9a92; }
 .kf .hsicon { width: 26px; height: 19px; color: #ff5a4e; filter: drop-shadow(0 0 2px rgba(0,0,0,0.8)); }
+.kf .kficon { width: 28px; height: 20px; color: #f2f2f2; flex: none; filter: drop-shadow(0 0 2px rgba(0,0,0,0.8)); }
 
 .center {
   position: absolute; left: 50%; top: 24%; transform: translateX(-50%); text-align: center;
@@ -1293,3 +1294,41 @@ canvas { display: block; cursor: crosshair; }
 .case-contents .mini-item { padding: 8px 8px 10px; }
 .case-contents .mini-item span { font-size: 12.5px; }
 .case-contents .mini-item--gold { min-height: 0; }
+
+/* ---- x10 case opening ---- */
+.spin-actions { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+.spin-actions .btn { margin-top: 0; }
+.btn--x10 { color: #fff; border: 1px solid color-mix(in oklab, var(--tier-covert, #eb4b4b) 70%, transparent); background: linear-gradient(135deg, color-mix(in oklab, var(--tier-covert, #eb4b4b) 30%, transparent), color-mix(in oklab, var(--tier-classified, #d32ce6) 22%, transparent)); }
+.btn--x10:disabled { opacity: 0.45; }
+.batch-progress { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: #e8eef2; }
+.batch-progress .btn { margin-top: 0; }
+.batch-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.batch-cell { position: relative; display: grid; place-items: center; aspect-ratio: 36 / 24; padding: 4px; border-radius: 8px; background: color-mix(in oklab, var(--tier, #4b69ff) 18%, rgba(0,0,0,0.35)); border-bottom: 3px solid var(--tier, #4b69ff); animation: result-in 0.3s ease-out; }
+.batch-cell img, .batch-cell .mini-item__ph { width: 100%; height: 100%; object-fit: contain; }
+.batch-cell--empty { background: rgba(255,255,255,0.05); border-bottom-color: rgba(255,255,255,0.12); animation: none; }
+.batch-modal { width: min(980px, 94vw); }
+.batch-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 100%; margin: 18px 0 8px; }
+.batch-cell--big { aspect-ratio: auto; gap: 2px; padding: 10px 8px 8px; text-align: center; }
+.batch-cell--big img, .batch-cell--big .mini-item__ph { height: 86px; }
+.batch-cell--big small { font-size: 11px; color: #c3ccd3; }
+.batch-cell--big span { font-size: 13px; line-height: 1.2; }
+@media (max-width: 640px) {
+  .spin-actions { grid-template-columns: 1fr; }
+  .batch-grid { grid-template-columns: repeat(2, 1fr); }
+  .batch-modal { max-height: 90vh; overflow-y: auto; }
+}
+
+/* ---- crash / lost-graphics screen ---- */
+.crash { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: rgba(10, 12, 16, 0.92); color: #e8eef2; font: 400 15px 'Lexend', sans-serif; }
+.crash__box { max-width: 460px; padding: 26px 28px; text-align: center; border-radius: 12px; background: #161a20; border: 1px solid rgba(255,255,255,0.12); }
+.crash__box h2 { font-size: 22px; margin: 0 0 10px; }
+.crash__box p { color: #aab4bd; margin: 0 0 18px; word-break: break-word; }
+.crash__box button { padding: 10px 22px; border-radius: 999px; border: 0; background: #e4ae39; color: #1a1408; font: 500 15px 'Lexend', sans-serif; cursor: pointer; }
+
+/* ---- DEBUG: knife move name (see KnifeMoveDebug in Hud.jsx) ---- */
+.knife-debug { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); padding: 8px 16px; text-align: center; background: rgba(0,0,0,0.6); border: 1px dashed rgba(255,210,80,0.7); border-radius: 6px; color: #ddd; font: 500 13px 'Barlow Condensed', sans-serif; letter-spacing: 0.04em; pointer-events: none; }
+.knife-debug b { color: #ffd250; }
+.knife-debug__move { font: 700 34px 'Barlow Condensed', sans-serif; color: #888; line-height: 1.1; }
+.knife-debug__move.on { color: #ffd250; }
+.knife-debug__list { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; max-width: 420px; }
+.knife-debug__list span.cur { color: #ffd250; text-decoration: underline; }

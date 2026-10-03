@@ -52,7 +52,14 @@ const TEASES = [
 const prefersReducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 
-function spinProfile(reduced) {
+function spinProfile(reduced, fast = false) {
+  // the x10: a short spin each, so ten of them take ~20 s rather than ~90
+  if (fast)
+    return {
+      durationMs: (reduced ? 1100 : 1700) + Math.floor(Math.random() * 400),
+      tiles: 16 + Math.floor(Math.random() * 6),
+      friction: 2.4 + Math.random() * 0.4,
+    };
   if (reduced)
     return {
       durationMs: 3600 + Math.floor(Math.random() * 900),
@@ -144,6 +151,7 @@ function Tile({ item }) {
 /* The case's contents for the list under the reel: guns by grade, commonest
    first; the rare specials get one tile of their own. */
 const GRADE = { milspec: 0, restricted: 1, classified: 2, covert: 3 };
+const TIER_RANK = { ...GRADE, gold: 4 };
 const CONTENTS = {
   guns: CASE.items.filter((i) => i.kind === "gun").sort((p, q) => GRADE[p.tier] - GRADE[q.tier]),
 };
@@ -168,21 +176,31 @@ export function CaseOpen({ onBack, onInventory }) {
   // the drawn item waits here until the reel stops; nothing reaches the
   // inventory (or its counter) while the reel is still running
   const pendingRef = useRef(null);
+  // the x10: items drawn (and paid for) up front, waiting for their spin
+  const queueRef = useRef([]);
+  const batchRef = useRef(null); // { results: [{ item, drop }] } while a x10 runs
+  const nextTimer = useRef(0);
+  const [batch, setBatch] = useState(null); // { results, total, finished }
   const [spins, setSpins] = useState(inventory.get().spins);
   useEffect(() => inventory.subscribe((s) => setSpins(s.spins)), []);
+  const store = (item) =>
+    inventory.add(item.baseId || item.id, item.patternNo ? { pattern: item.patternNo } : {});
   const claim = () => {
     const item = pendingRef.current;
     if (!item) return null;
     pendingRef.current = null;
-    return inventory.add(item.baseId || item.id, item.patternNo ? { pattern: item.patternNo } : {});
+    return store(item);
   };
-  // leaving mid-spin must not lose the drop
+  // leaving mid-spin must not lose the drop (nor the rest of a x10)
   useEffect(
     () => () => {
       cancelAnimationFrame(frame.current);
       clearTimeout(finishTimer.current);
+      clearTimeout(nextTimer.current);
       claim();
+      for (const it of queueRef.current.splice(0)) store(it);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
   // warm the thumbnails of everything that can show on the strip
@@ -207,11 +225,11 @@ export function CaseOpen({ onBack, onInventory }) {
     return () => window.removeEventListener("resize", buildIdle);
   }, [buildIdle]);
 
-  function run(winner) {
+  function run(winner, onLand) {
     const width = window_.current?.clientWidth || 900;
     const { tile: TILE, gap: GAP } = measureTile(track.current);
     const STEP = TILE + GAP;
-    const profile = spinProfile(prefersReducedMotion());
+    const profile = spinProfile(prefersReducedMotion(), !!onLand);
 
     const winnerAt = profile.tiles;
     const filler = () => {
@@ -253,6 +271,11 @@ export function CaseOpen({ onBack, onInventory }) {
       clearTimeout(finishTimer.current);
       setOffset(to);
       const drop = claim();
+      if (onLand) {
+        if (soundRef.current) playReveal(winner.tier);
+        onLand(winner, drop);
+        return;
+      }
       setResult({ item: winner, drop });
       setPhase("done");
       setRevealed(true);
@@ -300,7 +323,74 @@ export function CaseOpen({ onBack, onInventory }) {
       .finally(() => run(item));
   }
 
+  const draw = () => {
+    const drawn = drawItem(items);
+    return drawn.seeded ? variantOf(drawn, rollPattern()) : drawn;
+  };
+
+  /* Open up to ten in a row: every key is spent and every item drawn now,
+     then each gets a short spin of its own, back to back, and the lot is
+     shown together at the end. "Bỏ qua" lands the rest at once. */
+  function openMany(n = 10) {
+    let k = 0;
+    while (k < n && inventory.spendSpin()) k++;
+    if (!k) return;
+    if (soundRef.current) {
+      unlock();
+      playOpen();
+    }
+    queueRef.current = Array.from({ length: k }, draw);
+    batchRef.current = { results: [], total: k };
+    setBatch({ results: [], total: k, finished: false });
+    setResult(null);
+    setRevealed(false);
+    setPhase("spinning");
+    spinNext();
+  }
+
+  function spinNext() {
+    const b = batchRef.current;
+    const item = queueRef.current.shift();
+    if (!b) return;
+    if (!item) return endBatch();
+    pendingRef.current = item;
+    thumbnail(item, { priority: 10 })
+      .catch(() => {})
+      .finally(() => {
+        if (batchRef.current !== b) return;
+        run(item, (won, drop) => {
+          b.results.push({ item: won, drop });
+          setBatch({ results: [...b.results], total: b.total, finished: false });
+          nextTimer.current = setTimeout(spinNext, 650);
+        });
+      });
+  }
+
+  function skipBatch() {
+    const b = batchRef.current;
+    if (!b) return;
+    cancelAnimationFrame(frame.current);
+    clearTimeout(finishTimer.current);
+    clearTimeout(nextTimer.current);
+    const cur = pendingRef.current;
+    if (cur) b.results.push({ item: cur, drop: claim() });
+    for (const it of queueRef.current.splice(0)) b.results.push({ item: it, drop: store(it) });
+    endBatch();
+  }
+
+  function endBatch() {
+    const b = batchRef.current;
+    batchRef.current = null;
+    if (!b) return;
+    const best = [...b.results].sort((p, q) => TIER_RANK[q.item.tier] - TIER_RANK[p.item.tier])[0];
+    setBatch({ results: b.results, total: b.total, finished: true });
+    if (best) setResult(best);
+    setPhase("done");
+    if (soundRef.current && best) playReveal(best.item.tier);
+  }
+
   function again() {
+    setBatch(null);
     setResult(null);
     setStrip([]);
     setOffset(0);
@@ -396,6 +486,7 @@ export function CaseOpen({ onBack, onInventory }) {
               />
             )}
             <div style={{ minWidth: 0 }}>
+              {batch && <span className="eyebrow">Tốt nhất trong {batch.results.length} hòm</span>}
               <h2>{itemLabel(result.item)}</h2>
               <p>{tierBySlug(result.item.tier).label} · đã vào kho đồ</p>
             </div>
@@ -405,18 +496,41 @@ export function CaseOpen({ onBack, onInventory }) {
           </div>
         ) : (
           <div className="card spin-form">
-            <button
-              type="button"
-              className="btn btn--primary btn--lg btn--block"
-              disabled={phase === "spinning" || spins <= 0}
-              onClick={() => open()}
-            >
-              {phase === "spinning"
-                ? "Đang quay…"
-                : spins > 0
-                  ? `Mở hòm · còn ${spins} lượt`
-                  : "Hết lượt quay"}
-            </button>
+            {batch && phase === "spinning" ? (
+              <>
+                <div className="batch-progress">
+                  <span>Quay liền · hòm {Math.min(batch.results.length + 1, batch.total)}/{batch.total}</span>
+                  <button type="button" className="btn btn--ghost btn--sm" onClick={skipBatch}>
+                    Bỏ qua ⏭
+                  </button>
+                </div>
+                <BatchStrip results={batch.results} total={batch.total} />
+              </>
+            ) : (
+              <div className="spin-actions">
+                <button
+                  type="button"
+                  className="btn btn--primary btn--lg btn--block"
+                  disabled={phase === "spinning" || spins <= 0}
+                  onClick={() => open()}
+                >
+                  {phase === "spinning"
+                    ? "Đang quay…"
+                    : spins > 0
+                      ? `Mở hòm · còn ${spins} lượt`
+                      : "Hết lượt quay"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--lg btn--block btn--x10"
+                  disabled={phase === "spinning" || spins < 2}
+                  onClick={() => openMany(10)}
+                  title={spins < 10 && spins >= 2 ? `Chỉ còn ${spins} lượt: quay ${spins} lần` : undefined}
+                >
+                  Quay {spins >= 2 && spins < 10 ? spins : 10} lần liền
+                </button>
+              </div>
+            )}
             {/* TEST ONLY: open without spending a spin. Comment out when done testing. */}
             {/* <button
               type="button"
@@ -449,7 +563,10 @@ export function CaseOpen({ onBack, onInventory }) {
         </section>
       </div>
 
-      {revealed && result && (
+      {batch?.finished && (
+        <BatchModal results={batch.results} onClose={again} />
+      )}
+      {!batch && revealed && result && (
         <WinnerModal
           item={result.item}
           drop={result.drop}
@@ -505,6 +622,60 @@ export function WinnerModal({ item, drop, onClose, label = "Bạn nhận đượ
               Tiếp tục
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The x10 so far: a slot per case, filled as each reel lands. */
+function BatchStrip({ results, total }) {
+  return (
+    <div className="batch-strip">
+      {Array.from({ length: total }, (_, i) =>
+        results[i] ? (
+          <BatchCell key={i} item={results[i].item} />
+        ) : (
+          <div key={i} className="batch-cell batch-cell--empty" />
+        ),
+      )}
+    </div>
+  );
+}
+
+function BatchCell({ item, big }) {
+  const url = useThumb(item);
+  return (
+    <div className={`batch-cell spin-tile--${item.tier}${big ? " batch-cell--big" : ""}`} title={itemLabel(item)}>
+      {url ? <img src={url} alt="" /> : <div className="mini-item__ph" />}
+      {big && (
+        <>
+          <small>{itemTitle(item)}</small>
+          <span>{item.name}</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Everything a x10 dropped, best first. */
+function BatchModal({ results, onClose }) {
+  const sorted = [...results].sort((p, q) => TIER_RANK[q.item.tier] - TIER_RANK[p.item.tier]);
+  const top = sorted[0]?.item;
+  return (
+    <div className={"winner-modal spin-tile--" + (top?.tier || "milspec")} role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="winner-modal__inner batch-modal" onClick={(e) => e.stopPropagation()}>
+        <span className="winner-modal__label">Bạn nhận được {results.length} món</span>
+        <div className="batch-grid">
+          {sorted.map((r, i) => (
+            <BatchCell key={i} item={r.item} big />
+          ))}
+        </div>
+        <div className="winner-modal__actions">
+          <span className="faint">Tất cả đã nằm trong kho đồ.</span>
+          <button type="button" className="btn btn--primary" onClick={onClose}>
+            Tiếp tục
+          </button>
         </div>
       </div>
     </div>

@@ -1,0 +1,173 @@
+DANH SÁCH DAO VÀ ĐỘNG TÁC MÚA (phím R)
+=======================================
+
+Cách dùng: ở mỗi dao, xoá những dòng động tác không muốn giữ (hoặc đánh dấu x),
+rồi chép tên các động tác còn lại vào dòng của dao đó trong KNIFE_FLOURISHES
+(file src/lib/moves.js). Thứ tự trong danh sách = thứ tự phát khi bấm R.
+Hiện tại dao nào cũng đang có đủ 7 động tác.
+
+Chú giải 7 động tác:
+  twirl         (Helicopter) - xoay 3 vòng nhanh kiểu cánh quạt trong mặt phẳng lưỡi dao
+  flip          (Butterfly Flip) - cán xoè ra, dao lộn đầu-đuôi 3 vòng
+  fingerRoll    (Finger Roll) - lăn chậm qua các khớp ngón tay, lắc lư theo
+  palmSpin      (Palm Spin) - dao xoay quanh trục dọc của nó trên lòng bàn tay (4 vòng)
+  reverseFlick  (Reverse Flick) - hất sang cầm ngược, khoe một nhịp, rồi hất về
+  juggle        (Juggle) - tung nhẹ 2 lần, mỗi lần nửa vòng, bắt lại
+  flow          (Figure Eight) - vẽ số 8 nằm ngang chậm rãi, liền mạch
+
+Không nằm trong danh sách R (không chọn lọc được ở bảng này):
+  deploy       - rút dao ra
+  inspect      - phím V, ngắm dao (Butterfly dùng bản riêng: bflyInspect)
+  stab         - chuột trái, đâm nhanh
+  slash        - chuột phải, chém mạnh
+
+---------------------------------------
+
+Knife (dao mặc định)
+  mã trong code: default
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+M9 Bayonet (Sapphire)
+  mã trong code: m9a
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+M9 Bayonet (Autotronic)
+  mã trong code: m9b
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+Butterfly Knife
+  mã trong code: bfly
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+Karambit
+  mã trong code: karambit
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+Huntsman Knife
+  mã trong code: huntsman
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+Bowie Knife
+  mã trong code: bowie
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+Skeleton Knife
+  mã trong code: skeleton
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+Flip Knife (mọi skin)
+  mã trong code: flip
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+Stiletto Knife (mọi skin)
+  mã trong code: stiletto
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+Bearbrick
+  mã trong code: bearbrick
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+Vợt cầu lông
+  mã trong code: racket
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+iPhone
+  mã trong code: iphone
+  [ ] 1. twirl         (Helicopter)
+  [ ] 2. flip          (Butterfly Flip)
+  [ ] 3. fingerRoll    (Finger Roll)
+  [ ] 4. palmSpin      (Palm Spin)
+  [ ] 5. reverseFlick  (Reverse Flick)
+  [ ] 6. juggle        (Juggle)
+  [ ] 7. flow          (Figure Eight)
+
+---------------------------------------
+Mẫu để dán vào src/lib/moves.js sau khi chọn xong:
+
+export const KNIFE_FLOURISHES = {
+  default: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // Knife (dao mặc định)
+  m9a: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // M9 Bayonet (Sapphire)
+  m9b: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // M9 Bayonet (Autotronic)
+  bfly: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // Butterfly Knife
+  karambit: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // Karambit
+  huntsman: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // Huntsman Knife
+  bowie: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // Bowie Knife
+  skeleton: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // Skeleton Knife
+  flip: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // Flip Knife (mọi skin)
+  stiletto: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // Stiletto Knife (mọi skin)
+  bearbrick: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // Bearbrick
+  racket: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // Vợt cầu lông
+  iphone: ['twirl', 'flip', 'fingerRoll', 'palmSpin', 'reverseFlick', 'juggle', 'flow'],   // iPhone
+}

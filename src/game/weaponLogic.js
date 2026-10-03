@@ -116,6 +116,10 @@ export function weaponTick(a, cmd, dt) {
 
   const pressed = cmd.attack && !ws.triggerHeld
   ws.triggerHeld = !!cmd.attack
+  // a click that lands a hair before the gun is ready (tapping a pistol, the
+  // AWP's bolt) is kept for a moment and fires as soon as it can, instead of
+  // being swallowed
+  if (pressed) ws.clickAt = now
   if (!w || !a.alive) return
 
   // --- reload completion ---
@@ -153,8 +157,9 @@ export function weaponTick(a, cmd, dt) {
         ws.resumeZoom = 0
         emit('zoom', { agent: a, level: ws.zoom })
       }
-      const want = w.auto ? cmd.attack : pressed
+      const want = w.auto ? cmd.attack : pressed || now - (ws.clickAt ?? -9) < 0.18
       if (want && now >= ws.nextAttack && !ws.reloadEnd) {
+        ws.clickAt = -9
         if (inst.clip > 0) fire(a, inst, w)
         else {
           ws.nextAttack = now + 0.2

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -13,6 +13,7 @@ import { swoosh, clack } from '../lib/audio'
 import { VM, viewmodelVFov, applyViewmodel } from '../lib/viewmodel'
 import { Trail } from './Trail'
 import { buildGun } from './guns'
+import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { buildKnifeModel, paintModelBlade, silverParts } from '../skins/knives'
 import { inventory } from '../skins/inventory'
 import { buildHand } from './HandRig'
@@ -687,11 +688,42 @@ export function Viewmodel() {
     gl.render(scene, camera)
 
     if (!me || !me.alive || game.phase === 'menu' || !arm) return
+    // a throw in here must not leave you empty-handed for the rest of the
+    // match: report it once, drop the mounted gun so the next frame builds it
+    // again, and still draw whatever is in hand
+    let draw = false
+    try { draw = updateViewmodel(me, arm, dt) } catch (err) {
+      const msg = String(err?.message || err)
+      if (!vmErrors.has(msg)) { vmErrors.add(msg); console.error('viewmodel frame failed:', err) }
+      rig.current.key = null
+      draw = true
+    }
+    // a NaN anywhere in the rig (a bad frame time, a spring gone wild) hides
+    // the model for good: put the springs and blends back to rest
+    if (!Number.isFinite(arm.position.x + arm.position.y + arm.position.z + (gunHold.current?.position.x ?? 0) + (gunHold.current?.position.y ?? 0) + (rig.current.ads ?? 0))) {
+      console.error('viewmodel: non-finite transform, resetting')
+      const K = rig.current.kick
+      for (const k in K) K[k] = 0
+      rig.current.ads = 0
+      arm.position.set(0, 0, 0); arm.rotation.set(0, 0, 0)
+      gunHold.current?.position.set(0, 0, 0); gunHold.current?.rotation.set(0, 0, 0)
+    }
+    if (!draw) return
+
+    // ---- viewmodel pass on a cleared depth buffer ----
+    gl.autoClear = false
+    gl.clearDepth()
+    gl.render(viewScene, viewCam)
+    gl.autoClear = true
+  }, 1)
+
+  /** Pose the hands and whatever they hold; false when nothing is to be drawn. */
+  function updateViewmodel(me, arm, dt) {
     const inst = activeWeapon(me)
-    if (!inst) return
+    if (!inst) return false
     const w = W[inst.id]
     // scoped: the viewmodel is hidden behind the scope overlay
-    if (me.w.zoom > 0 && w?.zoom) return
+    if (me.w.zoom > 0 && w?.zoom) return false
 
     if (inst.id === 'knife') rig.current.ads = 0
     applyViewmodel(arm, dt)
@@ -728,13 +760,8 @@ export function Viewmodel() {
       trailStrength.current = 0
     }
     updateShells(dt)
-
-    // ---- viewmodel pass on a cleared depth buffer ----
-    gl.autoClear = false
-    gl.clearDepth()
-    gl.render(viewScene, viewCam)
-    gl.autoClear = true
-  }, 1)
+    return true
+  }
 
   return createPortal(
     <>
@@ -748,9 +775,17 @@ export function Viewmodel() {
             <group ref={poseRef}>
               <group ref={knifeHandMount} />
               <group ref={spinRef}>
-                {KNIFE_ORDER.map(id => (KNIVES[id].build
-                  ? <ProcKnife key={id} cfg={KNIVES[id]} envMap={envMap} api={knives} />
-                  : <Knife key={id} cfg={KNIVES[id]} envMap={envMap} api={knives} />))}
+                {/* each knife loads (or fails) on its own: the guns, and every
+                    other knife, must not wait on one slow or broken file */}
+                {KNIFE_ORDER.map(id => (
+                  <ErrorBoundary key={id} name={`knife ${id}`} fallback={null}>
+                    <Suspense fallback={null}>
+                      {KNIVES[id].build
+                        ? <ProcKnife cfg={KNIVES[id]} envMap={envMap} api={knives} />
+                        : <Knife cfg={KNIVES[id]} envMap={envMap} api={knives} />}
+                    </Suspense>
+                  </ErrorBoundary>
+                ))}
               </group>
             </group>
           </group>
@@ -767,6 +802,8 @@ export function Viewmodel() {
     viewScene
   )
 }
+
+const vmErrors = new Set()
 
 const SHELL_GEO = new THREE.CylinderGeometry(0.004, 0.004, 0.02, 8).rotateZ(Math.PI / 2)
 const SHELL_MAT = new THREE.MeshStandardMaterial({ color: '#d4a948', metalness: 0.9, roughness: 0.3 })

@@ -132,8 +132,11 @@ function Viewer({ item }) {
       canvas.removeEventListener("wheel", wheel);
       env.dispose();
       pmrem.dispose();
-      // the models share their materials with the game; only the renderer goes
+      // the models share their materials with the game; only the renderer goes.
+      // dispose() alone keeps the WebGL context alive until GC: open enough
+      // item pages and Chrome kills the oldest context — the game's own canvas
       renderer.dispose();
+      renderer.forceContextLoss();
       canvas.remove();
     };
   }, [item]);

@@ -8,6 +8,7 @@ import { input } from '../game/input'
 import { siteAt } from '../world/mapData'
 import { Radar } from './Radar'
 import { BINDINGS } from '../lib/moves'
+// import { MOVES, flourishesFor } from '../lib/moves'   // DEBUG: KnifeMoveDebug
 import { knife } from '../lib/knifeController'
 import { BuyMenu } from './BuyMenu'
 import { Scoreboard } from './Scoreboard'
@@ -123,6 +124,8 @@ export function Hud({ locked, onRequestLock }) {
       )}
       {me.alive && <WeaponList me={me} />}
       {me.alive && me.active === 3 && <KnifeTricks />}
+      {/* DEBUG (đang tắt): tên động tác múa dao đang phát, để chọn lọc KNIFE_FLOURISHES. Bật lại: bỏ comment dòng dưới, khối KnifeMoveDebug và import MOVES, flourishesFor. */}
+      {/* {me.alive && me.active === 3 && <KnifeMoveDebug />} */}
       {me.alive && <ProgressBar me={me} />}
       {me.alive && <ContextHint me={me} />}
       {!me.alive && <Spectating view={view} />}
@@ -255,7 +258,8 @@ function KillFeed() {
           {k.killer && <span className={k.killer.team.toLowerCase()}>{k.killer.name}</span>}
           {k.assister && <span className="assist">+ {k.assister.name}</span>}
           <span className="gun">{W[k.weapon]?.name ?? (k.weapon === 'c4' ? 'C4' : k.weapon)}</span>
-          {k.penetrated && <span className="tag">⟂</span>}
+          {k.thruSmoke && <SmokeKillIcon />}
+          {k.penetrated && <WallbangIcon />}
           {k.headshot && <HeadshotIcon />}
           <span className={k.victim.team.toLowerCase()}>{k.victim.name}</span>
         </div>
@@ -277,6 +281,59 @@ function CenterText() {
 
 /* The killfeed's headshot mark: a head in profile with a bullet through it,
    in the spirit of CS:GO's icon. */
+/* Killfeed modifiers drawn the CS:GO way: flat white silhouettes the height
+   of the line, sitting between the gun and the headshot mark. */
+
+/** Wallbang ("penetrate"): a slab of brick wall with the bullet's streak
+ *  going in one side and out the other, chips flying off the exit. */
+function WallbangIcon() {
+  return (
+    <svg className="kficon" viewBox="0 0 34 24" aria-label="xuyên tường">
+      <title>Bắn xuyên tường</title>
+      {/* the wall: a brick slab, mortar lines cut out of it */}
+      <path
+        fillRule="evenodd"
+        fill="currentColor"
+        d="M12 2h10v20H12z M12 6.6h10v1.1H12z M12 11.5h10v1.1H12z M12 16.4h10v1.1H12z M16.6 2v4.6h1.1V2z M14 7.7v3.8h1.1V7.7z M19.3 7.7v3.8h1.1V7.7z M16.6 12.6v3.8h1.1v-3.8z M14 17.5V22h1.1v-4.5z M19.3 17.5V22h1.1v-4.5z"
+      />
+      {/* the hole the round punched */}
+      <circle cx="17" cy="12" r="2.3" fill="#141414" />
+      {/* streak in, and out the far side with the bullet */}
+      <path d="M1 12h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.7" />
+      <path d="M24 12h5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M29 10.2l4 1.8-4 1.8z" fill="currentColor" />
+      {/* chips off the exit */}
+      <path d="M24.5 8.5l1.6-1.4M25 15.6l1.5 1.3M23.6 6.6l.6-1.6" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/** Through smoke: a billowing cloud with the bullet's streak cut through it. */
+function SmokeKillIcon() {
+  return (
+    <svg className="kficon" viewBox="0 0 34 24" aria-label="xuyên khói">
+      <title>Bắn xuyên khói</title>
+      <mask id="kf-smoke-cut">
+        <rect width="34" height="24" fill="#fff" />
+        <path d="M0 13.2h34" stroke="#000" strokeWidth="2.2" />
+      </mask>
+      <g fill="currentColor" mask="url(#kf-smoke-cut)">
+        <circle cx="10" cy="14.5" r="5.2" />
+        <circle cx="15.5" cy="9.2" r="6" />
+        <circle cx="22.5" cy="11" r="5.2" />
+        <circle cx="25.5" cy="16" r="4.4" />
+        <circle cx="17.5" cy="16.5" r="5" />
+        <rect x="9" y="15.5" width="17" height="5.4" rx="2.7" />
+      </g>
+      {/* little curls of smoke drifting off the top */}
+      <circle cx="8" cy="7.5" r="1.6" fill="currentColor" opacity="0.75" />
+      <circle cx="26" cy="4.6" r="1.3" fill="currentColor" opacity="0.6" />
+      {/* the streak, poking out both sides */}
+      <path d="M1 13.2h4.5M29.5 13.2h3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 function HeadshotIcon() {
   return (
     <svg className="hsicon" viewBox="0 0 32 24" aria-label="headshot">
@@ -332,6 +389,32 @@ function KnifeTricks() {
     </div>
   )
 }
+
+/* DEBUG ONLY — picking flourishes per knife (KNIFE_FLOURISHES in lib/moves.js).
+   Shows the knife's key (the name to use in that table), the move playing
+   now in big letters (it stays up after the move ends, so there is time to
+   read it), and the knife's whole R list with the current one marked.
+   Switched off: the component below, its <KnifeMoveDebug /> line in Hud
+   above and its import are commented out; uncomment all three to use it. */
+// let lastKnifeMove = null
+// function KnifeMoveDebug() {
+//   const key = knife.knifeKey
+//   const type = /^knife_([a-z0-9]+)_/i.exec(key)?.[1] ?? key      // flip / stiletto share one line
+//   const list = flourishesFor(key)
+//   if (knife.move) lastKnifeMove = knife.move
+//   const shown = knife.move || lastKnifeMove
+//   const m = shown && MOVES[shown]
+//   return (
+//     <div className="knife-debug">
+//       <small>DEBUG · dao: <b>{type}</b></small>
+//       <div className={`knife-debug__move ${knife.move ? 'on' : ''}`}>{shown || '—'}</div>
+//       {m && <small>{m.label ? `${m.label} · ` : ''}{knife.move ? `${knife.t.toFixed(2)} / ` : ''}{m.duration.toFixed(2)}s</small>}
+//       <div className="knife-debug__list">
+//         {list.map((n, i) => <span key={n} className={n === shown ? 'cur' : ''}>{i + 1}. {n}</span>)}
+//       </div>
+//     </div>
+//   )
+// }
 
 function WeaponList({ me }) {
   const rows = []

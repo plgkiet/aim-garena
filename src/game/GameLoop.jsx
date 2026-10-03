@@ -100,12 +100,15 @@ export function GameLoop({ onLockChange }) {
     localCmd.walk = false          // Shift crouches in this build (see duck)
     // PUBG-style lean on Q / E (hold)
     localCmd.lean = canAct ? (k.KeyE ? 1 : 0) - (k.KeyQ ? 1 : 0) : 0
-    localCmd.attack = canAct && input.mouse[0]
+    // read the click before it is thrown away: dead, it changes who you watch.
+    // A quick click (a trackpad tap, a fast flick) can go down and come back
+    // up between two frames, so input.mouse[0] is already false by the time
+    // the tick samples it: the press still counts as one tick of trigger
+    const clicked = consume('Mouse0')
+    localCmd.attack = canAct && (input.mouse[0] || clicked)
     localCmd.attack2 = canAct && input.mouse[2]
     localCmd.attack2Pressed = canAct && consume('Mouse2')
     localCmd.reload = canAct && consume('KeyR')
-    // read the click before it is thrown away: dead, it changes who you watch
-    const clicked = consume('Mouse0')
     const rightClicked = !me.alive && localCmd.attack2Pressed
 
     if (me.alive && canAct) {
@@ -244,6 +247,15 @@ function placeCamera(camera, dt) {
     const t = RECOIL.view_recoil_tracking
     // leaning rolls the view with the head
     camera.rotation.set(me.pitch + me.w.punch.y * t * D2R, me.yaw - me.w.punch.x * t * D2R, -me.lean * 11 * D2R, 'YXZ')
+    // a nearby blast rattles the view for a moment
+    if (game.shake > 0.01) {
+      const s = game.shake * game.shake * 1.6 * D2R, ph = game.time * 60
+      camera.rotation.x += Math.sin(ph * 1.13) * s
+      camera.rotation.y += Math.sin(ph * 0.91 + 1.7) * s
+      camera.rotation.z += Math.sin(ph * 1.37 + 0.4) * s * 0.6
+      camera.position.y += Math.sin(ph * 1.7) * game.shake * 0.02
+    }
+    game.shake = Math.max(0, (game.shake || 0) - dt * 1.6)
     const inst = activeWeapon(me)
     const w = inst && W[inst.id]
     if (me.w.zoom && w?.zoom) fov = hfovToVfov(w.zoom[me.w.zoom - 1])

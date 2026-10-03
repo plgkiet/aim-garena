@@ -5,6 +5,7 @@ import { W } from './weapons'
 import { rayAll } from '../world/collision'
 import { PENETRATION } from '../world/mapData'
 import { spawnImpact } from '../lib/impacts'
+import { smokeBlocks } from './grenades'
 
 /* Hit groups and the damage multipliers CS:GO applies to them. */
 export const HITGROUP = {
@@ -106,7 +107,7 @@ export function armorDamage(dmg, victim, group, armorRatio) {
 
 /**
  * Apply damage and handle the kill.
- * @param {object} info { weapon, group, headshot, penetrated, dir:Vector3, noKnockback }
+ * @param {object} info { weapon, group, headshot, penetrated, thruSmoke, dir:Vector3, noKnockback }
  */
 export function applyDamage(victim, attacker, hp, ap, info) {
   if (!victim.alive) return
@@ -157,7 +158,7 @@ export function killAgent(victim, attacker, info = {}) {
   }
   game.killfeed.push({
     t: game.time, killer: attacker && attacker !== victim ? attacker : null, victim, weapon,
-    headshot: !!info.headshot, penetrated: !!info.penetrated, assister,
+    headshot: !!info.headshot, penetrated: !!info.penetrated, thruSmoke: !!info.thruSmoke, assister,
   })
   if (game.killfeed.length > 6) game.killfeed.shift()
   emit('kill', { victim, attacker, info })
@@ -215,6 +216,8 @@ export function fireBullet(shooter, origin, dir, weaponId) {
       if (bh.group === 'head' && a.helmet && a.armor > 0) emit('helmetHit', { agent: a, point })
       applyDamage(a, shooter, hp, ap, {
         weapon: weaponId, group: bh.group, headshot: bh.group === 'head', penetrated, dir: dir.clone(),
+        // shot blind through a smoke: its own killfeed icon, as in CS:GO
+        thruSmoke: smokeBlocks(origin, point),
       })
       emit('bulletHit', { shooter, victim: a, group: bh.group, point })
       end = point
