@@ -224,7 +224,10 @@ export const GUN_SKINS = [
   // own colour fills where the silhouettes differ)
   skin('awp', 'Medusa', 'covert', 'gem', ['#0e1a1d'], {
     image: '/textures/medusa.png', fit: 'decal', metal: 0.35, rough: 0.4,
-    decal: { left: 0, right: 1260, bottom: 238, sy: 1.28, pins: [[752, 0.59], [873, 0.77]] },
+    // pinned on this photo's own landmarks: the forend's front edge, the
+    // magazine and the thumbhole each land on the model's, so the snakes run
+    // along the forend and the face sits whole on the stock behind the hole
+    decal: { left: 0, right: 1260, bottom: 238, sy: 1.28, pins: [[505, 0.301], [818, 0.587], [1010, 0.771]] },
   }),
   // Classified (the painted-in-code headliners moved down: Covert is for texture skins)
   skin('ak47', 'Dragon Fire', 'classified', 'flames', ['#140707', '#b3140f', '#ff6a00', '#ffd23f'], { metal: 0.3 }),
@@ -284,12 +287,13 @@ export const GUN_SKINS = [
 /* Knife finishes, after the CS:GO ones. */
 const FINISH = {
   fade: { name: 'Fade', pattern: 'fade', pal: ['#fff04d', '#ff8ad8', '#b44dff', '#5b2bff'], metal: 0.9, rough: 0.2 },
-  doppler: { name: 'Doppler', pattern: 'doppler', pal: ['#0a0212', '#3b0a52', '#c1128c', '#ff5bd1', '#1b1f5a'], metal: 0.85, rough: 0.2 },
+  // Doppler and Gamma Doppler come in phases, rolled when the knife drops (see PHASES)
+  doppler: { name: 'Doppler', pattern: 'doppler', pal: ['#0a0212', '#3b0a52', '#c1128c', '#ff5bd1', '#1b1f5a'], metal: 0.85, rough: 0.2, seeded: true, phased: 'doppler' },
   ruby: { name: 'Doppler Ruby', pattern: 'doppler', pal: ['#1a0003', '#6e0010', '#e0102c', '#ff4d5e', '#3a0008'], metal: 0.9, rough: 0.18 },
   sapphire: { name: 'Doppler Sapphire', pattern: 'doppler', pal: ['#0a0524', '#2a148f', '#4b2fe0', '#b4a8ff', '#160a52'], metal: 0.9, rough: 0.18 },
   // the emerald phase of a Gamma Doppler, shown under the family's name
   emerald: { name: 'Gamma Doppler', pattern: 'doppler', pal: ['#001207', '#00471f', '#00c853', '#7dff9c', '#002a12'], metal: 0.9, rough: 0.18 },
-  gamma: { name: 'Gamma Doppler', pattern: 'doppler', pal: ['#02140a', '#0b5e3a', '#2cf5a1', '#b8ff3b', '#083b28'], metal: 0.85, rough: 0.2 },
+  gamma: { name: 'Gamma Doppler', pattern: 'doppler', pal: ['#02140a', '#0b5e3a', '#2cf5a1', '#b8ff3b', '#083b28'], metal: 0.85, rough: 0.2, seeded: true, phased: 'gamma' },
   marble: { name: 'Marble Fade', pattern: 'marble', pal: ['#ffe600', '#ff2a00', '#fff4c2', '#1f4fff', '#ffe600'], metal: 0.85, rough: 0.22 },
   tiger: { name: 'Tiger Tooth', pattern: 'tiger', pal: ['#fff2b0', '#e8a317', '#3b1d00'], metal: 0.95, rough: 0.2 },
   web: { name: 'Crimson Web', pattern: 'web', pal: ['#b3121b', '#0b0000'], metal: 0.35, rough: 0.4 },
@@ -350,18 +354,31 @@ const loreOf = type => {
 
 const MODEL_TYPES = new Set(['karambit', 'huntsman', 'bowie', 'skeleton'])
 
-const knife = (type, finish) => ({
+const knife = (type, finish, fixedSeed) => ({
   id: `knife_${type}_${finish}`,
   kind: 'knife', knife: type, tier: 'gold',
   name: FINISH[finish].name,
   weaponName: `★ ${KNIFE_TYPES[type].name}`,
-  seed: seed++,
+  seed: fixedSeed ?? seed++,
   band: KNIFE_TYPES[type].band,
   ...FINISH[finish],
   ...(finish === 'lore' && loreOf(type)),
   // these lines are real models now: the finish goes on the model's blade
   ...(MODEL_TYPES.has(type) && { model: true, finish: true }),
 })
+
+/* Which knives come in Doppler and in Gamma Doppler, after CS: every one of
+   these has a Doppler; the Gamma Doppler is on the Gamma-case knives
+   (Karambit, Flip, M9 Bayonet) and the Riptide ones (Butterfly, Huntsman,
+   Bowie), not on the Skeleton or the Stiletto. */
+const DOPPLER_KNIVES = ['karambit', 'flip', 'huntsman', 'skeleton', 'stiletto', 'bowie', 'bfly', 'm9a']
+const GAMMA_KNIVES = ['karambit', 'flip', 'huntsman', 'bowie', 'bfly', 'm9a']
+/* The stones were items of their own once (Ruby, Sapphire, Emerald, Black
+   Pearl, on every knife, and three Dopplers in one colour). They are phases
+   of the Doppler now: still built below, in their old places, so every other
+   skin keeps the seed (and so the look) it always had, then left out. */
+const STONE = /_(gemRuby|gemSapphire|gemEmerald|blackPearl|ruby|sapphire|emerald)$/
+const notStone = it => !STONE.test(it.id)
 
 export const KNIFE_SKINS = [
   knife('karambit', 'fade'), knife('karambit', 'sapphire'), knife('karambit', 'marble'), knife('karambit', 'tiger'),
@@ -372,18 +389,22 @@ export const KNIFE_SKINS = [
   // the newer lines, each in the headline finishes
   ...['skeleton', 'stiletto', 'bowie'].flatMap(t =>
     ['fade', 'doppler', 'slaughter', 'tiger', 'gemRuby', 'gemSapphire', 'gemEmerald', 'caseHardened', 'blackPearl'].map(f => knife(t, f))),
-]
+  // the Dopplers and Gamma Dopplers the knives above did not have yet
+  ...['karambit', 'flip'].map((t, i) => knife(t, 'doppler', 9100 + i)),
+  ...['karambit', 'huntsman', 'bowie'].map((t, i) => knife(t, 'gamma', 9200 + i)),
+].filter(notStone)
 
 /* The original model knives can drop too (their finish is baked into the file). */
 /* The Butterfly's own model with a finish painted on its blade: the stones and
    Case Hardened. `finish` marks a model knife whose blade gets repainted. */
-const modelKnife = (type, weaponName, f) => ({
+const modelKnife = (type, weaponName, f, fixedSeed) => ({
   id: `knife_${type}_${f}`, kind: 'knife', knife: type, tier: 'gold', weaponName, model: true,
-  seed: seed++, ...FINISH[f], ...(f === 'lore' && loreOf(type)), finish: true,
+  seed: fixedSeed ?? seed++, ...FINISH[f], ...(f === 'lore' && loreOf(type)), finish: true,
 })
 
 export const MODEL_KNIVES = [
-  { id: 'knife_m9a', kind: 'knife', knife: 'm9a', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Sapphire', model: true },
+  // (the M9 Bayonet's own Sapphire look is no item of its own: it is the
+  // Sapphire phase of the M9 Doppler, see variantOf)
   { id: 'knife_m9b', kind: 'knife', knife: 'm9b', tier: 'gold', weaponName: '★ M9 Bayonet', name: 'Autotronic', model: true },
   { id: 'knife_bfly', kind: 'knife', knife: 'bfly', tier: 'gold', weaponName: '★ Butterfly Knife', name: 'Crimson Web', model: true },
   ...['gemEmerald', 'gemRuby', 'gemSapphire', 'caseHardened', 'blackPearl', 'lore'].map(f => modelKnife('bfly', '★ Butterfly Knife', f)),
@@ -393,7 +414,36 @@ export const MODEL_KNIVES = [
   { id: 'knife_racket', kind: 'knife', knife: 'racket', tier: 'gold', weaponName: '★ Badminton Racket', name: 'Vợt Cầu Lông', model: true },
   { id: 'knife_iphone', kind: 'knife', knife: 'iphone', tier: 'gold', weaponName: '★ iPhone', name: 'Burgundy Red', model: true },
   { id: 'knife_bearbrick_jiangshi', kind: 'knife', knife: 'bearbrick', tier: 'gold', weaponName: '★ Bearbrick', name: 'Cương Thi', model: true },
-]
+  modelKnife('bfly', '★ Butterfly Knife', 'doppler', 9300), modelKnife('bfly', '★ Butterfly Knife', 'gamma', 9301),
+  modelKnife('m9a', '★ M9 Bayonet', 'doppler', 9302), modelKnife('m9a', '★ M9 Bayonet', 'gamma', 9303),
+].filter(notStone)
+
+/* The phases. A Doppler or a Gamma Doppler is one item; what you hold is that
+   item at a phase, rolled when it drops and kept on the drop as its pattern
+   number, exactly as a Case Hardened keeps its pattern. Phases 1-4 are the
+   mixes (an ordinary roll lands on one of them, evenly); the stones after
+   them are the jackpots: they only come out of the 0.03% draw (isJackpot). */
+const mix = (pal) => ({ pattern: 'doppler', pal, metal: 0.85, rough: 0.2 })
+export const PHASES = {
+  doppler: [
+    { label: 'Phase 1', look: mix(['#050308', '#1a0b2e', '#5a1470', '#b0309a', '#120a24']) },   // mostly black, a little purple
+    { label: 'Phase 2', look: mix(['#1a0420', '#6a0f6a', '#e0189a', '#ff7ad8', '#3a1060']) },   // pink
+    { label: 'Phase 3', look: mix(['#04101c', '#0d3a6a', '#1f7fd0', '#5fe0c0', '#0a2440']) },   // blue with green in it
+    { label: 'Phase 4', look: mix(['#050a28', '#1a2a9a', '#3558ff', '#9ab8ff', '#101a60']) },   // blue
+    { label: 'Ruby', rare: true, look: FINISH.gemRuby },
+    { label: 'Sapphire', rare: true, look: FINISH.gemSapphire },
+    { label: 'Black Pearl', rare: true, look: FINISH.blackPearl },
+  ],
+  gamma: [
+    { label: 'Phase 1', look: mix(['#020a06', '#0a3020', '#167a48', '#3fc080', '#04180e']) },   // dark green
+    { label: 'Phase 2', look: mix(['#02140a', '#0b5e3a', '#2cf5a1', '#b8ff3b', '#083b28']) },   // bright green
+    { label: 'Phase 3', look: mix(['#03121a', '#0a4a5a', '#18b0a8', '#7af0d0', '#062a3a']) },   // green into teal
+    { label: 'Phase 4', look: mix(['#041020', '#0c3a7a', '#1a9ad0', '#70e0f0', '#082048']) },   // teal and blue
+    { label: 'Emerald', rare: true, look: FINISH.gemEmerald },
+  ],
+}
+const MIX_PHASES = 4
+const phaseNo = (family, label) => PHASES[family].findIndex(p => p.label === label) + 1
 
 /* Guns added later go last, so every earlier item keeps its seed (and look). */
 const LATE_GUN_SKINS = [
@@ -647,6 +697,12 @@ const LATE_GUN_SKINS = [
   skin('p90', 'Number 5', 'covert', 'gem', ['#6b4a2c'], {
     image: '/textures/pollock.jpg', fit: 'tile', tile: 0.8, tileCrop: [0.04, 0.03, 0.96, 0.97], metal: 0.15, rough: 0.6,
   }),
+  // (last in the list, so no other skin's seed moves)
+  // Case Hardened on two more guns (rolled and named like the AK's: a pattern
+  // number each, Blue Gem when it comes out all blue). The MAC-10 wears it all
+  // over; on the Five-SeveN only the slide is steel, the frame stays polymer
+  skin('mac10', 'Case Hardened', 'covert', 'caseHardened', ['#3f86e0'], { seed: 9400, seeded: true, metalOnly: true, metal: 0.75, rough: 0.26 }),
+  skin('fiveseven', 'Case Hardened', 'covert', 'caseHardened', ['#3f86e0'], { seed: 9401, seeded: true, slideOnly: true, metal: 0.75, rough: 0.26 }),
 ]
 
 /* Gloves: a ★ rare special like the knives, worn on both hands in first
@@ -734,8 +790,21 @@ export const LEGACY_IDS = {
   knife_flip_blueGem: 'knife_flip_caseHardened',
   knife_huntsman_blueGem: 'knife_huntsman_caseHardened',
   m4a1s_howl: 'm4a4_howl',
-  knife_m9a_gemSapphire: 'knife_m9a',
   deagle_water_lilies: 'usp_water_lilies',
+  // the stones are phases of the Doppler / Gamma Doppler now. A knife with no
+  // Gamma Doppler (Skeleton, Stiletto) keeps its Emerald as a Sapphire Doppler
+  ...Object.fromEntries(DOPPLER_KNIVES.flatMap(t => {
+    const d = label => ({ id: `knife_${t}_doppler`, pattern: phaseNo('doppler', label) })
+    const emerald = GAMMA_KNIVES.includes(t) ? { id: `knife_${t}_gamma`, pattern: phaseNo('gamma', 'Emerald') } : d('Sapphire')
+    return [
+      [`knife_${t}_gemRuby`, d('Ruby')], [`knife_${t}_ruby`, d('Ruby')],
+      [`knife_${t}_gemSapphire`, d('Sapphire')], [`knife_${t}_sapphire`, d('Sapphire')],
+      [`knife_${t}_blackPearl`, d('Black Pearl')],
+      [`knife_${t}_gemEmerald`, emerald], [`knife_${t}_emerald`, emerald],
+    ]
+  })),
+  // the M9 Bayonet whose file is the Sapphire: that phase of the M9 Doppler
+  knife_m9a: { id: 'knife_m9a_doppler', pattern: phaseNo('doppler', 'Sapphire') },
 }
 
 /* Pattern-seeded finishes (Case Hardened). The catalog item is the finish;
@@ -763,7 +832,7 @@ function gemOdds() {
     for (const slug of ['covert', 'gold']) {
       const pool = CASE.items.filter(i => i.tier === slug)
       const rest = pool.filter(i => !isJackpot(i))
-      const mine = rest.filter(i => i.seeded && i.kind === kind).length
+      const mine = rest.filter(i => i.pattern === 'caseHardened' && i.kind === kind).length
       if (mine) p += (tierBySlug(slug).odds - (JACKPOT_ODDS[slug] ?? 0)) * mine / rest.length
     }
     return p
@@ -773,8 +842,24 @@ function gemOdds() {
   return gemTable
 }
 
+/** TEST helper: every top-rarity variant there is, as [item id, pattern]
+ *  pairs: each Doppler on its Ruby, Sapphire and Black Pearl, each Gamma
+ *  Doppler on its Emerald, and each Case Hardened on a Blue Gem pattern (a
+ *  different gem pattern for each, so they do not all look the same). */
+export function rarestDrops() {
+  const gems = gemOdds().gems
+  let k = 0
+  return ITEMS.flatMap(it => {
+    if (it.phased) return PHASES[it.phased].flatMap((p, i) => (p.rare ? [[it.id, i + 1]] : []))
+    if (it.pattern === 'caseHardened' && gems.length) return [[it.id, gems[k++ % gems.length]]]
+    return []
+  })
+}
+
 /** A pattern number for a Case Hardened drop (see above for the knives). */
 export function rollPattern(item) {
+  // a Doppler: one of the mixes, evenly (the stones come from the jackpot draw)
+  if (item?.phased) return 1 + Math.floor(Math.random() * MIX_PHASES)
   const t = gemOdds()
   if (!t.gems.length || !t.plain.length) return 1 + Math.floor(Math.random() * PATTERN_MAX)
   const from = Math.random() < (item?.kind === 'knife' ? t.knife : t.gun) ? t.gems : t.plain
@@ -783,6 +868,23 @@ export function rollPattern(item) {
 
 export function variantOf(item, patternNo) {
   if (!item?.seeded || !patternNo) return item
+  if (item.phased) {
+    const P = PHASES[item.phased]
+    // (a drop from before the phases carries any number: it falls on a mix)
+    const n = patternNo >= 1 && patternNo <= P.length ? patternNo : 1 + ((patternNo - 1) % MIX_PHASES)
+    const ph = P[n - 1]
+    return {
+      ...item, ...ph.look,
+      id: `${item.id}#${n}`, baseId: item.id, patternNo: n,
+      seed: item.seed * 7 + n * 131,
+      phase: ph.label, gem: !!ph.rare,
+      name: `${FINISH[item.phased].name} (${ph.label})`,
+      detail: ph.rare ? `💎 ${ph.label}` : ph.label,
+      // the M9 Bayonet's model file is a Sapphire as it comes: that phase
+      // shows the file's own blade instead of a painted one
+      ...(item.knife === 'm9a' && item.phased === 'doppler' && ph.label === 'Sapphire' && { finish: false }),
+    }
+  }
   const { blue, gem } = caseHardenedInfo(patternNo)
   return {
     ...item,
@@ -805,9 +907,9 @@ export const CASE = {
 }
 
 /* The jackpots: the rarest drops of their grade. Inside ★ Rare Special
-   (2% a case) the gem knives (Ruby, Sapphire, Emerald, Black Pearl, in every
-   cut, the Doppler Ruby and Sapphire included; Gamma Doppler is not one of them), the Bearbrick Cương Thi and every pair of
-   gloves come out 0.03% of cases between them, the other knives the
+   (2% a case) the stones (a Doppler on its Ruby, Sapphire or Black Pearl
+   phase, a Gamma Doppler on its Emerald), the
+   Bearbrick Cương Thi and every pair of gloves come out 0.03% of cases between them, the other knives the
    remaining 1.97%. Inside Covert (5%) the six grails (Howl, Fire Serpent,
    Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque) come out 0.03% between
    them, the other Coverts 4.97%. The grade's own total is unchanged. */
@@ -818,8 +920,12 @@ export function isJackpot(it) {
   const id = it.baseId || it.id
   if (it.tier === 'covert') return JACKPOT_GUNS.has(id)
   if (it.tier !== 'gold') return false
+  // a phased knife is a jackpot only on a stone phase (the bare catalog item is not)
+  if (it.phased) return !!it.gem
   return it.kind === 'glove' || id === 'knife_bearbrick_jiangshi' || (it.kind === 'knife' && JACKPOT_KNIFE.test(it.name))
 }
+/** A phased knife at each of its stone phases: the jackpot draw picks among these. */
+const stonesOf = it => (it.phased ? PHASES[it.phased].flatMap((p, i) => (p.rare ? [variantOf(it, i + 1)] : [])) : [])
 
 /** One item of a grade: the jackpots get only their share of the grade. */
 function pickInTier(slug, items) {
@@ -827,7 +933,8 @@ function pickInTier(slug, items) {
   const tier = tierBySlug(slug)
   const share = JACKPOT_ODDS[slug] != null && tier.odds > 0 ? JACKPOT_ODDS[slug] / tier.odds : null
   if (share != null) {
-    const rare = pool.filter(isJackpot), rest = pool.filter(i => !isJackpot(i))
+    // (a stone comes back as the knife already at that phase: `patternNo` set)
+    const rare = [...pool.filter(isJackpot), ...pool.flatMap(stonesOf)], rest = pool.filter(i => !isJackpot(i))
     if (rare.length && rest.length) {
       const from = Math.random() < share ? rare : rest
       return from[Math.floor(Math.random() * from.length)]

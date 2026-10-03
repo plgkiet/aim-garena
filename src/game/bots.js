@@ -150,7 +150,7 @@ function botBuy(a) {
   const pistolRound = game.round === 1 || game.round === game.maxRounds / 2 + 1
   if (pistolRound) {
     if (Math.random() < 0.55) buy(a, 'vest')
-    else if (Math.random() < 0.5) buy(a, 'p250')
+    else if (Math.random() < 0.5) buy(a, !T && Math.random() < 0.5 ? 'fiveseven' : 'p250')
     if (m() >= 300 && Math.random() < 0.4) buy(a, T ? 'flash' : 'smoke')
     return
   }

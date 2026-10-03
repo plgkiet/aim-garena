@@ -148,6 +148,9 @@ export function weaponTick(a, cmd, dt) {
   switch (w.type) {
     case 'pistol': case 'smg': case 'rifle': case 'sniper': {
       if (cmd.reload && !ws.reloadEnd && inst.clip < w.clip && inst.reserve > 0) startReload(a, w)
+      // an empty gun reloads by itself, as soon as the last shot has cycled
+      // (no click on an empty chamber needed first)
+      if (inst.clip === 0 && inst.reserve > 0 && !ws.reloadEnd && now >= ws.nextAttack) startReload(a, w)
       if (cmd.attack2Pressed && canAds(w) && !ws.reloadEnd) {
         ws.ads = !ws.ads
         emit('ads', { agent: a, on: ws.ads })

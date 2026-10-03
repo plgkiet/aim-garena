@@ -138,6 +138,7 @@ const GUN = {
   usp: { body: 1300, low: 0, decay: 0.07, gain: 0.35, silenced: true },
   glock: { body: 2200, low: 170, decay: 0.13, gain: 0.7, crack: 0.9 },
   p250: { body: 1900, low: 150, decay: 0.16, gain: 0.8, crack: 0.9 },
+  fiveseven: { body: 2400, low: 160, decay: 0.13, gain: 0.72, crack: 1 },
   deagle: { body: 900, low: 80, decay: 0.4, gain: 1.25, crack: 1 },
   mac10: { body: 2100, low: 150, decay: 0.12, gain: 0.7, crack: 0.8 },
   mp9: { body: 2300, low: 160, decay: 0.11, gain: 0.65, crack: 0.8 },

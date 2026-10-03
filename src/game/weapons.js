@@ -35,6 +35,14 @@ export const W = {
     inacc: { spread: 2, stand: 9, crouch: 6.5, move: 14, jump: 290, fire: 62, recover: 0.4 },
     pattern: 'pistol', kick: 1.0, sound: 'p250', model: 'p250',
   },
+  // FN Five-seveN: the CT side's armour-piercing pistol, 20 rounds, light recoil
+  fiveseven: {
+    name: 'Five-SeveN', slot: 2, type: 'pistol', team: 'CT', price: 500, killAward: 300,
+    damage: 32, armorRatio: 1.823, rangeMod: 0.81, range: 4096, pen: 1,
+    cycle: 0.15, auto: false, clip: 20, reserve: 100, reload: 2.2, deploy: 1.0, speed: 240,
+    inacc: { spread: 2, stand: 9, crouch: 6.5, move: 14, jump: 290, fire: 50, recover: 0.38 },
+    pattern: 'pistol', kick: 0.9, sound: 'fiveseven', model: 'fiveseven',
+  },
   deagle: {
     name: 'Desert Eagle', slot: 2, type: 'pistol', team: 'both', price: 700, killAward: 300,
     damage: 63, armorRatio: 1.864, rangeMod: 0.81, range: 4096, pen: 2,
@@ -184,7 +192,7 @@ export const BUY_MENU = {
     grenades: ['flash', 'smoke', 'he', 'molotov'],
   },
   CT: {
-    pistols: ['usp', 'p250', 'deagle'],
+    pistols: ['usp', 'p250', 'fiveseven', 'deagle'],
     smgs: ['mp9', 'ump', 'p90'],
     rifles: ['famas', 'm4a4', 'm4a1s', 'ssg08', 'awp', 'scar20'],
     gear: ['vest', 'vesthelm', 'defuser'],

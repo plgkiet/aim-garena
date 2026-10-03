@@ -146,7 +146,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
   // weapons since taken off the list map to what replaced them
   const [aimWeapon, setAimWeapon] = useState({ ssg08: "p90", deagle: "ak47", usp: "ak47", glock: "ak47", p250: "ak47" }[prefs.aimWeapon] || prefs.aimWeapon || "ak47");
   // the sidearm carried next to it
-  const [aimPistol, setAimPistol] = useState(["usp", "glock", "deagle", "p250"].includes(prefs.aimPistol) ? prefs.aimPistol : "usp");
+  const [aimPistol, setAimPistol] = useState(["usp", "glock", "deagle", "p250", "fiveseven"].includes(prefs.aimPistol) ? prefs.aimPistol : "usp");
   const [aimBots, setAimBots] = useState(prefs.aimBots || 1);
   const [aimRounds, setAimRounds] = useState(prefs.aimRounds || 10);
   const [aimMap, setAimMap] = useState(prefs.aimMap === "aim" ? "aim" : "arena");
@@ -289,7 +289,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
                     )}
                   </Field>
                   <Field label="Súng lục (vũ khí phụ)" wide>
-                    {["usp", "glock", "deagle", "p250"].map((id) => (
+                    {["usp", "glock", "deagle", "p250", "fiveseven"].map((id) => (
                       <button key={id} className={aimPistol === id ? "on" : ""} onClick={() => setAimPistol(id)}>
                         {W[id].name}
                       </button>

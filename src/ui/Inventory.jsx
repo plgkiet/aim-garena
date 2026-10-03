@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ITEMS, TIERS } from "../skins/catalog"; // tierBySlug: only needed if the rarity tag comes back
+import { ITEMS, TIERS, rarestDrops } from "../skins/catalog"; // tierBySlug: only needed if the rarity tag comes back
 import { inventory } from "../skins/inventory";
 import { MiniItem, itemLabel } from "./CaseOpen";
 import { Confirm } from "./Confirm";
@@ -50,21 +50,30 @@ export function Inventory({ onBack, onCase, onTradeUp, onGallery, onOpen }) {
           </button>
           <div className="row gap-8">
             {/* TEST ONLY: one of every skin and knife in the case. Comment out when done testing. */}
-            {/* <button
+            <button
               type="button"
               className="btn btn--ghost btn--sm"
               onClick={() => ITEMS.forEach((it) => inventory.add(it.id))}
             >
               Nhận full skin
-            </button> */}
+            </button>
+            {/* TEST ONLY: every top-rarity variant: each Doppler on Ruby / Sapphire / Black Pearl,
+                each Gamma Doppler on Emerald, each Case Hardened as a Blue Gem. Comment out when done testing. */}
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => rarestDrops().forEach(([id, pattern]) => inventory.add(id, { pattern }))}
+            >
+              Nhận full skin hiếm
+            </button>
             {/* TEST ONLY: empty the whole inventory (spins are kept). Comment out when done testing. */}
-            {/* <button
+            <button
               type="button"
               className="btn btn--ghost btn--sm"
               onClick={() => setClearing(true)}
             >
               Dọn full skin
-            </button> */}
+            </button>
             {/* END TEST ONLY */}
             {/* the whole MixiGaming set at once: M4A4, Deagle, M9 Bayonet, gloves */}
             {/* <button

@@ -81,7 +81,7 @@ Một cú click nhanh (kể cả tap trên trackpad) vẫn được tính là m�
 
 ## Vũ khí và cơ chế bắn
 
-- **Súng lục:** Glock-18, USP-S, P250, Desert Eagle
+- **Súng lục:** Glock-18, USP-S, P250, Five-SeveN (chỉ CT), Desert Eagle
 - **SMG:** MAC-10, MP9, UMP-45, P90
 - **Rifle:** Galil AR, FAMAS, AK-47, M4A4, M4A1-S
 - **Bắn tỉa:** SSG 08, AWP, G3SG1, SCAR-20
@@ -123,9 +123,14 @@ Chuyển động theo đúng tham số của Source engine: ma sát, gia tốc, 
   | Covert | 5% |
   | ↳ trong đó: Howl, Fire Serpent, Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque | 0.03% (cả nhóm) |
   | ★ Rare Special (dao / găng) | 2% |
-  | ↳ trong đó: dao Ruby, Sapphire, Emerald, Black Pearl (mọi loại dao, kể cả Doppler Ruby/Sapphire; Gamma Doppler không thuộc nhóm này), Bearbrick Cương Thi, toàn bộ găng tay | 0.03% (cả nhóm) |
+  | ↳ trong đó: dao Doppler ra phase Ruby / Sapphire / Black Pearl, dao Gamma Doppler ra phase Emerald, Bearbrick Cương Thi, toàn bộ găng tay | 0.03% (cả nhóm) |
 
   Tổng tỉ lệ của mỗi bậc không đổi: nhóm cực hiếm chỉ chiếm 0.03% bên trong bậc đó, phần còn lại chia cho các món khác. Trade Up lên bậc Covert hoặc ★ cũng dùng đúng tỉ lệ này. Contraband không bao giờ rơi từ hòm.
+- **Doppler và Gamma Doppler có phase**, cùng cơ chế với pattern của Case Hardened: mỗi dao chỉ có một món Doppler (và một món Gamma Doppler nếu ngoài CS dao đó có), khi rơi mới quay ra phase.
+  - Doppler: Phase 1–4 (pha màu đen, tím, hồng, xanh), hoặc phase hiếm Ruby / Sapphire / Black Pearl.
+  - Gamma Doppler: Phase 1–4 (pha màu xanh lá, xanh ngọc), hoặc phase hiếm Emerald.
+  - Lần rơi thường luôn ra Phase 1–4 với tỉ lệ đều nhau. Phase hiếm chỉ ra từ lượt rút 0.03% ở trên.
+  - Doppler có ở Karambit, Flip, Huntsman, Skeleton, Stiletto, Bowie, Butterfly, M9 Bayonet. Gamma Doppler có ở Karambit, Flip, Huntsman, Bowie, Butterfly, M9 Bayonet.
 - **Kho đồ** (`/inventory`): xem, trang bị và gỡ skin cho từng súng, dao và găng. Trang chi tiết món đồ có pattern, Case Hardened, đá quý, v.v.
 - **Trade Up** (`/tradeup`): đổi 5 món cùng bậc lấy 1 món ngẫu nhiên ở bậc kế tiếp. 5 món Covert đổi được 1 con dao. Đồ đang trang bị không bị đưa vào hợp đồng.
 - **Gallery:** phòng trưng bày 3D, đi bằng WASD để ngắm bộ sưu tập.

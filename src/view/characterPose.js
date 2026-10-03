@@ -255,7 +255,7 @@ export function pose(ch, a, dt) {
     ch.gun.group.position.copy(a.gunHold.pos)
     ch.gun.group.quaternion.copy(a.gunHold.quat)
   } else if (ch.gun) {
-    const small = inst && /glock|usp|p250|deagle|he|flash|smoke|c4/.test(id)
+    const small = inst && /glock|usp|p250|fiveseven|deagle|he|flash|smoke|c4/.test(id)
     ch.gun.group.position.set(0.1, small ? -0.02 : -0.07, small ? -0.42 : -0.3)
     ch.gun.group.rotation.set(0, 0, 0)
   }

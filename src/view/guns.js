@@ -802,9 +802,11 @@ function p90(g, M) {
 
 function pistol(g, M, kind) {
   const big = kind === 'deagle'
-  const slideMat = kind === 'deagle' ? M.chrome : kind === 'p250' ? M.steel : M.black
-  const frameMat = kind === 'usp' || kind === 'glock' ? M.polymer : M.black
-  const len = big ? 0.25 : kind === 'usp' ? 0.19 : 0.18
+  const five = kind === 'fiveseven'
+  // (the Five-SeveN's slide is `dark`, a paintable part: a finish goes on it)
+  const slideMat = kind === 'deagle' ? M.chrome : kind === 'p250' ? M.steel : five ? M.dark : M.black
+  const frameMat = kind === 'usp' || kind === 'glock' || five ? M.polymer : M.black
+  const len = big ? 0.25 : kind === 'usp' ? 0.19 : five ? 0.205 : 0.18
   const h = big ? 0.045 : 0.033
   // frame and grip as one piece (a raked grip box under a frame box left its
   // corner poking into the trigger guard): dust cover, grip, beavertail
@@ -823,7 +825,24 @@ function pistol(g, M, kind) {
   box(slide, M.black, [0.006, 0.008, 0.008], [0, 0.04 + h + 0.006, -len + 0.05])  // front sight
   box(slide, M.black, [0.016, 0.008, 0.008], [0, 0.04 + h + 0.006, 0.03])        // rear sight
   if (big) box(slide, M.dark, [0.02, 0.012, len], [0, 0.04 + h + 0.004, -len / 2 + 0.04])
+  if (five) {
+    // Five-SeveN: the raised rear of the slide with its slanted grip cuts, a
+    // tall adjustable rear sight, the exposed hammer's spur behind it
+    box(slide, slideMat, [0.029, h + 0.004, 0.062], [0, 0.04 + h / 2 + 0.004, 0.008])
+    for (let i = 0; i < 9; i++) box(slide, M.black, [0.0296, h * 0.62, 0.0022], [0, 0.04 + h / 2 + 0.005, -0.018 + i * 0.0058], [0.32, 0, 0])
+    box(slide, M.steel, [0.014, 0.012, 0.016], [0, 0.04 + h + 0.012, 0.028])
+    box(slide, M.steel, [0.006, 0.014, 0.01], [0, 0.04 + h * 0.6, 0.043], [-0.4, 0, 0])
+  }
   g.add(slide)
+  if (five) {
+    // accessory rail under the dust cover, with its cross slots; the take-down
+    // lever, slide stop and safety as light dots and tabs on the frame
+    box(g, M.steel, [0.022, 0.012, 0.085], [0, 0.011, F + 0.05])
+    for (let i = 0; i < 5; i++) box(g, M.black, [0.0225, 0.005, 0.006], [0, 0.007, F + 0.016 + i * 0.016])
+    box(g, M.steel, [0.03, 0.007, 0.016], [0, 0.03, -0.07])
+    box(g, M.steel, [0.03, 0.006, 0.02], [0, 0.03, -0.035])
+    box(g, M.steel, [0.03, 0.006, 0.014], [0, 0.028, 0.012])
+  }
   if (kind === 'usp') cyl(g, M.dark, 0.016, 0.16, [0, 0.055, -len - 0.04])
   const mag = new THREE.Group()
   mag.position.set(0, -0.085 - drop, 0.03)
@@ -893,6 +912,7 @@ const BUILDERS = {
   glock: (g, M) => pistol(g, M, 'glock'),
   usp: (g, M) => pistol(g, M, 'usp'),
   p250: (g, M) => pistol(g, M, 'p250'),
+  fiveseven: (g, M) => pistol(g, M, 'fiveseven'),
   deagle: (g, M) => pistol(g, M, 'deagle'),
   he: (g, M) => grenade(g, M, 'he'),
   flash: (g, M) => grenade(g, M, 'flash'),

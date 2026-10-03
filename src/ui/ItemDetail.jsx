@@ -216,10 +216,9 @@ export function ItemDetail({ uid, onBack }) {
           </span>
           {item.patternNo && (
             <span>
-              <small>Pattern</small>
+              <small>{item.phase ? "Phase" : "Pattern"}</small>
               <b>
-                #{item.patternNo}
-                {item.gem ? " · 💎 Blue Gem" : ""}
+                {item.phase ? `${item.gem ? "💎 " : ""}${item.phase}` : `#${item.patternNo}${item.gem ? " · 💎 Blue Gem" : ""}`}
               </b>
             </span>
           )}

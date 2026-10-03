@@ -17,7 +17,8 @@ function load() {
     const raw = JSON.parse(localStorage.getItem(KEY) || '{}')
     // drops of skins since taken out of the catalog are dropped, and unequipped
     const items = (Array.isArray(raw.items) ? raw.items : [])
-      .map(d => (LEGACY_IDS[d.id] ? { ...d, id: LEGACY_IDS[d.id] } : d))
+      // (a renamed item is a new id; one folded into a phased finish is an id and its phase)
+      .map(d => { const to = LEGACY_IDS[d.id]; return !to ? d : typeof to === 'string' ? { ...d, id: to } : { ...d, id: to.id, pattern: to.pattern } })
       .filter(d => itemById(d.id))
     const uids = new Set(items.map(d => d.uid))
     // a drop stays equipped only in its own slot (an item may have moved weapon)
@@ -86,7 +87,9 @@ export const inventory = {
     if (!up) return null
     const prize = drawFromTier(up.slug)
     if (!prize) return null
-    const drop = withPattern(prize.id, { uid: newUid(), id: prize.id, at: Date.now(), via: 'tradeup' })
+    // (a jackpot stone comes drawn at its phase already)
+    const pid = prize.baseId || prize.id
+    const drop = withPattern(pid, { uid: newUid(), id: pid, at: Date.now(), via: 'tradeup', ...(prize.patternNo && { pattern: prize.patternNo }) })
     const equipped = Object.fromEntries(Object.entries(state.equipped).filter(([, uid]) => !gone.has(uid)))
     state = { ...state, items: [drop, ...state.items.filter(d => !gone.has(d.uid))], equipped, traded: state.traded + 1 }
     save()
