@@ -1,4 +1,4 @@
-import { LEGACY_IDS, TRADE_COUNT, drawFromTier, itemById, nextTier, rollPattern, variantOf } from './catalog'
+import { LEGACY_IDS, LEGACY_PATTERN, TRADE_COUNT, drawFromTier, itemById, nextTier, rollPattern, variantOf } from './catalog'
 
 /* What you own and what you have equipped, kept in this browser.
 
@@ -19,6 +19,7 @@ function load() {
     const items = (Array.isArray(raw.items) ? raw.items : [])
       // (a renamed item is a new id; one folded into a phased finish is an id and its phase)
       .map(d => { const to = LEGACY_IDS[d.id]; return !to ? d : typeof to === 'string' ? { ...d, id: to } : { ...d, id: to.id, pattern: to.pattern } })
+      .map(d => (LEGACY_PATTERN[d.id] && !d.pattern ? { ...d, pattern: LEGACY_PATTERN[d.id] } : d))
       .filter(d => itemById(d.id))
     const uids = new Set(items.map(d => d.uid))
     // a drop stays equipped only in its own slot (an item may have moved weapon)

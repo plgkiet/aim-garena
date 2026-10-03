@@ -123,7 +123,7 @@ Chuyển động theo đúng tham số của Source engine: ma sát, gia tốc, 
   | Restricted | 32% |
   | Classified | 23.74% |
   | Covert | 5% |
-  | ↳ trong đó: Howl, Fire Serpent, Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque | 0.03% (cả nhóm) |
+  | ↳ trong đó: Howl, Fire Serpent, Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque, Glock-18 Gamma Doppler ra phase Emerald | 0.03% (cả nhóm) |
   | ★ Rare Special (dao / găng) | 2% |
   | ↳ trong đó: dao Doppler ra phase Ruby / Sapphire / Black Pearl, dao Gamma Doppler ra phase Emerald, Bearbrick Cương Thi, toàn bộ găng tay | 0.03% (cả nhóm) |
 
@@ -132,6 +132,7 @@ Chuyển động theo đúng tham số của Source engine: ma sát, gia tốc, 
   - Doppler: Phase 1–4 (pha màu đen, tím, hồng, xanh), hoặc phase hiếm Ruby / Sapphire / Black Pearl.
   - Gamma Doppler: Phase 1–4 (pha màu xanh lá, xanh ngọc), hoặc phase hiếm Emerald.
   - Lần rơi thường luôn ra Phase 1–4 với tỉ lệ đều nhau. Phase hiếm chỉ ra từ lượt rút 0.03% ở trên.
+  - Glock-18 Gamma Doppler (chỉ khoá nòng mang màu) cũng có phase y như dao.
   - Doppler có ở Karambit, Flip, Huntsman, Skeleton, Stiletto, Bowie, Butterfly, M9 Bayonet. Gamma Doppler có ở Karambit, Flip, Huntsman, Bowie, Butterfly, M9 Bayonet.
 - **Kho đồ** (`/inventory`): xem, trang bị và gỡ skin cho từng súng, dao và găng. Trang chi tiết món đồ có pattern, Case Hardened, đá quý, v.v.
 - **Trade Up** (`/tradeup`): đổi 5 món cùng bậc lấy 1 món ngẫu nhiên ở bậc kế tiếp. 5 món Covert đổi được 1 con dao. Đồ đang trang bị không bị đưa vào hợp đồng.

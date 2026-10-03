@@ -535,10 +535,11 @@ const LATE_GUN_SKINS = [
   // KAWS on the Glock: the half-dissected Companion over its graffiti wall, a
   // square around the head and torso (the Glock's side is about square once
   // squeezed with vSpan, as for the Lucky Cat)
-  // Gamma Doppler: the emerald stone on the slide only, the frame left black
-  skin('glock', 'Gamma Doppler', 'covert', 'gem', ['#12a866'], {
-    id: 'glock_gamma_doppler',
-    image: '/textures/emerald.jpg', ...GEM_LOOK.emerald, slideOnly: true,
+  // Gamma Doppler, on the slide only (the frame stays black). Phased like the
+  // knives' (PHASES.gamma): a drop is one of the four mixes, or, from the
+  // jackpot draw, the Emerald — which is what this skin was before the phases
+  skin('glock', 'Gamma Doppler', 'covert', 'doppler', ['#02140a', '#0b5e3a', '#2cf5a1', '#b8ff3b', '#083b28'], {
+    id: 'glock_gamma_doppler', slideOnly: true, metal: 0.85, rough: 0.2, seeded: true, phased: 'gamma',
   }),
   skin('glock', 'KAWS', 'covert', 'gem', ['#1c1c1c'], {
     image: '/textures/kaws.jpg', fit: 'band', metal: 0.15, rough: 0.5, vSpan: 2,
@@ -807,6 +808,10 @@ export const LEGACY_IDS = {
   knife_m9a: { id: 'knife_m9a_doppler', pattern: phaseNo('doppler', 'Sapphire') },
 }
 
+/* Drops from before a finish had phases carry no phase: this is the one they
+   get (the Glock's Gamma Doppler was the Emerald, and stays it). */
+export const LEGACY_PATTERN = { glock_gamma_doppler: 5 }
+
 /* Pattern-seeded finishes (Case Hardened). The catalog item is the finish;
    what you hold is that finish at one pattern number, 1-1000, rolled when it
    drops. The variant carries its own id so its texture and picture are its
@@ -914,17 +919,19 @@ export const CASE = {
    phase, a Gamma Doppler on its Emerald), the
    Bearbrick Cương Thi and every pair of gloves come out 0.03% of cases between them, the other knives the
    remaining 1.97%. Inside Covert (5%) the six grails (Howl, Fire Serpent,
-   Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque) come out 0.03% between
+   Dragon Lore, Gungnir, Wild Lotus, Gold Arabesque) and the Glock's Gamma
+   Doppler on its Emerald come out 0.03% between
    them, the other Coverts 4.97%. The grade's own total is unchanged. */
 const JACKPOT_GUNS = new Set(['m4a4_howl', 'ak47_fire_serpent', 'awp_dragon_lore', 'awp_gungnir', 'ak47_wild_lotus', 'ak47_gold_arabesque'])
 const JACKPOT_KNIFE = /\b(ruby|sapphire|emerald|black pearl)\b/i
 export const JACKPOT_ODDS = { gold: 0.03, covert: 0.03 }
 export function isJackpot(it) {
   const id = it.baseId || it.id
+  // a phased finish (a knife's, the Glock's) is a jackpot only on a stone
+  // phase; the bare catalog item is not
+  if (it.phased) return !!it.gem
   if (it.tier === 'covert') return JACKPOT_GUNS.has(id)
   if (it.tier !== 'gold') return false
-  // a phased knife is a jackpot only on a stone phase (the bare catalog item is not)
-  if (it.phased) return !!it.gem
   return it.kind === 'glove' || id === 'knife_bearbrick_jiangshi' || (it.kind === 'knife' && JACKPOT_KNIFE.test(it.name))
 }
 /** A phased knife at each of its stone phases: the jackpot draw picks among these. */

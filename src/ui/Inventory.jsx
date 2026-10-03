@@ -56,18 +56,19 @@ export function Inventory({ onBack, onCase, onTradeUp, onGallery, onOpen }) {
               onClick={() => ITEMS.forEach((it) => inventory.add(it.id))}
             >
               Nhận full skin
-            </button> */}
-            {/* TEST ONLY: every top-rarity variant: each Doppler on Ruby / Sapphire / Black Pearl,
-                each Gamma Doppler on Emerald, each Case Hardened as a Blue Gem. Comment out when done testing. */}
-            {/* <button
+            </button>
+            <button
               type="button"
               className="btn btn--ghost btn--sm"
-              onClick={() => rarestDrops().forEach(([id, pattern]) => inventory.add(id, { pattern }))}
+              onClick={() =>
+                rarestDrops().forEach(([id, pattern]) =>
+                  inventory.add(id, { pattern }),
+                )
+              }
             >
               Nhận full skin hiếm
-            </button> */}
-            {/* TEST ONLY: empty the whole inventory (spins are kept). Comment out when done testing. */}
-            {/* <button
+            </button>
+            <button
               type="button"
               className="btn btn--ghost btn--sm"
               onClick={() => setClearing(true)}
@@ -75,6 +76,7 @@ export function Inventory({ onBack, onCase, onTradeUp, onGallery, onOpen }) {
               Dọn full skin
             </button> */}
             {/* END TEST ONLY */}
+
             {/* the whole MixiGaming set at once: M4A4, Deagle, M9 Bayonet, gloves */}
             {/* <button
               type="button"
