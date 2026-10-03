@@ -406,7 +406,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
                 <input
                   type="range"
                   min="0.3"
-                  max="6"
+                  max="15"
                   step="0.05"
                   value={sens}
                   onChange={(e) => {
@@ -482,12 +482,7 @@ function Field({ label, wide = false, children }) {
 export function PauseMenu({ onResume }) {
   const [muted, setM] = useState(isMuted());
   const [sens, setSens] = useState(game.settings.sensitivity);
-  const [lean, setLeanState] = useState(game.settings.lean === true);
-  const setLean = (v) => {
-    setLeanState(v);
-    game.settings.lean = v;
-    patchPrefs({ lean: v });
-  };
+  const lean = game.settings.lean === true;
   return (
     <div className="menu pause" onClick={onResume}>
       <div className="menu-card small" onClick={(e) => e.stopPropagation()}>
@@ -499,7 +494,7 @@ export function PauseMenu({ onResume }) {
           <input
             type="range"
             min="0.3"
-            max="6"
+            max="15"
             step="0.05"
             value={sens}
             onChange={(e) => {
@@ -528,17 +523,6 @@ export function PauseMenu({ onResume }) {
                 setM(true);
               }}
             >
-              Tắt
-            </button>
-          </div>
-        </div>
-        <div className="row">
-          <label>Nghiêng người nhắm (Q / E){!lean && " — tắt: Q = đổi nhanh súng trước"}</label>
-          <div className="seg">
-            <button className={lean ? "on" : ""} onClick={() => setLean(true)}>
-              Bật
-            </button>
-            <button className={!lean ? "on" : ""} onClick={() => setLean(false)}>
               Tắt
             </button>
           </div>

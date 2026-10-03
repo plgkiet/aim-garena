@@ -61,7 +61,7 @@ Bot nào cũng có góc nhìn và tầm nhìn giới hạn, bị khói che, bị
 | `W A S D` | Di chuyển |
 | `Shift` / `Ctrl` / `C` | Ngồi (không phát tiếng bước chân) |
 | `Space` | Nhảy |
-| `Q` / `E` | Nghiêng trái / phải (tự giơ súng ngắm). Có công tắc **Nghiêng người nhắm** ở menu chính và menu tạm dừng, mặc định là tắt: khi tắt, `Q` thành đổi nhanh về vũ khí vừa dùng (như Q trong CS:GO), `E` không làm gì |
+| `Q` / `E` | Nghiêng trái / phải (tự giơ súng ngắm). Có công tắc **Nghiêng người nhắm** ở menu chính, mặc định là tắt: khi tắt, `Q` thành đổi nhanh về vũ khí vừa dùng (như Q trong CS:GO), `E` không làm gì |
 | Chuột trái | Bắn |
 | Chuột phải | Ngắm / bật scope / đâm nặng bằng dao |
 | `R` | Nạp đạn (khi cầm dao: múa dao) |
@@ -73,7 +73,7 @@ Bot nào cũng có góc nhìn và tầm nhìn giới hạn, bị khói che, bị
 | `B` | Mở menu mua đồ |
 | `Tab` | Bảng điểm |
 | `M` | Bật / tắt âm thanh |
-| `Esc` | Tạm dừng (chỉnh độ nhạy chuột, âm thanh) |
+| `Esc` | Tạm dừng (chỉnh độ nhạy chuột từ 0.3 đến 15, âm thanh) |
 
 Một cú click nhanh (kể cả tap trên trackpad) vẫn được tính là một phát bắn, dù chuột nhả ra trước khi frame kế tiếp kịp chạy. Click hơi sớm khi súng chưa sẵn sàng (nhịp bắn của súng lục, kéo khoá AWP) được giữ lại khoảng 0.18 s và bắn ngay khi được.
 
