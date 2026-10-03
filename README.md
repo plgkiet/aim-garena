@@ -50,6 +50,8 @@ Deploy lên Vercel: `vercel.json` chuyển mọi đường dẫn (trừ `assets/
 
 Bot nào cũng có góc nhìn và tầm nhìn giới hạn, bị khói che, bị flash làm mù, cần thời gian phản xạ, xoay người với tốc độ có giới hạn, và có sai số aim giảm dần khi bám theo mục tiêu.
 
+**Khi bị bắn:** bot trúng đạn sẽ làm một trong hai việc, bot càng giỏi càng hay làm. Một là lập tức di chuyển ngang (strafe) thay vì đứng yên bắn tiếp. Hai là chạy vào chỗ khuất gần nhất mà người bắn không nhìn thấy, nấp vài giây (nạp đạn nếu cần) rồi mới ra lại. Bot ưu tiên nấp khi bị bắn từ hướng nó không thấy, hoặc khi máu còn dưới 45.
+
 **Trốn trong smoke:** bot không nhìn xuyên được smoke, và tiếng động phát ra từ trong smoke chỉ cho bot biết "đâu đó trong đó". Nếu bạn biến vào smoke, hoặc bot nghe thấy bạn trong smoke, bot sẽ đứng ngoài và xả đạn loạn xạ vào quanh chỗ nó mất dấu bạn trong vài giây, rồi canh smoke chờ bạn bước ra. Mỗi tiếng động mới từ trong smoke lại làm bot xả tiếp. Nếu bạn ở chỗ khác và smoke ở chỗ khác thì bot không bắn vào smoke.
 
 ---

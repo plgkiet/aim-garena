@@ -21,16 +21,18 @@ import { maxSpeed } from './movement'
    turns, how far its first shot is off and how fast that settles, how often
    it goes for the head, how well it pulls a spray, how wide it sees, how
    cleanly it stops to shoot and strafes, and how well it plays as a team
-   (grenades before an entry, groups waiting for each other, CT rotations). */
+   (grenades before an entry, groups waiting for each other, CT rotations),
+   and how readily it sidesteps (`dodge`) or breaks for cover (`cover`) when
+   it is hit. */
 const DIFF = {
   // easy / normal stay soft; hard and expert were raised again (expert felt
   // too easy): expert reacts in about a quarter second, flicks fast, starts
   // close to the head and settles on it, pulls most of a spray, counter-
   // strafes cleanly, and calls out what it sees to the rest of its team
-  easy: { reaction: 1.25, turn: 160, err: 8.5, settle: 0.7, head: 0.01, spray: 0.08, fov: 90, stop: 0.2, strafe: 0.08, nades: 0.2, sync: false, rotate: false, comms: false },
-  normal: { reaction: 0.9, turn: 230, err: 6.0, settle: 0.95, head: 0.04, spray: 0.18, fov: 105, stop: 0.35, strafe: 0.2, nades: 0.5, sync: true, rotate: true, comms: false },
-  hard: { reaction: 0.45, turn: 520, err: 2.6, settle: 2.4, head: 0.3, spray: 0.6, fov: 125, stop: 0.82, strafe: 0.5, nades: 0.8, sync: true, rotate: true, comms: true },
-  expert: { reaction: 0.24, turn: 900, err: 1.2, settle: 4.2, head: 0.62, spray: 0.88, fov: 145, stop: 0.95, strafe: 0.7, nades: 0.95, sync: true, rotate: true, comms: true },
+  easy: { reaction: 1.25, turn: 160, err: 8.5, settle: 0.7, head: 0.01, spray: 0.08, fov: 90, stop: 0.2, strafe: 0.08, nades: 0.2, sync: false, rotate: false, comms: false, dodge: 0.12, cover: 0.15 },
+  normal: { reaction: 0.9, turn: 230, err: 6.0, settle: 0.95, head: 0.04, spray: 0.18, fov: 105, stop: 0.35, strafe: 0.2, nades: 0.5, sync: true, rotate: true, comms: false, dodge: 0.35, cover: 0.35 },
+  hard: { reaction: 0.45, turn: 520, err: 2.6, settle: 2.4, head: 0.3, spray: 0.6, fov: 125, stop: 0.82, strafe: 0.5, nades: 0.8, sync: true, rotate: true, comms: true, dodge: 0.6, cover: 0.6 },
+  expert: { reaction: 0.24, turn: 900, err: 1.2, settle: 4.2, head: 0.62, spray: 0.88, fov: 145, stop: 0.95, strafe: 0.7, nades: 0.95, sync: true, rotate: true, comms: true, dodge: 0.85, cover: 0.8 },
 }
 
 export function initBot(a, difficulty = 'normal') {
@@ -132,6 +134,7 @@ export function botsRoundStart() {
     b.target = null; b.visible = false; b.lastKnown = null; b.heard = null
     b.patrolled = false; b.huntSpot = null; b.huntClue = null
     b.lookAt = null; b.throwPlan = null
+    b.cover = null; b.coverCooldown = 0; b.dodgeUntil = 0
     b.bought = false
     b.buyAt = game.time + 0.4 + Math.random() * 2.5
     b.stuckN = 0
@@ -228,6 +231,7 @@ on('damage', ({ victim, attacker }) => {
   // getting shot tells you roughly where from
   if (victim.isBot && attacker && victim.alive && attacker.team !== victim.team) {
     hear(victim, attacker.pos, true)
+    reactToHit(victim, attacker)
   }
 })
 on('kill', ({ victim }) => {
@@ -241,6 +245,64 @@ on('kill', ({ victim }) => {
     h.bot.role = s
   }
 })
+
+/* Being shot. A bot that takes a hit does one of two things, the better the
+   bot the more often: it starts strafing at once (a moving target, even if it
+   had stopped to shoot), or it breaks for cover — the nearest spot the
+   shooter has no line to. It goes for cover when it never saw who hit it,
+   when it is badly hurt, and now and then even in a fair fight; it stays
+   there a couple of seconds (reloading if it needs to), then comes back out.
+   Not while it is on the bomb, and not twice in a row without a breather. */
+function reactToHit(a, attacker) {
+  const b = a.bot
+  if (W[activeWeapon(a)?.id]?.type === 'knife') return
+  if (Math.random() < b.d.dodge) {
+    b.dodgeUntil = game.time + 0.6 + Math.random() * 0.7
+    b.strafeDir = Math.random() < 0.5 ? 1 : -1
+    b.strafeUntil = game.time + 0.25 + Math.random() * 0.3
+  }
+  if (b.cover || game.time < (b.coverCooldown ?? 0) || isObjectiveCritical(a)) return
+  const unseen = !(b.visible && b.target === attacker)
+  const p = b.d.cover * (unseen ? 1 : a.hp < 45 ? 0.8 : 0.22)
+  if (Math.random() >= p) return
+  const spot = findCover(a, attacker)
+  if (spot) b.cover = { spot, from: attacker, until: game.time + 2 + Math.random() * 2 }
+}
+
+const _thr = new THREE.Vector3()
+/** A walkable spot near the bot that the threat cannot see: [x, z, y] or null. */
+function findCover(a, threat) {
+  eyePos(threat, _thr)
+  const here = regionAt(a.pos.x, a.pos.y, a.pos.z)
+  const dThreat = Math.hypot(a.pos.x - threat.pos.x, a.pos.z - threat.pos.z)
+  let best = null, bs = Infinity
+  for (let i = 0; i < 30; i++) {
+    const p = randomNear(a.pos.x, a.pos.z, 2 + Math.random() * 7, a.pos.y)
+    const d = Math.hypot(p[0] - a.pos.x, p[1] - a.pos.z)
+    if (d < 1.2 || Math.abs(p[2] - a.pos.y) > 1.5) continue
+    // hidden standing and crouched: neither the head nor the body shows
+    if (lineClear(_thr.x, _thr.y, _thr.z, p[0], p[2] + 1.5, p[1]) || lineClear(_thr.x, _thr.y, _thr.z, p[0], p[2] + 0.8, p[1])) continue
+    if (here >= 0 && regionAt(p[0], p[2], p[1]) !== here) continue
+    // near is good; running toward the shooter to hide is not
+    const toward = Math.max(0, dThreat - Math.hypot(p[0] - threat.pos.x, p[1] - threat.pos.z))
+    const score = d + toward * 1.5
+    if (score < bs) { bs = score; best = p }
+  }
+  return best
+}
+
+/** Run to the cover spot (shooting back if the enemy shows), then sit tight. */
+function takeCover(a, dt) {
+  const b = a.bot, c = b.cover, cmd = a.cmd
+  const [x, z, y] = c.spot
+  if (b.target && b.target.alive && b.visible) fight(a, dt)
+  else {
+    aimAt(a, c.from.pos.x, c.from.pos.y + 1.4, c.from.pos.z, dt, 0.8)
+    maybeReload(a, 0.95)
+  }
+  if (Math.hypot(a.pos.x - x, a.pos.z - z) > 0.6) moveTo(a, x, z, dt, 'cover', false, y)
+  else { cmd.fwd = 0; cmd.side = 0; cmd.walk = false; if (b.d.stop > 0.5) cmd.duck = true }
+}
 
 function hear(a, pos, urgent = false) {
   const b = a.bot
@@ -347,6 +409,12 @@ function tickBot(a, dt) {
 
   keepGunOut(a)
 
+  // hit a moment ago and going for cover
+  if (b.cover) {
+    if (game.time > b.cover.until || !b.cover.from.alive) { b.cover = null; b.coverCooldown = game.time + 3 + Math.random() * 2 }
+    else { takeCover(a, dt); return }
+  }
+
   if (b.target && b.target.alive && b.visible) {
     fight(a, dt)
     return
@@ -435,6 +503,8 @@ function fight(a, dt) {
     b.stopShoot = w?.type === 'sniper' || (dist > 12 && Math.random() < b.d.stop + 0.1)
     b.strafing = Math.random() < b.d.strafe + (dist < 12 ? 0.35 : 0.15)
   }
+  // just been hit: keep moving, do not stand there for the next one
+  if (game.time < (b.dodgeUntil ?? 0) && w?.type !== 'sniper') { b.stopShoot = false; b.strafing = true }
   if (w?.type === 'knife') {
     moveTo(a, t.pos.x, t.pos.z, dt, 'knife', false, t.pos.y)
   } else if (b.stopShoot && !(game.time < b.burstPause && b.strafing)) {
