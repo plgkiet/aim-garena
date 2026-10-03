@@ -12,7 +12,8 @@ import * as THREE from 'three'
                  stroke across it) under a hard black knuckle guard (Spearmint);
                  `poly` prints a grid of cut squares instead (Polygon)
      specialist  one colour all over, perforated, with ribbed stripes of a
-                 second colour down the back (Crimson Kimono)
+                 second colour down the back (Crimson Kimono); `web` strings
+                 spider webs over it in place of the perforation (Emerald Web)
      driver      perforated leather fingers and a snakeskin back (King Snake)
 
    Each item gets its own small canvases, made once and kept. */
@@ -95,7 +96,26 @@ function panelTexture(G) {
           g.strokeStyle = 'rgba(40,36,30,0.35)'; g.lineWidth = 1; g.stroke()
         }
     } else if (G.type === 'specialist') {
-      dots(g, G.mesh, 9, 1.8)
+      if (G.web) {
+        // Emerald Web: fine pale webs over the leather, a few of them, each
+        // spokes out from a centre with sagging threads strung between
+        const r = rand(G.seed ?? 6)
+        g.strokeStyle = G.web; g.lineCap = 'round'
+        for (let k = 0; k < 3; k++) {
+          const cx = r() * SIZE, cy = r() * SIZE, n = 9 + ((r() * 5) | 0), a0 = r() * Math.PI
+          const ang = Array.from({ length: n }, (_, i) => a0 + (i / n) * Math.PI * 2 + (r() - 0.5) * 0.25)
+          g.lineWidth = 1.5
+          for (const a of ang) { g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * SIZE, cy + Math.sin(a) * SIZE); g.stroke() }
+          g.lineWidth = 1
+          for (let ring = 20 + r() * 10; ring < SIZE * 0.8; ring += 22 + r() * 18)
+            for (let i = 0; i < n; i++) {
+              const a = ang[i], b = ang[(i + 1) % n] + (i === n - 1 ? Math.PI * 2 : 0), m = (a + b) / 2
+              g.beginPath(); g.moveTo(cx + Math.cos(a) * ring, cy + Math.sin(a) * ring)
+              g.quadraticCurveTo(cx + Math.cos(m) * ring * 0.86, cy + Math.sin(m) * ring * 0.86, cx + Math.cos(b) * ring, cy + Math.sin(b) * ring)
+              g.stroke()
+            }
+        }
+      } else dots(g, G.mesh, 9, 1.8)
       // ribbed stripes along the fingers
       g.fillStyle = G.dash
       for (let i = 0; i < 4; i++) g.fillRect(0, SIZE * (0.17 + i * 0.22), SIZE, 10)

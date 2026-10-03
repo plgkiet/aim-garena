@@ -702,6 +702,12 @@ export const GLOVES = [
     finger: '#232f7c', panel: '#3f7ae6', poly: ['#3f7ae6', '#5b93f2', '#243a9e', '#2f5fd0', '#6aa2f5', '#1f2f86'], stroke: '#a9c4f2',
     pad: '#2238a6', cuff: '#2a47b8', trim: '#5b93f2', seed: 4,
   }),
+  // Emerald Web: deep green leather strung with pale webs, lime ribs down the
+  // back and lime fingers, gunmetal pads and wrist
+  glove('specialist', 'Emerald Web', {
+    finger: '#2f9a00', finger2: '#4cc000', tip: '#3c3f3e', panel: '#1a5a0a', web: 'rgba(120,220,50,0.7)', dash: '#58d000',
+    frame: '#6f7472', pad: '#484c4d', cuff: '#34383a', trim: '#4cc000', seed: 6,
+  }),
   glove('specialist', 'Crimson Kimono', {
     finger: '#d4243c', finger2: '#e2334a', panel: '#c81f37', mesh: 'rgba(40,10,40,0.45)', dash: '#2a1f4a',
     pad: '#2a1f4a', cuff: '#2a1f4a', trim: '#d4243c',
