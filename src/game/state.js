@@ -50,6 +50,7 @@ export function makeAgent({ name, team, isBot }) {
     money: 800,
     kills: 0, deaths: 0, assists: 0, mvps: 0, score: 0, hs: 0, dmgDone: 0,
     damageBy: new Map(),         // attacker id -> damage this round (for assists)
+    hitsBy: new Map(),           // attacker id -> hits this round (for the death recap)
 
     pos: new THREE.Vector3(),    // feet
     vel: new THREE.Vector3(),

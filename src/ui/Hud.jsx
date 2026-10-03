@@ -128,6 +128,7 @@ export function Hud({ locked, onRequestLock }) {
       {/* {me.alive && me.active === 3 && <KnifeMoveDebug />} */}
       {me.alive && <ProgressBar me={me} />}
       {me.alive && <ContextHint me={me} />}
+      {!me.alive && <DeathRecap me={me} />}
       {!me.alive && <Spectating view={view} />}
 
       {tabHeld && <Scoreboard />}
@@ -460,6 +461,36 @@ function ContextHint({ me }) {
   if (!hint && near) hint = `F · nhặt ${W[near.inst.id].name}`
   if (!hint) return null
   return <div className="hint">{hint}</div>
+}
+
+/* Death recap, as CS:GO prints it: who killed you and with what, what you
+   did to them this round and what they did to you. Stays up until the next
+   round starts. */
+function DeathRecap({ me }) {
+  const killer = me.killedBy != null && game.agents.find(a => a.id === me.killedBy)
+  if (!killer || killer === me) return null
+  const kill = [...game.killfeed].reverse().find(k => k.victim === me)
+  const gun = kill ? (W[kill.weapon]?.name ?? kill.weapon) : null
+  const given = killer.damageBy.get(me.id) || 0, givenHits = killer.hitsBy.get(me.id) || 0
+  const taken = me.damageBy.get(killer.id) || 0, takenHits = me.hitsBy.get(killer.id) || 0
+  return (
+    <div className="recap">
+      <div className="recap__head">
+        <b className={killer.team.toLowerCase()}>{killer.name}</b> hạ bạn{gun ? <> bằng <b>{gun}</b></> : null}
+        {kill?.headshot ? ' (headshot)' : ''}
+      </div>
+      <div className="recap__row">
+        <span>Sát thương bạn gây ra</span>
+        <b className={given > 0 ? 'good' : ''}>{given}</b>
+        <small>{givenHits} phát trúng</small>
+      </div>
+      <div className="recap__row">
+        <span>Sát thương bạn nhận</span>
+        <b className="bad">{taken}</b>
+        <small>{takenHits} phát trúng</small>
+      </div>
+    </div>
+  )
 }
 
 function Spectating({ view }) {

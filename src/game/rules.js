@@ -111,6 +111,7 @@ export function startRound(fresh = false) {
     a.planting = 0; a.defusing = 0
     a.flashUntil = 0; a.flashAmount = 0
     a.damageBy.clear()
+    a.hitsBy.clear()
     a.killedBy = null
     const ws = a.w
     ws.punch.x = ws.punch.y = 0

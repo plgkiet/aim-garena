@@ -120,6 +120,7 @@ export function applyDamage(victim, attacker, hp, ap, info) {
   if (attacker) {
     attacker.dmgDone += dealt
     victim.damageBy.set(attacker.id, (victim.damageBy.get(attacker.id) || 0) + dealt)
+    if (dealt > 0) victim.hitsBy.set(attacker.id, (victim.hitsBy.get(attacker.id) || 0) + 1)
   }
   emit('damage', { victim, attacker, amount: dealt, info })
   if (victim.hp <= 0) killAgent(victim, attacker, info)

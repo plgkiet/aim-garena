@@ -1332,3 +1332,15 @@ canvas { display: block; cursor: crosshair; }
 .knife-debug__move.on { color: #ffd250; }
 .knife-debug__list { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; max-width: 420px; }
 .knife-debug__list span.cur { color: #ffd250; text-decoration: underline; }
+
+/* ---- death recap: damage given to / taken from your killer ---- */
+.recap { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); min-width: 300px; padding: 10px 18px 12px; background: var(--panel-strong); border-top: 2px solid var(--red); font: 500 15px 'Barlow Condensed', sans-serif; letter-spacing: 0.02em; color: #d8dde2; pointer-events: none; }
+.recap__head { font-size: 17px; margin-bottom: 8px; text-align: center; }
+.recap__head b { font-weight: 700; color: #fff; }
+.recap__head b.ct { color: var(--ct); }
+.recap__head b.t { color: var(--t); }
+.recap__row { display: grid; grid-template-columns: 1fr auto 86px; align-items: baseline; gap: 12px; padding: 2px 0; }
+.recap__row b { font: 700 24px 'Barlow Condensed', sans-serif; color: #fff; text-align: right; }
+.recap__row b.good { color: #7be07b; }
+.recap__row b.bad { color: #ff7a6e; }
+.recap__row small { color: var(--dim); font-size: 13px; }
