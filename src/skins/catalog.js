@@ -813,19 +813,22 @@ export const LEGACY_IDS = {
    own, and is named Blue Gem when the pattern came out nearly all blue. */
 export const PATTERN_MAX = 1000
 
-/* Blue Gems. A pattern number is a gem or it is not (caseHardenedInfo), 33 of
-   the 1000 are; the AK-47 rolls its number evenly, so 3.3% of Case Hardened
-   AKs are gems. There are eight Case Hardened knives to the one AK, and a
-   knife is not that much rarer than a Covert, so rolled the same way a knife
-   gem would come out about three times as often as an AK gem. Instead the
-   knives' roll is weighted so that a Blue Gem knife (all eight together)
-   drops exactly as often as a Blue Gem AK: about once in 25,000 cases each. */
+/* Blue Gems. A pattern number is a gem or it is not (caseHardenedInfo). A
+   Case Hardened gun is a gem BLUE_GEM_CHANCE of the time. The knives' roll is
+   then weighted so that a Blue Gem knife (all of them together) drops no
+   more often than a Blue Gem gun (all of them together), and never at a
+   higher rate per knife than a gun's. */
+/* How often a Case Hardened drop is a Blue Gem. 33 of the 1000 pattern numbers
+   are gems (3.3% if every number were as likely); the roll is weighted down
+   to this instead, which leaves the patterns themselves, and so every drop
+   already in an inventory, exactly as they were. */
+export const BLUE_GEM_CHANCE = 0.013
 let gemTable = null
 function gemOdds() {
   if (gemTable) return gemTable
   const gems = [], plain = []
   for (let n = 1; n <= PATTERN_MAX; n++) (caseHardenedInfo(n).gem ? gems : plain).push(n)
-  const base = gems.length / PATTERN_MAX
+  const base = BLUE_GEM_CHANCE
   // how often a case gives a Case Hardened gun, and a Case Hardened knife
   const perCase = kind => {
     let p = 0
