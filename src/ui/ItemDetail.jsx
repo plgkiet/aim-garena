@@ -214,9 +214,10 @@ export function ItemDetail({ uid, onBack }) {
               {tier.label}
             </b>
           </span>
-          {item.patternNo && (
+          {/* a Doppler's ordinary phase is not shown; its stone phase is */}
+          {item.patternNo && (!item.phase || item.gem) && (
             <span>
-              <small>{item.phase ? "Phase" : "Pattern"}</small>
+              <small>{item.phase ? "Loại" : "Pattern"}</small>
               <b>
                 {item.phase ? `${item.gem ? "💎 " : ""}${item.phase}` : `#${item.patternNo}${item.gem ? " · 💎 Blue Gem" : ""}`}
               </b>

@@ -132,6 +132,7 @@ Chuyển động theo đúng tham số của Source engine: ma sát, gia tốc, 
   - Doppler: Phase 1–4 (pha màu đen, tím, hồng, xanh), hoặc phase hiếm Ruby / Sapphire / Black Pearl.
   - Gamma Doppler: Phase 1–4 (pha màu xanh lá, xanh ngọc), hoặc phase hiếm Emerald.
   - Lần rơi thường luôn ra Phase 1–4 với tỉ lệ đều nhau. Phase hiếm chỉ ra từ lượt rút 0.03% ở trên.
+  - Phase thường không hiện lên tên hay trang chi tiết: món chỉ ghi "Doppler" hoặc "Gamma Doppler", khác nhau ở màu. Chỉ phase hiếm mới có tên, ví dụ "Doppler (Ruby)".
   - Glock-18 Gamma Doppler (chỉ khoá nòng mang màu) cũng có phase y như dao.
   - Doppler có ở Karambit, Flip, Huntsman, Skeleton, Stiletto, Bowie, Butterfly, M9 Bayonet. Gamma Doppler có ở Karambit, Flip, Huntsman, Bowie, Butterfly, M9 Bayonet.
 - **Kho đồ** (`/inventory`): xem, trang bị và gỡ skin cho từng súng, dao và găng. Trang chi tiết món đồ có pattern, Case Hardened, đá quý, v.v.
