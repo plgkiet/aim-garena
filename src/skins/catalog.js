@@ -83,7 +83,9 @@ export const GUN_SKINS = [
   // is squeezed (vSpan) to fit, and the face lands on the frame
   skin('deagle', 'The Scream', 'covert', 'gem', ['#4a3528'], {
     image: '/textures/scream.jpg', fit: 'band', metal: 0.15, rough: 0.55, vSpan: 1.6, paintChrome: true,
-    layout: { plain: true, u0: 0, u1: 1, v0: 0.12, v1: 1, cropV: [0.37, 1], flip: true },
+    // (set a little high, so the face sits mid-way up the gun's side, across
+    // the slide and frame, instead of down on the frame's lower edge)
+    layout: { plain: true, u0: 0, u1: 1, v0: 0.2, v1: 1.08, cropV: [0.37, 1], flip: true },
   }),
   // a tiled background with one emblem set mid-gun (tileCrop / emblem in patterns.js)
   skin('m4a4', 'Bape Shark', 'covert', 'gem', ['#4c8fd6'], {
@@ -687,6 +689,12 @@ export const GLOVES = [
   glove('sport', 'Amphibious', {
     finger: '#1f5fd6', finger2: '#2f74e8', panel: '#1f4fd8', blobs: ['#1a2cc0', '#2238cc', '#4a3cc8', '#1634a8'], mesh: '#4fb0f0', dash: '#ffffff',
     frame: '#e9eef6', pad: '#2458d8', cuff: '#e9eef6', trim: '#1f5fd6', seed: 9,
+  }),
+  // Omega: slate-grey leather, a moulded triangle mesh down the back with
+  // gold dashes, and yellow at the frame, the knuckles and the wrist
+  glove('sport', 'Omega', {
+    finger: '#23282b', finger2: '#394043', panel: '#1c2124', tri: true, mesh: 'rgba(120,150,158,0.7)', dash: '#d99a00',
+    frame: '#d99a00', pad: '#2a2f32', cuff: '#d99a00', trim: '#1c2124',
   }),
   glove('driver', 'King Snake', {
     finger: '#d6cfbb', panel: '#8f8877', scales: ['#3e3a33', '#857e6d', '#d6d0bf'], pad: '#c9a85a',
