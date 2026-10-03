@@ -100,7 +100,7 @@ export function GameLoop({ onLockChange }) {
     localCmd.walk = false          // Shift crouches in this build (see duck)
     // PUBG-style lean on Q / E (hold) — a setting; switched off, Q is the
     // quick switch instead (see below) and E does nothing
-    const leanOn = game.settings.lean !== false
+    const leanOn = game.settings.lean === true
     localCmd.lean = canAct && leanOn ? (k.KeyE ? 1 : 0) - (k.KeyQ ? 1 : 0) : 0
     // read the click before it is thrown away: dead, it changes who you watch.
     // A quick click (a trackpad tap, a fast flick) can go down and come back

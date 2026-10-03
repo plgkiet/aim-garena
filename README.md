@@ -61,7 +61,7 @@ Bot nào cũng có góc nhìn và tầm nhìn giới hạn, bị khói che, bị
 | `W A S D` | Di chuyển |
 | `Shift` / `Ctrl` / `C` | Ngồi (không phát tiếng bước chân) |
 | `Space` | Nhảy |
-| `Q` / `E` | Nghiêng trái / phải (tự giơ súng ngắm). Có công tắc **Nghiêng người nhắm** ở menu chính và menu tạm dừng: khi tắt, `Q` thành đổi nhanh về vũ khí vừa dùng (như Q trong CS:GO), `E` không làm gì |
+| `Q` / `E` | Nghiêng trái / phải (tự giơ súng ngắm). Có công tắc **Nghiêng người nhắm** ở menu chính và menu tạm dừng, mặc định là tắt: khi tắt, `Q` thành đổi nhanh về vũ khí vừa dùng (như Q trong CS:GO), `E` không làm gì |
 | Chuột trái | Bắn |
 | Chuột phải | Ngắm / bật scope / đâm nặng bằng dao |
 | `R` | Nạp đạn (khi cầm dao: múa dao) |

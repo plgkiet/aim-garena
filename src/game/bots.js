@@ -446,8 +446,8 @@ function fight(a, dt) {
     cmd.fwd = 0; cmd.side = b.strafing ? b.strafeDir : 0
   }
   // peek-lean while holding still to shoot, toward whichever side has room
-  // (only when leaning is switched on in the settings: off, nobody leans)
-  if (wantStop && dist > 8 && w?.type !== 'knife' && game.settings.lean !== false) {
+  // (only when leaning is switched on in the settings: off, the default, nobody leans)
+  if (wantStop && dist > 8 && w?.type !== 'knife' && game.settings.lean === true) {
     if (b.leanFor !== t) {
       b.leanFor = t
       b.leanDir = Math.random() < b.d.strafe + 0.2 ? sideWithRoom(a) : 0

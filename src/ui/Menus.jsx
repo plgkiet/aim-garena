@@ -42,7 +42,7 @@ function patchPrefs(p) {
   savePrefs({ ...loadPrefs(), ...p });
 }
 
-/* Q / E: lean-and-aim when that is switched on (the default); switched off,
+/* Q / E: lean-and-aim when that is switched on; switched off (the default),
    Q is CS:GO's quick switch (the weapon you held before) and E does nothing. */
 const LEAN_KEYS = [["Q", "E"], "nghiêng trái / phải"];
 const SNAP_KEYS = [["Q"], "đổi nhanh về súng trước (snap)"];
@@ -66,7 +66,7 @@ const KEYS = [
   [["Esc"], "tạm dừng"],
 ];
 
-function Controls({ lean = true }) {
+function Controls({ lean = false }) {
   return (
     <div className="controls">
       {KEYS.map((row) => (row === LEAN_KEYS && !lean ? SNAP_KEYS : row)).map(([keys, what]) => (
@@ -141,7 +141,7 @@ export function MainMenu({ onStart, onCase, onInventory, onTradeUp }) {
   const [size, setSize] = useState(prefs.teamSize || 5);
   const [sens, setSens] = useState(prefs.sensitivity || 2);
   const [name, setName] = useState(prefs.name || "Bạn");
-  const [lean, setLean] = useState(prefs.lean !== false);
+  const [lean, setLean] = useState(prefs.lean === true);
   const [mode, setMode] = useState(prefs.mode || "comp");
   // weapons since taken off the list map to what replaced them
   const [aimWeapon, setAimWeapon] = useState({ ssg08: "p90", deagle: "ak47", usp: "ak47", glock: "ak47", p250: "ak47" }[prefs.aimWeapon] || prefs.aimWeapon || "ak47");
@@ -482,7 +482,7 @@ function Field({ label, wide = false, children }) {
 export function PauseMenu({ onResume }) {
   const [muted, setM] = useState(isMuted());
   const [sens, setSens] = useState(game.settings.sensitivity);
-  const [lean, setLeanState] = useState(game.settings.lean !== false);
+  const [lean, setLeanState] = useState(game.settings.lean === true);
   const setLean = (v) => {
     setLeanState(v);
     game.settings.lean = v;

@@ -78,10 +78,26 @@ function ball(parent, mat, r, [x, y, z], s = [1, 1, 1]) {
 const V = (x, y, z) => new THREE.Vector3(x, y, z)
 const RAKE = 0.32
 
-/** A pistol grip, raked forward at the top. Returns the grip anchor. */
+/** A pistol grip, raked forward at the top. Returns the grip anchor.
+ *  One moulded piece, like the pistols' frames: the raked body runs straight
+ *  up into a flat top that sits flush under the receiver, flaring back a
+ *  little at the tang. (A raked box alone only touches the receiver along
+ *  its front edge and leaves a wedge of daylight behind it.) */
 function pistolGrip(g, mat, { h = 0.105, w = 0.03, d = 0.046, rake = RAKE, y = -0.03, z = 0.012 } = {}) {
-  box(g, mat, [w, h, d], [0, y, z], [-rake, 0, 0])
-  return { pos: V(0, y + 0.005, z), dir: V(0, Math.cos(rake), -Math.sin(rake)) }
+  const s = Math.sin(rake), c = Math.cos(rake)
+  const top = y + 0.056                                   // just inside the receiver's underside
+  // the foot of the grip: its two bottom corners, [z, y]
+  const bz = z + s * h / 2, by = y - c * h / 2
+  const front = [bz - c * d / 2, by - s * d / 2], back = [bz + c * d / 2, by + s * d / 2]
+  // each side runs up along the rake to the flat top
+  const up = ([pz, py], to) => [pz - s * (to - py) / c, to]
+  const tang = up(back, top - 0.014)
+  profile(g, mat, [
+    front, up(front, top),
+    [tang[0] + 0.009, top], [tang[0] + 0.006, top - 0.008], tang,
+    back,
+  ], w)
+  return { pos: V(0, y + 0.005, z), dir: V(0, c, -s) }
 }
 function triggerGuard(g, mat, z = -0.045, y = -0.002) {
   box(g, mat, [0.008, 0.006, 0.06], [0, y - 0.018, z - 0.004])
@@ -287,7 +303,9 @@ function m4(g, M, silenced) {
   box(g, M.black, [0.044, 0.045, 0.24], [0, 0.043, -0.04])
   profile(g, M.black, [[-0.165, 0.035], [-0.065, 0.035], [-0.072, -0.008], [-0.158, -0.008]], 0.042)
   // upper receiver, rail, rear sight, charging handle, forward assist, port
-  box(g, M.black, [0.042, 0.046, 0.26], [0, 0.088, -0.07])
+  // (the upper runs forward into the delta ring: stopping short of it left a
+  // sliver of daylight between the receiver and the handguard)
+  box(g, M.black, [0.042, 0.046, 0.278], [0, 0.088, -0.079])
   box(g, M.dark, [0.024, 0.01, 0.28], [0, 0.116, -0.08])
   for (let i = 0; i < 12; i++) box(g, M.black, [0.027, 0.005, 0.009], [0, 0.123, 0.05 - i * 0.022])
   box(g, M.black, [0.02, 0.03, 0.025], [0, 0.135, 0.02])
@@ -303,7 +321,7 @@ function m4(g, M, silenced) {
     for (let i = 0; i < 7; i++) cyl(g, M.black, 0.0285, 0.006, [0, 0.086, -0.235 - i * 0.032])
     box(g, M.black, [0.024, 0.01, 0.22], [0, 0.116, -0.33])
   }
-  cyl(g, M.black, 0.03, 0.014, [0, 0.086, -0.215])                         // delta ring
+  cyl(g, M.black, 0.03, 0.02, [0, 0.086, -0.218])                          // delta ring, seated against the receiver
   // A-frame front sight on the gas block
   box(g, M.black, [0.026, 0.022, 0.03], [0, 0.096, -0.45])
   for (const s of [-1, 1]) box(g, M.black, [0.004, 0.04, 0.014], [s * 0.009, 0.126, -0.45], [0, 0, -s * 0.22])
