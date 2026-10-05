@@ -9,6 +9,7 @@ import { buildKnifeModel, paintModelBlade, silverParts } from './knives'
 import { KNIVES } from '../lib/knives'
 import { normalizeKnife, keepOnly, applyPhoto } from '../lib/knifeSetup'
 import { skinReady } from './patterns'
+import { gloveReady } from './gloves'
 
 /* Item pictures, rendered from the real models rather than drawn: one small
    offscreen renderer lays each weapon on its side, lit by a studio
@@ -111,7 +112,11 @@ function glovePair(item) {
 export async function buildItemModel(item) {
   if (item.image) await skinReady(item)   // don't show a photo finish before its picture has loaded
   if (item.kind === 'gun') return buildGun(item.weapon, { skin: item }).group
-  if (item.kind === 'glove') return glovePair(item)
+  if (item.kind === 'glove') {
+    const pair = glovePair(item)
+    await gloveReady(item)   // the pictures on the backs of the hands
+    return pair
+  }
   const model = item.model ? await modelKnife(item.knife, item.finish ? item : null) : buildKnifeModel(item.knife, item)
   // knives stand blade-up with the flat on Z: turn the flat to the camera,
   // then lay the blade across the picture, tip up and to the right

@@ -908,6 +908,8 @@ export function variantOf(item, patternNo) {
     blue,
     gem,
     detail: `Pattern #${patternNo}${gem ? ' · Blue Gem' : ''}`,
+    // the two sides are patterned apart (a gem is blue on both anyway)
+    ...(!gem && { back: { chSide: 1 } }),
     ...(gem && { gemColor: GEM_COLOR['Blue Gem'] }),
   }
 }

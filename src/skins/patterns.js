@@ -332,7 +332,7 @@ const P = {
   /** Case hardened: blue and gold patina. */
   /** Case Hardened: see caseHardenedField below. */
   caseHardened(g, s) {
-    field(g, caseHardenedField(s.patternNo ?? s.seed))
+    field(g, caseHardenedField(s.patternNo ?? s.seed, s.chSide ?? 0))
   },
 
   /** Digital camo: square pixels stepped out of smooth noise. */
@@ -807,14 +807,19 @@ function wear(g, skin) {
    blue/gold mix, and a few percent come out nearly all blue: the "Blue Gems". */
 
 /** How blue a pattern is (0..1) and whether it counts as a Blue Gem. Cheap.
-    A Blue Gem is all blue, not just mostly: no gold anywhere on the weapon. */
+    A Blue Gem is all blue, not just mostly: no gold anywhere on the weapon.
+    `sides` is the share of blue on each side (the one you look at, then the
+    back): the two are heated apart, so they differ, and now and then the
+    front comes out all blue over a patchy back (a "playside" blue, not a gem). */
 export function caseHardenedInfo(patternNo) {
   const r = rng(patternNo * 31 + 7)
   const x = r()
   // ~3% of patterns are gems; the rest spread over a 20-70% blue mix
   const gem = x < 0.03
   const blue = gem ? 1 : 0.2 + r() * 0.5
-  return { blue, gem }
+  const playside = !gem && r() < 0.04
+  const sides = gem ? [1, 1] : [playside ? 1 : blue, 0.15 + r() * 0.55]
+  return { blue, gem, playside, sides }
 }
 
 const CH_BLUE_LIGHT = hex('#7cc0f5'), CH_BLUE = hex('#2f6fd8'), CH_BLUE_DEEP = hex('#18307f')
@@ -822,8 +827,9 @@ const CH_RIM = hex('#6b3aa6'), CH_RIM_DARK = hex('#26134a')
 const CH_GOLD = hex('#c7861c'), CH_GOLD_LIGHT = hex('#f2c64e'), CH_SILVER = hex('#c9ced6')
 const CH_PURPLE = hex('#8a5bb8')
 
-function caseHardenedField(patternNo) {
-  const base = patternNo * 97 + 13
+function caseHardenedField(patternNo, side = 0) {
+  // (the back is a pattern of its own, not the front seen through)
+  const base = patternNo * 97 + 13 + side * 50021
   const n = noise2(base), wx = noise2(base + 1), wy = noise2(base + 2), tone = noise2(base + 3), fine = noise2(base + 4)
   const heat = (u, v) => {
     // warp the lookup by two other noises: that is what makes the pools run like oil
@@ -834,7 +840,7 @@ function caseHardenedField(patternNo) {
   // pick the blue/gold threshold so the whole artwork (every weapon's parts,
   // tall pistols and knives included) comes out at this pattern's share of
   // blue; a gem puts it past the hottest point, so nothing turns gold
-  const { blue, gem } = caseHardenedInfo(patternNo)
+  const blue = caseHardenedInfo(patternNo).sides[side], gem = blue >= 1
   const RIM = 0.016
   const samples = []
   for (let j = 0; j < 48; j++) for (let i = 0; i < 128; i++) samples.push(heat((i + 0.5) / 128, (j + 0.5) / 48))
@@ -880,6 +886,12 @@ export function paintSkin(skin) {
     c.height = TEX_H * 2
     const front = { ...skin, id: `${skin.id}:front`, back: null }
     const back = { ...skin, ...skin.back, id: `${skin.id}:back`, back: null }
+    // (two painted sides are there at once; only a photo has to be waited for)
+    if (!front.image && !back.image) {
+      g.drawImage(paintSkin(front), 0, 0); g.drawImage(paintSkin(back), 0, TEX_H)
+      cache.set(skin.id, c)
+      return c
+    }
     ready.set(skin.id, Promise.all([skinReady(front), skinReady(back)]).then(([a, b]) => {
       g.drawImage(a, 0, 0); g.drawImage(b, 0, TEX_H)
       return c

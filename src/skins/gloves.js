@@ -178,11 +178,18 @@ function cuffTexture(G) {
 /* `logo`: a picture set on the back of the hand once it has loaded, turned
    so it stands upright when the fingers point up (the panel's u runs along
    the hand). `logo.crop` [x0, y0, x1, y1] picks the part of the file. */
+const logoWaits = new WeakMap()
+/** Resolves once the pictures on a glove's hands (built already) are painted in. */
+export const gloveReady = item => Promise.all(logoWaits.get(item.glove) ?? [])
 function withLogo(tex, G, side) {
   if (!G.logo) return tex
   // `logo.left` / `logo.right`: a different picture on each hand
   const L = G.logo[side] ?? G.logo
   const img = new Image()
+  let done
+  if (!logoWaits.has(G)) logoWaits.set(G, [])
+  logoWaits.get(G).push(new Promise(res => { done = res }))
+  img.onerror = () => done()
   img.onload = () => {
     const g = tex.image.getContext('2d')
     const [x0, y0, x1, y1] = L.crop ?? [0, 0, 1, 1]
@@ -204,6 +211,7 @@ function withLogo(tex, G, side) {
     g.lineWidth = 6; g.strokeStyle = L.border ?? '#f4f1ea'; g.stroke()
     g.restore()
     tex.needsUpdate = true
+    done()
   }
   img.src = L.src
   return tex
