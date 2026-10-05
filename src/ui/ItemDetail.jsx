@@ -219,9 +219,9 @@ export function ItemDetail({ uid, onBack }) {
             <span>
               <small>{item.phase ? "Loại" : "Pattern"}</small>
               <b>
-                {item.phase && item.gem && <i className="gem-ico" />}
+                {item.phase && item.gem && <i className="gem-ico" style={{ "--gem": item.gemColor }} />}
                 {item.phase ? item.phase : `#${item.patternNo}`}
-                {!item.phase && item.gem && <> · <i className="gem-ico" />Blue Gem</>}
+                {!item.phase && item.gem && <> · <i className="gem-ico" style={{ "--gem": item.gemColor }} />Blue Gem</>}
               </b>
             </span>
           )}

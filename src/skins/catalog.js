@@ -874,6 +874,9 @@ export function rollPattern(item) {
   return from[Math.floor(Math.random() * from.length)]
 }
 
+/* The colour of each stone, for its gem mark. */
+const GEM_COLOR = { Ruby: '#ff3348', Sapphire: '#1f4fe0', Emerald: '#1fcf6a', 'Black Pearl': '#7b56c9', 'Blue Gem': '#22c8f0' }
+
 export function variantOf(item, patternNo) {
   if (!item?.seeded || !patternNo) return item
   if (item.phased) {
@@ -889,7 +892,7 @@ export function variantOf(item, patternNo) {
       // every phase shows as plain "Doppler": the phase is in the look, not
       // in the name. A stone (the jackpot) is told by its gem mark and `detail`
       name: FINISH[item.phased].name,
-      ...(ph.rare ? { detail: ph.label } : {}),
+      ...(ph.rare ? { detail: ph.label, gemColor: GEM_COLOR[ph.label] } : {}),
       // the M9 Bayonet's model file is a Sapphire as it comes: that phase
       // shows the file's own blade instead of a painted one
       ...(item.knife === 'm9a' && item.phased === 'doppler' && ph.label === 'Sapphire' && { finish: false }),
@@ -905,6 +908,7 @@ export function variantOf(item, patternNo) {
     blue,
     gem,
     detail: `Pattern #${patternNo}${gem ? ' · Blue Gem' : ''}`,
+    ...(gem && { gemColor: GEM_COLOR['Blue Gem'] }),
   }
 }
 

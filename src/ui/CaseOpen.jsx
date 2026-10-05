@@ -690,6 +690,7 @@ export function MiniItem({ item, children, onClick, active }) {
       className={`mini-item spin-tile--${item.tier}${active ? " is-on" : ""}${item.gem ? " is-gem" : ""}`}
       onClick={onClick}
       title={item.detail || undefined}
+      style={item.gemColor ? { "--gem": item.gemColor } : undefined}
     >
       {url ? <img src={url} alt="" /> : <div className="mini-item__ph" />}
       <small>{itemTitle(item)}</small>
