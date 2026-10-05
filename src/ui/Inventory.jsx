@@ -50,7 +50,7 @@ export function Inventory({ onBack, onCase, onTradeUp, onGallery, onOpen }) {
           </button>
           <div className="row gap-8">
             {/* TEST ONLY: one of every skin and knife in the case. Comment out when done testing. */}
-            {/* <button
+            <button
               type="button"
               className="btn btn--ghost btn--sm"
               onClick={() => ITEMS.forEach((it) => inventory.add(it.id))}
@@ -74,7 +74,7 @@ export function Inventory({ onBack, onCase, onTradeUp, onGallery, onOpen }) {
               onClick={() => setClearing(true)}
             >
               Dọn full skin
-            </button> */}
+            </button>
             {/* END TEST ONLY */}
 
             {/* the whole MixiGaming set at once: M4A4, Deagle, M9 Bayonet, gloves */}

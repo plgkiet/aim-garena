@@ -886,10 +886,10 @@ export function variantOf(item, patternNo) {
       id: `${item.id}#${n}`, baseId: item.id, patternNo: n,
       seed: item.seed * 7 + n * 131,
       phase: ph.label, gem: !!ph.rare,
-      // a mix shows as plain "Doppler": the phase is in the look, not in the
-      // name. Only a stone is named (it is the jackpot)
-      name: ph.rare ? `${FINISH[item.phased].name} (${ph.label})` : FINISH[item.phased].name,
-      ...(ph.rare ? { detail: `💎 ${ph.label}` } : {}),
+      // every phase shows as plain "Doppler": the phase is in the look, not
+      // in the name. A stone (the jackpot) is told by its gem mark and `detail`
+      name: FINISH[item.phased].name,
+      ...(ph.rare ? { detail: ph.label } : {}),
       // the M9 Bayonet's model file is a Sapphire as it comes: that phase
       // shows the file's own blade instead of a painted one
       ...(item.knife === 'm9a' && item.phased === 'doppler' && ph.label === 'Sapphire' && { finish: false }),
@@ -904,7 +904,6 @@ export function variantOf(item, patternNo) {
     seed: 5000 + patternNo,
     blue,
     gem,
-    name: gem ? `${item.name} (Blue Gem)` : item.name,
     detail: `Pattern #${patternNo}${gem ? ' · Blue Gem' : ''}`,
   }
 }
